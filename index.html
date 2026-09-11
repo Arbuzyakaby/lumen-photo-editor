@@ -3,215 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
 <title>Lumen — фоторедактор</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌅</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --accent:#ffd60a;
-  --text:rgba(255,255,255,.95);
-  --muted:rgba(255,255,255,.55);
-  --spring:cubic-bezier(.34,1.56,.64,1);
-  --smooth:cubic-bezier(.22,1,.36,1);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;background:#0b0b10;color:var(--text);
-  font:500 14px/1.3 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",system-ui,sans-serif;
-  -webkit-font-smoothing:antialiased;user-select:none}
-button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
-svg{display:block}
-
-/* ---------- Ambient background ---------- */
-.ambient{position:fixed;inset:0;z-index:0;overflow:hidden}
-.ambient .amb{position:absolute;inset:-15%;background-size:cover;background-position:center;
-  filter:blur(70px) saturate(1.7) brightness(.75);transform:scale(1.2);opacity:0;transition:opacity 1.2s var(--smooth)}
-.ambient .amb.on{opacity:1}
-.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;animation:float 22s ease-in-out infinite alternate}
-.b1{width:48vmax;height:48vmax;left:-12vmax;top:-14vmax;background:#5e5ce6}
-.b2{width:40vmax;height:40vmax;right:-10vmax;top:10vmax;background:#ff375f;animation-delay:-7s}
-.b3{width:44vmax;height:44vmax;left:25vmax;bottom:-22vmax;background:#ff9f0a;animation-delay:-13s}
-@keyframes float{to{transform:translate(8vmax,6vmax) scale(1.15)}}
-.ambient::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.55))}
-
-/* ---------- Liquid glass ---------- */
-.glass{position:relative;isolation:isolate;
-  background:linear-gradient(135deg,rgba(255,255,255,.17),rgba(255,255,255,.05));
-  -webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%);
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.5),inset 0 -1px 2px rgba(0,0,0,.18),
-             0 24px 60px -16px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.18)}
-.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;z-index:-1;pointer-events:none;
-  background:linear-gradient(160deg,rgba(255,255,255,.75),rgba(255,255,255,.08) 30%,rgba(255,255,255,0) 60%,rgba(255,255,255,.4));
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
-  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
-.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;
-  background:radial-gradient(260px circle at var(--mx,50%) var(--my,-60%),rgba(255,255,255,.22),transparent 65%);
-  opacity:0;transition:opacity .5s var(--smooth)}
-.glass:hover::after{opacity:1}
-
-/* ---------- Layout ---------- */
-.app{position:relative;z-index:1;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;gap:14px;
-  padding:14px max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
-
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;border-radius:22px;padding:8px 8px 8px 16px;
-  width:min(980px,100%);margin:0 auto;animation:dropIn .9s var(--spring) both}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-.01em}
-.brand i{width:26px;height:26px;border-radius:8px;background:conic-gradient(from 200deg,#ff375f,#ff9f0a,#ffd60a,#30d158,#0a84ff,#bf5af2,#ff375f);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 4px 14px rgba(255,120,80,.45)}
-.fname{color:var(--muted);font-size:13px;max-width:30vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.actions{display:flex;gap:6px;align-items:center}
-
-.btn{height:38px;min-width:38px;border-radius:19px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 10px;
-  transition:transform .45s var(--spring),background .3s,opacity .3s}
-.btn svg{width:19px;height:19px}
-.btn:hover{background:rgba(255,255,255,.1)}
-.btn:active{transform:scale(.88)}
-.btn:disabled{opacity:.3;pointer-events:none}
-.btn.primary{background:var(--accent);color:#1a1400;font-weight:600;padding:0 16px;box-shadow:0 6px 20px -4px rgba(255,214,10,.55),inset 0 1px 0 rgba(255,255,255,.6)}
-.btn.primary:hover{background:#ffe03d}
-.btn.pill{background:rgba(255,255,255,.12);padding:0 14px}
-.sep{width:1px;height:22px;background:rgba(255,255,255,.15);margin:0 4px}
-
-/* ---------- Stage ---------- */
-.stage{position:relative;min-height:0;display:flex;align-items:center;justify-content:center}
-.photo{position:relative;max-width:100%;max-height:100%;display:flex;border-radius:18px;overflow:hidden;
-  box-shadow:0 40px 90px -20px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08);
-  transition:transform .6s var(--spring),border-radius .4s}
-.photo canvas{display:block;max-width:calc(100vw - 28px);max-height:calc(100dvh - 330px);width:auto;height:auto}
-.photo #orig{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;opacity:0;transition:opacity .35s var(--smooth)}
-.photo.comparing #orig{opacity:1}
-.photo.pop{animation:pop .9s var(--spring)}
-@keyframes pop{from{transform:scale(.9);filter:blur(12px);opacity:0}to{transform:none;filter:none;opacity:1}}
-.photo.bump{animation:bump .5s var(--spring)}
-@keyframes bump{50%{transform:scale(.975)}}
-
-.badge{position:absolute;top:14px;left:50%;transform:translate(-50%,-8px);opacity:0;border-radius:14px;padding:6px 14px;font-size:12px;
-  font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:all .4s var(--spring);pointer-events:none;z-index:3}
-.stage.comparing .badge{opacity:1;transform:translate(-50%,0)}
-
-.dropzone{position:absolute;inset:6px;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-  opacity:0;transform:scale(.97);pointer-events:none;transition:all .4s var(--spring);z-index:5;
-  outline:2px dashed rgba(255,255,255,.45);outline-offset:-14px;font-size:17px;font-weight:600}
-.dropzone svg{width:44px;height:44px;animation:bob 1.4s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-6px)}}
-.stage.drag .dropzone{opacity:1;transform:none}
-
-/* ---------- Dock ---------- */
-.dock{width:min(760px,100%);margin:0 auto;border-radius:30px;padding:10px 10px 14px;animation:riseIn 1s .1s var(--spring) both}
-@keyframes riseIn{from{transform:translateY(40px) scale(.96);opacity:0}}
-@keyframes dropIn{from{transform:translateY(-30px) scale(.97);opacity:0}}
-
-.seg{position:relative;display:grid;grid-template-columns:repeat(3,1fr);width:min(360px,100%);margin:0 auto 10px;
-  padding:3px;border-radius:14px;background:rgba(0,0,0,.25);box-shadow:inset 0 1px 2px rgba(0,0,0,.3)}
-.seg button{position:relative;z-index:1;height:32px;border-radius:11px;font-size:13px;font-weight:600;color:var(--muted);transition:color .3s}
-.seg button.on{color:#fff}
-.seg .pill{position:absolute;top:3px;left:3px;bottom:3px;width:calc((100% - 6px)/3);border-radius:11px;
-  background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,.14));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 10px rgba(0,0,0,.25);
-  transition:transform .55s var(--spring)}
-
-.panels{position:relative;height:148px}
-.panel{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:12px;
-  opacity:0;transform:translateY(12px) scale(.98);filter:blur(6px);pointer-events:none;
-  transition:opacity .45s var(--smooth),transform .6s var(--spring),filter .45s var(--smooth)}
-.panel.on{opacity:1;transform:none;filter:none;pointer-events:auto}
-
-/* slider row */
-.srow{display:flex;align-items:center;gap:12px;padding:0 10px}
-.srow .lbl{width:112px;font-size:13px;font-weight:600}
-.srow .val{width:44px;text-align:right;font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600;transition:transform .3s var(--spring)}
-.srow.swap .lbl,.srow.swap .val{animation:swapIn .5s var(--spring)}
-@keyframes swapIn{from{opacity:0;transform:translateY(6px)}}
-.mini{width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .35s var(--spring)}
-.mini:hover{color:#fff;background:rgba(255,255,255,.1)}
-.mini:active{transform:rotate(-120deg) scale(.85)}
-.mini svg{width:16px;height:16px}
-
-input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:30px;background:transparent;margin:0;cursor:pointer;--a:50%;--b:50%}
-input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;
-  background:linear-gradient(90deg,transparent var(--a),var(--accent) var(--a),var(--accent) var(--b),transparent var(--b)),
-             repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,transparent 1px 10%),rgba(255,255,255,.14)}
-input[type=range]::-moz-range-track{height:6px;border-radius:3px;
-  background:linear-gradient(90deg,transparent var(--a),var(--accent) var(--a),var(--accent) var(--b),transparent var(--b)),rgba(255,255,255,.14)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-9px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#fff,#e9e9ee);box-shadow:0 3px 10px rgba(0,0,0,.4),inset 0 -1px 2px rgba(0,0,0,.15);
-  transition:transform .35s var(--spring)}
-input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.4)}
-input[type=range]:active::-webkit-slider-thumb{transform:scale(1.25)}
-
-/* chips */
-.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 6px 2px;scroll-snap-type:x mandatory;scrollbar-width:none;
-  mask:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 16px),transparent)}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;width:72px;padding:2px 0;color:var(--muted);
-  transition:color .3s,transform .45s var(--spring)}
-.chip:active{transform:scale(.9)}
-.chip .ring{position:relative;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transition:background .35s,box-shadow .35s,transform .45s var(--spring)}
-.chip .ring>svg{width:22px;height:22px}
-.chip .ring .arc{position:absolute;inset:-3px;width:54px;height:54px;transform:rotate(-90deg)}
-.chip .ring .arc circle{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:160;stroke-dashoffset:160;
-  transition:stroke-dashoffset .4s var(--smooth)}
-.chip span{font-size:11px;font-weight:600;white-space:nowrap}
-.chip.on{color:#fff}
-.chip.on .ring{background:rgba(255,255,255,.24);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 18px -4px rgba(0,0,0,.4);transform:translateY(-2px)}
-
-/* filters */
-.thumbs{display:flex;gap:10px;overflow-x:auto;padding:6px 8px;scrollbar-width:none;
-  mask:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 16px),transparent)}
-.thumbs::-webkit-scrollbar{display:none}
-.thumb{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--muted);transition:color .3s,transform .45s var(--spring)}
-.thumb:hover{transform:translateY(-3px)}
-.thumb:active{transform:scale(.92)}
-.thumb canvas{width:78px;height:78px;border-radius:16px;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.12),0 8px 20px -6px rgba(0,0,0,.5);
-  transition:box-shadow .35s,transform .45s var(--spring)}
-.thumb span{font-size:11px;font-weight:600}
-.thumb.on{color:#fff}
-.thumb.on canvas{box-shadow:0 0 0 2.5px var(--accent),0 10px 24px -6px rgba(255,214,10,.45);transform:scale(1.04)}
-
-/* crop */
-.crow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
-.tool{height:40px;padding:0 14px;border-radius:20px;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.09);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font-size:13px;font-weight:600;transition:all .45s var(--spring)}
-.tool svg{width:18px;height:18px}
-.tool:hover{background:rgba(255,255,255,.16)}
-.tool:active{transform:scale(.9)}
-.tool.on{background:rgba(255,255,255,.92);color:#111;box-shadow:0 6px 18px -6px rgba(0,0,0,.5)}
-.tool.sm{height:32px;padding:0 12px;font-size:12px}
-
-/* toast */
-.toast{position:fixed;left:50%;top:84px;z-index:20;border-radius:18px;padding:10px 18px;display:flex;gap:10px;align-items:center;font-weight:600;
-  transform:translate(-50%,-20px) scale(.9);opacity:0;transition:all .55s var(--spring);pointer-events:none}
-.toast.on{transform:translate(-50%,0);opacity:1}
-.toast svg{width:18px;height:18px;color:#30d158}
-
-@media (max-width:620px){
-  .fname,.hide-sm{display:none}
-  .srow .lbl{width:88px}
-  .photo canvas{max-height:calc(100dvh - 350px)}
-}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="ambient"><div class="amb" id="amb"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="ambient"><div class="amb" id="ambA"></div><div class="amb" id="ambB"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 
 <div class="app">
   <header class="topbar glass">
-    <div class="brand"><i></i>Lumen <span class="fname" id="fname">Демо‑снимок</span></div>
+    <button class="brand" id="samplesBtn" data-tip="Примеры и открытие фото">
+      <i class="logo"></i><span class="brand-name">Lumen</span><span class="fname" id="fname"></span>
+      <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 4.5 3 3 3-3"/></svg>
+    </button>
     <div class="actions">
-      <button class="btn" id="undo" title="Отменить (Ctrl+Z)" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
-      <button class="btn" id="redo" title="Повторить (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
-      <button class="btn" id="compare" title="Удерживайте, чтобы сравнить (Пробел)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M12 4v16"/><path d="M12 8h9M12 12h9M12 16h9" opacity=".35"/></svg></button>
-      <button class="btn" id="resetAll" title="Сбросить все правки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button class="btn" id="undo" data-tip="Отменить" data-key="Ctrl Z" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+      <button class="btn" id="redo" data-tip="Повторить" data-key="Ctrl ⇧ Z" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+      <span class="sep"></span>
+      <button class="btn" id="compare" data-tip="Удерживайте — оригинал" data-key="Пробел"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M12 4v16"/><path d="M12 4h5.5A3.5 3.5 0 0 1 21 7.5v9a3.5 3.5 0 0 1-3.5 3.5H12z" fill="currentColor" opacity=".35" stroke="none"/></svg></button>
+      <button class="btn" id="histBtn" data-tip="Гистограмма" data-key="H"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 20c2-1 2.5-9 5-9s3 5 5 5 2.5-10 6-11v15"/></svg></button>
+      <button class="btn hide-sm" id="resetAll" data-tip="Вернуть к оригиналу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
       <span class="sep hide-sm"></span>
-      <button class="btn pill" id="open" title="Открыть фото (Ctrl+O)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg><span class="hide-sm">Открыть</span></button>
-      <button class="btn primary" id="export" title="Сохранить (Ctrl+S)">Готово</button>
+      <button class="btn pill hide-sm" id="open" data-tip="Открыть фото" data-key="Ctrl O"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4.5"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Открыть</button>
+      <button class="btn primary" id="export" data-tip="Экспорт" data-key="Ctrl S">Экспорт</button>
     </div>
   </header>
 
   <main class="stage" id="stage">
+    <div class="photo nt" id="photo"><canvas id="cv"></canvas><canvas id="fx"></canvas><canvas id="orig"></canvas></div>
     <div class="badge glass">Оригинал</div>
-    <div class="photo" id="photo"><canvas id="cv"></canvas><canvas id="orig"></canvas></div>
+    <div class="hist glass" id="hist"><canvas id="histCv" width="432" height="160"></canvas><div class="hl"><span>Тени</span><span>Средние</span><span>Света</span></div></div>
     <div class="dropzone glass">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v3a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-3"/></svg>
       Отпустите, чтобы открыть фото
@@ -221,327 +45,112 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.25)}
   <section class="dock glass">
     <div class="seg" id="seg">
       <span class="pill"></span>
-      <button class="on" data-tab="0">Настройки</button>
-      <button data-tab="1">Фильтры</button>
-      <button data-tab="2">Кадр</button>
+      <button class="on" data-tab="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Настройки</button>
+      <button data-tab="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="9" r="5.5"/><circle cx="15" cy="9" r="5.5"/><circle cx="12" cy="15" r="5.5"/></svg>Фильтры</button>
+      <button data-tab="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>Кадр</button>
     </div>
     <div class="panels">
       <div class="panel on" data-panel="0">
-        <div class="srow" id="srow">
-          <span class="lbl" id="lbl">Экспозиция</span>
-          <input type="range" id="slider" min="-100" max="100" value="0">
-          <span class="val" id="val">0</span>
-          <button class="mini" id="resetOne" title="Сбросить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
-        </div>
-        <div class="chips" id="chips"></div>
+        <div class="head" id="adjHead"><span id="lbl">Экспозиция</span><b id="val">0</b><button class="mini" id="resetOne" data-tip="Сбросить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button></div>
+        <div class="dial" id="dialAdj" aria-label="Значение настройки"></div>
+        <div class="scroller"><button class="arr l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="hs chips" id="chips"></div><button class="arr r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button></div>
       </div>
       <div class="panel" data-panel="1">
-        <div class="thumbs" id="thumbs"></div>
+        <div class="amt" id="amtRow"><div>
+          <div class="head"><span id="amtLbl">Интенсивность</span><b id="amtVal">100</b></div>
+          <div class="dial" id="dialAmt" aria-label="Интенсивность фильтра"></div>
+        </div></div>
+        <div class="scroller"><button class="arr l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="hs thumbs" id="thumbs"></div><button class="arr r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button></div>
       </div>
       <div class="panel" data-panel="2">
-        <div class="crow">
-          <button class="tool" data-act="rotL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Повернуть</button>
-          <button class="tool" data-act="flipH"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 7 3 17h5z"/><path d="m16 7 5 10h-5z"/></svg>Отразить</button>
-          <button class="tool" data-act="flipV"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 8 17 3v5z"/><path d="m7 16 10 5v-5z"/></svg><span class="hide-sm">Вертикально</span></button>
-        </div>
-        <div class="crow" id="aspects">
-          <button class="tool sm on" data-aspect="orig">Оригинал</button>
-          <button class="tool sm" data-aspect="1:1">1:1</button>
-          <button class="tool sm" data-aspect="4:5">4:5</button>
-          <button class="tool sm" data-aspect="3:2">3:2</button>
-          <button class="tool sm" data-aspect="16:9">16:9</button>
-          <button class="tool sm" data-aspect="9:16">9:16</button>
-        </div>
-        <div class="srow" style="padding:0 16px">
-          <span class="lbl">Выпрямление</span>
-          <input type="range" id="straight" min="-45" max="45" value="0" step="0.5">
-          <span class="val" id="sval">0°</span>
+        <div class="head"><span>Выпрямление</span><b id="sval">0°</b></div>
+        <div class="dial" id="dialStr" aria-label="Угол выпрямления"></div>
+        <div class="crow" style="margin-top:6px">
+          <button class="tool" data-act="rotL" data-tip="Повернуть на 90°"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M3 12V9a5 5 0 0 1 5-5h5"/><path d="m10 1 3 3-3 3"/></svg><span class="hide-sm">Повернуть</span></button>
+          <button class="tool" data-act="flipH" data-tip="Отразить по горизонтали"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 7 3 17h5z"/><path d="m16 7 5 10h-5z" fill="currentColor" fill-opacity=".35"/></svg></button>
+          <button class="tool" data-act="flipV" data-tip="Отразить по вертикали"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 8 17 3v5z"/><path d="m7 16 10 5v-5z" fill="currentColor" fill-opacity=".35"/></svg></button>
+          <span class="vsep"></span>
+          <div class="crow" id="aspects">
+            <button class="tool sm on" data-aspect="orig">Исходные</button>
+            <button class="tool sm" data-aspect="1:1"><i style="width:12px;height:12px"></i>1:1</button>
+            <button class="tool sm" data-aspect="4:5"><i style="width:11px;height:13px"></i>4:5</button>
+            <button class="tool sm" data-aspect="3:2"><i style="width:15px;height:10px"></i>3:2</button>
+            <button class="tool sm" data-aspect="16:9"><i style="width:16px;height:9px"></i>16:9</button>
+            <button class="tool sm" data-aspect="9:16"><i style="width:9px;height:16px"></i>9:16</button>
+          </div>
         </div>
       </div>
     </div>
   </section>
 </div>
 
-<div class="toast glass" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastTxt"></span></div>
+<!-- Samples popover -->
+<div class="popover glass" id="samples">
+  <div class="pop-title">Примеры</div>
+  <div class="samples">
+    <button class="sample" data-scene="day"><canvas width="264" height="176"></canvas><span>☀️ День</span></button>
+    <button class="sample" data-scene="night"><canvas width="264" height="176"></canvas><span>🌙 Ночь</span></button>
+  </div>
+  <button class="pop-row" id="open2"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4.5"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Открыть своё фото…<kbd>Ctrl O</kbd></button>
+</div>
+
+<!-- New preset -->
+<div class="modal" id="presetModal">
+  <div class="sheet glass small" role="dialog" aria-labelledby="presetTitle">
+    <canvas class="preset-prev" id="presetPrev"></canvas>
+    <h2 id="presetTitle">Новый пресет</h2>
+    <p class="sub">Сохраните текущий вид, чтобы применять его к любым фото в один тап.</p>
+    <div class="inp"><input id="presetName" maxlength="28" autocomplete="off" spellcheck="false"></div>
+    <div class="info" id="presetInfo"></div>
+    <div class="row-btns">
+      <button class="btn ghost" id="presetCancel">Отмена</button>
+      <button class="btn primary" id="presetSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export -->
+<div class="modal" id="exportModal">
+  <div class="sheet glass export" role="dialog" aria-labelledby="exTitle">
+    <button class="xbtn" id="exClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="ex-preview">
+      <div class="ex-stage"><canvas id="exCv"></canvas></div>
+      <div class="ex-meta"><span id="exDims">—</span><span id="exBytes">—</span></div>
+    </div>
+    <div class="ex-side">
+      <h2 id="exTitle">Экспорт</h2>
+      <div class="field"><label for="exName">Имя файла</label><div class="inp"><input id="exName" autocomplete="off" spellcheck="false"><em id="exExt">.jpg</em></div></div>
+      <div class="field"><span>Формат</span>
+        <div class="seg seg3" id="exFmt"><span class="pill"></span><button data-v="jpeg">JPEG</button><button data-v="png">PNG</button><button data-v="webp">WebP</button></div>
+      </div>
+      <div class="field collapse" id="exQRow"><div>
+        <span style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">Качество <b id="exQVal" style="color:var(--accent)">92%</b></span>
+        <input type="range" class="range" id="exQ" min="50" max="100" value="92">
+      </div></div>
+      <div class="field"><span>Размер</span><div class="opts" id="exRes"></div></div>
+      <div class="field"><span>Рамка</span>
+        <div class="opts" id="exFrame">
+          <button class="opt" data-v="none"><i class="sw"></i>Нет</button>
+          <button class="opt" data-v="white"><i class="sw white"></i>Белая</button>
+          <button class="opt" data-v="black"><i class="sw black"></i>Чёрная</button>
+          <button class="opt" data-v="pola"><i class="sw pola"></i>Полароид</button>
+        </div>
+      </div>
+      <div class="ex-actions">
+        <button class="btn ghost" id="exCopy" data-tip="Скопировать PNG в буфер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="3"/><path d="M16 8V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h2"/></svg></button>
+        <button class="btn ghost" id="exShare" data-tip="Поделиться" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="m7 8 5-5 5 5"/><path d="M5 12v6a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-6"/></svg></button>
+        <button class="btn primary" id="exSave"><span class="lbl">Сохранить</span><span class="spin"></span><svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast glass" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastTxt"></span><button id="toastAct"></button></div>
+<div class="tip glass" id="tip"></div>
 <input type="file" id="file" accept="image/*" hidden>
 
-<script>
-(() => {
-const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-
-// ---------- Tools & presets ----------
-const I = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
-const TOOLS = [
-  {k:'exposure',  n:'Экспозиция',  min:-100,max:100, i:I('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>')},
-  {k:'contrast',  n:'Контраст',    min:-100,max:100, i:I('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>')},
-  {k:'saturation',n:'Насыщенность',min:-100,max:100, i:I('<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>')},
-  {k:'warmth',    n:'Теплота',     min:-100,max:100, i:I('<path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z"/>')},
-  {k:'tint',      n:'Оттенок',     min:-100,max:100, i:I('<circle cx="9" cy="10" r="5"/><circle cx="15" cy="10" r="5"/><circle cx="12" cy="15" r="5"/>')},
-  {k:'hue',       n:'Тон цвета',   min:-180,max:180, i:I('<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>')},
-  {k:'fade',      n:'Выцветание',  min:0,  max:100, i:I('<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5" opacity=".5"/>')},
-  {k:'vignette',  n:'Виньетка',    min:0,  max:100, i:I('<rect x="3" y="4" width="18" height="16" rx="3"/><ellipse cx="12" cy="12" rx="5" ry="4"/>')},
-  {k:'grain',     n:'Зерно',       min:0,  max:100, i:I('<circle cx="7" cy="7" r="1"/><circle cx="12" cy="9" r="1"/><circle cx="17" cy="6" r="1"/><circle cx="8" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><circle cx="11" cy="17" r="1"/><circle cx="17" cy="18" r="1"/><circle cx="6" cy="18" r="1"/>')},
-  {k:'blur',      n:'Размытие',    min:0,  max:100, i:I('<circle cx="12" cy="12" r="8" stroke-dasharray="2 3"/><circle cx="12" cy="12" r="3"/>')},
-];
-const ADJ = ['exposure','contrast','saturation','warmth','tint','hue','fade','vignette','grain','blur','sepia','gray'];
-const PRESETS = [
-  {id:'none',   n:'Оригинал', v:{}},
-  {id:'vivid',  n:'Яркий',    v:{saturation:35,contrast:15,exposure:5}},
-  {id:'vwarm',  n:'Яркий тёплый', v:{saturation:30,contrast:15,warmth:35}},
-  {id:'drama',  n:'Драма',    v:{contrast:45,saturation:-20,vignette:45,exposure:-10}},
-  {id:'mono',   n:'Моно',     v:{gray:100,contrast:10}},
-  {id:'noir',   n:'Нуар',     v:{gray:100,contrast:60,exposure:-10,vignette:55,grain:20}},
-  {id:'silver', n:'Серебро',  v:{gray:100,fade:30,exposure:8}},
-  {id:'warm',   n:'Тёплый',   v:{warmth:45,saturation:10}},
-  {id:'cool',   n:'Холодный', v:{warmth:-45,tint:-10}},
-  {id:'vintage',n:'Винтаж',   v:{sepia:40,fade:30,grain:35,vignette:35,contrast:-5}},
-  {id:'film',   n:'Плёнка',   v:{grain:45,fade:15,contrast:12,warmth:12,saturation:-10}},
-  {id:'dream',  n:'Мечта',    v:{blur:12,fade:20,exposure:12,tint:15,saturation:15}},
-];
-const ASPECTS = {orig:null,'1:1':1,'4:5':4/5,'3:2':3/2,'16:9':16/9,'9:16':9/16};
-
-const fresh = () => ({exposure:0,contrast:0,saturation:0,warmth:0,tint:0,hue:0,fade:0,vignette:0,grain:0,blur:0,sepia:0,gray:0,
-  rot:0,flipH:false,flipV:false,straighten:0,aspect:'orig',preset:'none'});
-let state = fresh(), hist = [fresh()], hi = 0, cur = 'exposure';
-let fullImg = null, src = null;
-
-// ---------- Rendering ----------
-const noise = (() => { const c = document.createElement('canvas'); c.width = c.height = 256;
-  const x = c.getContext('2d'), d = x.createImageData(256,256);
-  for (let i = 0; i < d.data.length; i += 4) { const v = Math.random()*255; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255; }
-  x.putImageData(d,0,0); return c; })();
-
-function filterStr(s, W){
-  return `brightness(${1+s.exposure/150}) contrast(${1+s.contrast/100}) saturate(${1+s.saturation/100}) hue-rotate(${s.hue}deg) sepia(${s.sepia/100}) grayscale(${s.gray/100}) blur(${(s.blur/100)*W/120}px)`;
-}
-
-function render(canvas, img, s, maxDim, neutral){
-  const sw = img.width, sh = img.height, odd = s.rot % 2 === 1;
-  const iw = odd ? sh : sw, ih = odd ? sw : sh;
-  let cw = iw, ch = ih; const r = ASPECTS[s.aspect];
-  if (r) { if (iw/ih > r) cw = ih*r; else ch = iw/r; }
-  const k = Math.min(1, maxDim / Math.max(cw, ch));
-  const W = Math.max(1, Math.round(cw*k)), H = Math.max(1, Math.round(ch*k));
-  if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
-  const ctx = canvas.getContext('2d');
-  const a = s.straighten*Math.PI/180, c = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a));
-  const fill = Math.max((cw*c+ch*sn)/iw, (cw*sn+ch*c)/ih);
-  ctx.save(); ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
-  ctx.filter = neutral ? 'none' : filterStr(s, W);
-  ctx.translate(W/2, H/2);
-  ctx.scale(s.flipH?-1:1, s.flipV?-1:1);
-  ctx.rotate(a + s.rot*Math.PI/2);
-  ctx.scale(k*fill*(s.blur&&!neutral?1.03:1), k*fill*(s.blur&&!neutral?1.03:1));
-  ctx.drawImage(img, -sw/2, -sh/2);
-  ctx.restore();
-  if (neutral) return canvas;
-  ctx.save();
-  if (s.warmth) { ctx.globalCompositeOperation='soft-light'; ctx.fillStyle = s.warmth>0 ? `rgba(255,140,30,${s.warmth/100*.65})` : `rgba(30,120,255,${-s.warmth/100*.65})`; ctx.fillRect(0,0,W,H); }
-  if (s.tint)   { ctx.globalCompositeOperation='soft-light'; ctx.fillStyle = s.tint>0 ? `rgba(255,50,200,${s.tint/100*.5})` : `rgba(50,255,90,${-s.tint/100*.5})`; ctx.fillRect(0,0,W,H); }
-  if (s.fade)   { ctx.globalCompositeOperation='screen'; ctx.fillStyle = `rgba(70,66,74,${s.fade/100*.85})`; ctx.fillRect(0,0,W,H); }
-  if (s.grain)  { ctx.globalCompositeOperation='overlay'; ctx.globalAlpha = s.grain/100*.55; ctx.fillStyle = ctx.createPattern(noise,'repeat'); ctx.fillRect(0,0,W,H); ctx.globalAlpha = 1; }
-  if (s.vignette){ ctx.globalCompositeOperation='source-over';
-    const g = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.25,W/2,H/2,Math.hypot(W,H)/2);
-    g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,`rgba(0,0,0,${s.vignette/100*.85})`); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
-  ctx.restore();
-  return canvas;
-}
-
-const cv = $('#cv'), orig = $('#orig'), photo = $('#photo'), stage = $('#stage');
-let raf = 0;
-const draw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => src && render(cv, src, state, 1800)); };
-
-// ---------- Demo image ----------
-function demoImage(){
-  const W = 1600, H = 1060, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
-  let g = x.createLinearGradient(0,0,0,700);
-  g.addColorStop(0,'#16224f'); g.addColorStop(.35,'#5d3f86'); g.addColorStop(.7,'#ef7c6a'); g.addColorStop(1,'#ffcf86');
-  x.fillStyle = g; x.fillRect(0,0,W,700);
-  for (let i=0;i<160;i++){ x.fillStyle=`rgba(255,255,255,${Math.random()*.7})`; x.beginPath(); x.arc(Math.random()*W, Math.random()*260, Math.random()*1.4, 0, 7); x.fill(); }
-  g = x.createRadialGradient(1060,600,10,1060,600,420); g.addColorStop(0,'rgba(255,245,210,1)'); g.addColorStop(.18,'rgba(255,210,140,.9)'); g.addColorStop(1,'rgba(255,150,100,0)');
-  x.fillStyle = g; x.fillRect(0,0,W,H);
-  const ridge = (base, amp, col, seed) => { x.fillStyle = col; x.beginPath(); x.moveTo(0,H);
-    for (let px=0; px<=W; px+=6) { const y = base - amp*(Math.sin(px*.0035+seed)*.5 + Math.sin(px*.011+seed*2)*.3 + Math.sin(px*.029+seed*3)*.2 + .6); x.lineTo(px,y); }
-    x.lineTo(W,H); x.closePath(); x.fill(); };
-  ridge(640,170,'#8a5a8e',1.2); ridge(680,140,'#5a3b72',3.1); ridge(705,110,'#35244f',5.7);
-  g = x.createLinearGradient(0,700,0,H); g.addColorStop(0,'#6b4a7c'); g.addColorStop(.25,'#3b2a58'); g.addColorStop(1,'#110c22');
-  x.fillStyle = g; x.fillRect(0,700,W,H-700);
-  for (let i=0;i<70;i++){ const y = 706 + i*i*.07, w = (260 - i*2.8)*(0.6+Math.random()*.6);
-    x.fillStyle = `rgba(255,${200+Math.random()*40|0},150,${.55-i*.007})`; x.fillRect(1060-w/2 + (Math.random()-.5)*30, y, w, 1.6+Math.random()*1.5); }
-  return c;
-}
-
-// ---------- Image loading ----------
-function setImage(img, name){
-  fullImg = img;
-  const k = Math.min(1, 2400/Math.max(img.width, img.height));
-  src = document.createElement('canvas'); src.width = Math.round(img.width*k); src.height = Math.round(img.height*k);
-  src.getContext('2d').drawImage(img, 0, 0, src.width, src.height);
-  state = fresh(); hist = [fresh()]; hi = 0;
-  $('#fname').textContent = name;
-  syncUI(); render(cv, src, state, 1800);
-  photo.classList.remove('pop'); void photo.offsetWidth; photo.classList.add('pop');
-  buildThumbs(); ambient();
-}
-function openFile(f){
-  if (!f || !f.type.startsWith('image/')) return toast('Это не изображение');
-  const url = URL.createObjectURL(f), img = new Image();
-  img.onload = () => { setImage(img, f.name); URL.revokeObjectURL(url); };
-  img.onerror = () => toast('Не удалось открыть файл');
-  img.src = url;
-}
-
-const amb = $('#amb');
-function ambient(){
-  const t = document.createElement('canvas'); render(t, src, state, 64);
-  amb.classList.remove('on');
-  setTimeout(() => { amb.style.backgroundImage = `url(${t.toDataURL()})`; amb.classList.add('on'); }, 250);
-}
-
-// ---------- History ----------
-const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
-function commit(){
-  if (same(state, hist[hi])) return;
-  hist = hist.slice(0, hi+1); hist.push({...state}); hi++;
-  if (hist.length > 80) { hist.shift(); hi--; }
-  updHist(); clearTimeout(commit.t); commit.t = setTimeout(ambient, 500);
-}
-function go(d){ const n = hi + d; if (n < 0 || n >= hist.length) return; hi = n; state = {...hist[hi]}; syncUI(); draw(); updHist(); bump(); clearTimeout(commit.t); commit.t = setTimeout(ambient, 500); }
-function updHist(){ $('#undo').disabled = hi === 0; $('#redo').disabled = hi === hist.length-1; }
-function bump(){ photo.classList.remove('bump'); void photo.offsetWidth; photo.classList.add('bump'); }
-
-// ---------- UI: tabs ----------
-const seg = $('#seg'), pill = seg.querySelector('.pill');
-seg.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return; const t = +b.dataset.tab;
-  $$('#seg button').forEach(x => x.classList.toggle('on', x === b));
-  pill.style.transform = `translateX(${t*100}%)`;
-  $$('.panel').forEach(p => p.classList.toggle('on', +p.dataset.panel === t));
-  if (t === 1) setTimeout(() => $('.thumb.on')?.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'}), 50);
-});
-
-// ---------- UI: adjustments ----------
-const chips = $('#chips'), slider = $('#slider'), val = $('#val'), lbl = $('#lbl');
-chips.innerHTML = TOOLS.map(t => `<button class="chip" data-k="${t.k}" title="${t.n} — двойной клик для сброса"><div class="ring">${t.i}<svg class="arc" viewBox="0 0 54 54"><circle cx="27" cy="27" r="25.5"/></svg></div><span>${t.n}</span></button>`).join('');
-chips.addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) selectTool(c.dataset.k, true); });
-chips.addEventListener('dblclick', e => { const c = e.target.closest('.chip'); if (!c) return; state[c.dataset.k] = 0; syncUI(); draw(); commit(); });
-
-function paintRange(el){
-  const min = +el.min, max = +el.max, v = +el.value, p = x => ((x-min)/(max-min))*100;
-  const zero = p(Math.max(min, Math.min(max, 0)));
-  el.style.setProperty('--a', Math.min(zero, p(v)) + '%'); el.style.setProperty('--b', Math.max(zero, p(v)) + '%');
-}
-function selectTool(k, animate){
-  cur = k; const t = TOOLS.find(t => t.k === k);
-  $$('.chip').forEach(c => c.classList.toggle('on', c.dataset.k === k));
-  slider.min = t.min; slider.max = t.max; slider.value = state[k];
-  lbl.textContent = t.n; val.textContent = fmt(state[k]); paintRange(slider);
-  if (animate) { const r = $('#srow'); r.classList.remove('swap'); void r.offsetWidth; r.classList.add('swap');
-    $(`.chip[data-k="${k}"]`).scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'}); }
-}
-const fmt = v => (v > 0 ? '+' : '') + Math.round(v);
-slider.addEventListener('input', () => { state[cur] = +slider.value; val.textContent = fmt(state[cur]); paintRange(slider); updRings(); draw(); });
-slider.addEventListener('change', commit);
-slider.addEventListener('dblclick', () => { state[cur] = 0; syncUI(); draw(); commit(); });
-$('#resetOne').addEventListener('click', () => { state[cur] = 0; syncUI(); draw(); commit(); });
-
-function updRings(){
-  TOOLS.forEach(t => { const c = chips.querySelector(`[data-k="${t.k}"] .arc circle`);
-    const f = Math.abs(state[t.k]) / Math.max(Math.abs(t.min), t.max); c.style.strokeDashoffset = 160 - 160*f; });
-}
-
-// ---------- UI: filters ----------
-function buildThumbs(){
-  const box = $('#thumbs'); box.innerHTML = '';
-  PRESETS.forEach(p => {
-    const b = document.createElement('button'); b.className = 'thumb' + (state.preset === p.id ? ' on' : ''); b.dataset.id = p.id;
-    const c = document.createElement('canvas');
-    render(c, src, {...fresh(), ...p.v, aspect:'1:1'}, 160);
-    b.append(c); b.insertAdjacentHTML('beforeend', `<span>${p.n}</span>`); box.append(b);
-  });
-}
-$('#thumbs').addEventListener('click', e => {
-  const b = e.target.closest('.thumb'); if (!b) return; const p = PRESETS.find(p => p.id === b.dataset.id);
-  ADJ.forEach(k => state[k] = 0); Object.assign(state, p.v, {preset:p.id});
-  syncUI(); draw(); commit(); bump();
-});
-
-// ---------- UI: crop ----------
-$$('[data-act]').forEach(b => b.addEventListener('click', () => {
-  const a = b.dataset.act;
-  if (a === 'rotL') state.rot = (state.rot + 3) % 4;
-  if (a === 'flipH') state.flipH = !state.flipH;
-  if (a === 'flipV') state.flipV = !state.flipV;
-  draw(); commit(); bump();
-}));
-$('#aspects').addEventListener('click', e => { const b = e.target.closest('[data-aspect]'); if (!b) return; state.aspect = b.dataset.aspect; syncUI(); draw(); commit(); bump(); });
-const straight = $('#straight');
-straight.addEventListener('input', () => { state.straighten = +straight.value; $('#sval').textContent = state.straighten + '°'; paintRange(straight); draw(); });
-straight.addEventListener('change', commit);
-straight.addEventListener('dblclick', () => { state.straighten = 0; syncUI(); draw(); commit(); });
-
-function syncUI(){
-  selectTool(cur, false); updRings();
-  $$('.thumb').forEach(t => t.classList.toggle('on', t.dataset.id === state.preset));
-  $$('[data-aspect]').forEach(b => b.classList.toggle('on', b.dataset.aspect === state.aspect));
-  straight.value = state.straighten; $('#sval').textContent = state.straighten + '°'; paintRange(straight);
-}
-
-// ---------- Top bar ----------
-$('#undo').onclick = () => go(-1);
-$('#redo').onclick = () => go(1);
-$('#resetAll').onclick = () => { state = fresh(); syncUI(); draw(); commit(); bump(); toast('Все правки сброшены'); };
-$('#open').onclick = () => $('#file').click();
-$('#file').onchange = e => { openFile(e.target.files[0]); e.target.value = ''; };
-
-function compare(on){
-  if (on && !photo.classList.contains('comparing')) render(orig, src, state, 1800, true);
-  photo.classList.toggle('comparing', on); stage.classList.toggle('comparing', on);
-}
-const cmp = $('#compare');
-cmp.addEventListener('pointerdown', () => compare(true));
-['pointerup','pointerleave','pointercancel'].forEach(ev => cmp.addEventListener(ev, () => compare(false)));
-
-$('#export').onclick = () => {
-  const out = document.createElement('canvas'); render(out, fullImg, state, 8000);
-  out.toBlob(b => {
-    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-    a.download = ($('#fname').textContent.replace(/\.[^.]+$/, '') || 'photo') + '-lumen.jpg';
-    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    toast(`Сохранено · ${out.width}×${out.height}`);
-  }, 'image/jpeg', .95);
-};
-
-let tt; function toast(m){ $('#toastTxt').textContent = m; const t = $('#toast'); t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2200); }
-
-// ---------- Keyboard ----------
-addEventListener('keydown', e => {
-  const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
-  if (mod && (k === 'z' || k === 'я')) { e.preventDefault(); go(e.shiftKey ? 1 : -1); }
-  else if (mod && (k === 'y' || k === 'н')) { e.preventDefault(); go(1); }
-  else if (mod && (k === 'o' || k === 'щ')) { e.preventDefault(); $('#file').click(); }
-  else if (mod && (k === 's' || k === 'ы')) { e.preventDefault(); $('#export').click(); }
-  else if (e.code === 'Space' && !e.repeat && e.target.tagName !== 'BUTTON') { e.preventDefault(); compare(true); }
-});
-addEventListener('keyup', e => { if (e.code === 'Space') compare(false); });
-
-// ---------- Drag & drop ----------
-let dc = 0;
-addEventListener('dragenter', e => { e.preventDefault(); dc++; stage.classList.add('drag'); });
-addEventListener('dragleave', () => { if (--dc <= 0) { dc = 0; stage.classList.remove('drag'); } });
-addEventListener('dragover', e => e.preventDefault());
-addEventListener('drop', e => { e.preventDefault(); dc = 0; stage.classList.remove('drag'); openFile(e.dataTransfer.files[0]); });
-addEventListener('paste', e => { const f = [...(e.clipboardData?.files || [])][0]; if (f) openFile(f); });
-
-// ---------- Glass highlight follows pointer ----------
-addEventListener('pointermove', e => {
-  const g = e.target.closest?.('.glass'); if (!g) return; const r = g.getBoundingClientRect();
-  g.style.setProperty('--mx', (e.clientX - r.left) + 'px'); g.style.setProperty('--my', (e.clientY - r.top) + 'px');
-});
-
-setImage(demoImage(), 'Демо‑снимок');
-updHist();
-})();
-</script>
+<script src="js/engine.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
