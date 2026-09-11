@@ -258,9 +258,14 @@
     new ResizeObserver(upd).observe(el);
     new MutationObserver(upd).observe(el, { childList: true });
     el.addEventListener('wheel', e => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || el.scrollWidth <= el.clientWidth) return;
+      if (el.scrollWidth <= el.clientWidth) return;
+      const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (!raw) return;
       e.preventDefault();
-      el.scrollBy({ left: e.deltaY * 1.3, behavior: Math.abs(e.deltaY) >= 50 ? 'smooth' : 'auto' });
+      // deltaMode: 0 = pixels (most trackpads/mice), 1 = lines (some mice/Firefox), 2 = pages.
+      const unit = e.deltaMode === 1 ? 18 : e.deltaMode === 2 ? el.clientWidth : 1;
+      const d = raw * unit * 1.4;
+      el.scrollBy({ left: d, behavior: Math.abs(d) >= 40 ? 'smooth' : 'auto' });
     }, { passive: false });
     let down = false, sx = 0, sl = 0, dragged = false;
     el.addEventListener('pointerdown', e => {

@@ -208,12 +208,17 @@ svg { display: block; }
 .hs.dragging * { pointer-events: none; }
 .arr { position: absolute; top: 50%; z-index: 2; width: 30px; height: 30px; margin-top: -24px; border-radius: 50%; display: grid; place-items: center;
   background: rgba(70, 70, 80, .75); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 4px 14px rgba(0, 0, 0, .45);
-  opacity: 0; transform: scale(.7); pointer-events: none; transition: all .4s var(--spring); }
+  opacity: 0; transform: scale(.7); pointer-events: none; transition: opacity .4s var(--spring), transform .4s var(--spring), background .3s; }
 .arr svg { width: 14px; height: 14px; }
 .arr.l { left: 2px; } .arr.r { right: 2px; }
 .arr:hover { background: rgba(95, 95, 105, .9); }
 .arr:active { transform: scale(.85) !important; }
-.scroller.can-l:hover .arr.l, .scroller.can-r:hover .arr.r { opacity: 1; transform: none; pointer-events: auto; }
+/* Visible whenever there's more to scroll to — hover just makes them pop a bit more.
+   Keeping pointer-events: auto unconditionally (once shown) avoids relying on :hover
+   timing for click-through, which is flaky in some browser/OS combinations. */
+.scroller.can-l .arr.l, .scroller.can-r .arr.r { opacity: .5; transform: none; pointer-events: auto; }
+.scroller.can-l:hover .arr.l, .scroller.can-r:hover .arr.r { opacity: 1; }
+@media (hover: none) { .scroller.can-l .arr.l, .scroller.can-r .arr.r { opacity: .85; } }
 
 /* ---------- Chips ---------- */
 .chips { gap: 2px; padding: 6px 8px 2px; }
