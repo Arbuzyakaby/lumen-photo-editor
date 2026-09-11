@@ -410,6 +410,66 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- Apple-style refinements ---------- */
+.glass { -webkit-backdrop-filter: blur(40px) saturate(190%); backdrop-filter: blur(40px) saturate(190%); }
+.dock { border-radius: 38px; box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .08); }
+#seg { grid-template-columns: repeat(4, 1fr); width: min(520px, 100%); }
+#seg .pill { width: calc((100% - 6px) / 4); }
+.seg button { font-weight: 600; letter-spacing: -.015em; }
+.tool, .opt, .btn { transition: transform .45s var(--spring), background .25s, color .25s, box-shadow .3s; }
+.range::-webkit-slider-thumb { background: #fff; box-shadow: 0 0 0 .5px rgba(0, 0, 0, .04), 0 3px 8px rgba(0, 0, 0, .35), 0 3px 1px rgba(0, 0, 0, .1); }
+.popover { width: 340px; }
+.sample canvas { transition: box-shadow .4s var(--smooth); }
+.sample:hover canvas { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .5), 0 14px 30px -10px rgba(0, 0, 0, .7); }
+
+/* ---------- Drawing ---------- */
+.photo.drawing { cursor: crosshair; }
+.photo.comparing #ink { opacity: 0; }
+#ink { transition: opacity .25s; pointer-events: none; }
+.panel.draw { gap: 8px; justify-content: flex-start; padding-top: 2px; overflow-y: auto; scrollbar-width: none; }
+.drow { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+.drow .tool { height: 34px; padding: 0 12px; font-size: 13px; }
+#brushPrev { width: 200px; height: 44px; flex: none; border-radius: 12px; background: repeating-conic-gradient(rgba(255, 255, 255, .06) 0 25%, transparent 0 50%) 0 0 / 12px 12px; }
+.dgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px 18px; }
+.sl { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; }
+.sl span { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.sl b { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: #fff; }
+.sl .range { grid-column: 1 / -1; height: 22px; }
+.sl.hue .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+.sl.hue .range::-moz-range-track { background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+.sl.sat .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--sat0), var(--hue)); }
+.sl.sat .range::-moz-range-track { background: linear-gradient(90deg, var(--sat0), var(--hue)); }
+.sl.val .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, #000, var(--hue)); }
+.sl.val .range::-moz-range-track { background: linear-gradient(90deg, #000, var(--hue)); }
+.draw.erasing .sl.hue, .draw.erasing .sl.sat, .draw.erasing .sl.val { opacity: .35; pointer-events: none; }
+.swatches { display: flex; gap: 6px; flex: none; }
+.sw-dot { width: 22px; height: 22px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); transition: transform .4s var(--spring), box-shadow .25s; }
+.sw-dot:hover { transform: scale(1.15); }
+.sw-dot.on { box-shadow: 0 0 0 2px #000, 0 0 0 4px #fff; }
+.well { position: relative; width: 26px; height: 26px; flex: none; border-radius: 50%; cursor: pointer;
+  background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .35); }
+.well::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: var(--bc); box-shadow: 0 0 0 1.5px #fff; }
+.well input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.bp-list { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.bp { position: relative; flex: none; height: 32px; padding: 0 12px 0 8px; border-radius: 16px; display: flex; align-items: center; gap: 7px; background: var(--fill); font-size: 12px; font-weight: 600; transition: transform .4s var(--spring), background .2s; }
+.bp:hover { background: var(--fill-2); }
+.bp.tap { animation: bump .45s var(--spring); }
+.bp-dot { width: var(--sz); height: var(--sz); border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px rgba(255, 255, 255, .3); }
+.bp-dot.marker { border-radius: 3px; }
+.bp-dot.eraser { background: repeating-conic-gradient(#fff 0 25%, #999 0 50%) 0 0 / 6px 6px; }
+.bp span { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bp-del { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(255, 255, 255, .18); opacity: 0; transition: opacity .2s; }
+.bp-del svg { width: 8px; height: 8px; }
+.bp:hover .bp-del { opacity: 1; }
+.bp-del:hover { background: #ff453a; }
+.bp-empty { font-size: 12px; color: var(--faint); white-space: nowrap; align-self: center; }
+@media (max-width: 760px) {
+  .dgrid { grid-template-columns: repeat(2, 1fr); }
+  #brushPrev { display: none; }
+  .drow { flex-wrap: wrap; justify-content: center; }
+  #seg button { font-size: 12px; }
+}
 </style>
 </head>
 <body>
@@ -435,7 +495,7 @@ svg { display: block; }
   </header>
 
   <main class="stage" id="stage">
-    <div class="photo nt" id="photo"><canvas id="cv"></canvas><canvas id="fx"></canvas><canvas id="orig"></canvas></div>
+    <div class="photo nt" id="photo"><canvas id="cv"></canvas><canvas id="fx"></canvas><canvas id="ink"></canvas><canvas id="orig"></canvas></div>
     <div class="badge glass">Оригинал</div>
     <div class="hist glass" id="hist"><canvas id="histCv" width="432" height="160"></canvas><div class="hl"><span>Тени</span><span>Средние</span><span>Света</span></div></div>
     <div class="dropzone glass">
@@ -450,6 +510,7 @@ svg { display: block; }
       <button class="on" data-tab="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Настройки</button>
       <button data-tab="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="9" r="5.5"/><circle cx="15" cy="9" r="5.5"/><circle cx="12" cy="15" r="5.5"/></svg>Фильтры</button>
       <button data-tab="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>Кадр</button>
+      <button data-tab="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18.4 2.6 3 3L11 16l-4 1 1-4z"/><path d="M7 17c-2 0-4 1-4 4 2 0 4-1 4-4"/></svg>Рисование</button>
     </div>
     <div class="panels">
       <div class="panel on" data-panel="0">
@@ -482,6 +543,35 @@ svg { display: block; }
           </div>
         </div>
       </div>
+      <div class="panel draw" data-panel="3" id="drawPanel">
+        <div class="drow">
+          <div class="crow" id="drawTools">
+            <button class="tool" data-bt="brush"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18.4 2.6 3 3L11 16l-4 1 1-4z"/><path d="M7 17c-2 0-4 1-4 4 2 0 4-1 4-4"/></svg>Кисть</button>
+            <button class="tool" data-bt="marker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 4 6 6-9 9H5v-6z"/><path d="m11 7 6 6"/><path d="M3 22h8"/></svg>Фломастер</button>
+            <button class="tool" data-bt="eraser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4-4 11-11 7 7-8 8z"/><path d="M21 21H7"/><path d="m9 11 7 7"/></svg>Ластик</button>
+          </div>
+          <canvas id="brushPrev" width="200" height="44"></canvas>
+          <div class="crow">
+            <button class="tool sm" id="inkUndo" data-tip="Убрать последний штрих"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+            <button class="tool sm" id="inkClear" data-tip="Очистить рисунок">Очистить</button>
+          </div>
+        </div>
+        <div class="dgrid">
+          <label class="sl"><span>Толщина</span><b></b><input type="range" class="range" data-b="size" min="1" max="120" step="0.5"></label>
+          <label class="sl"><span>Непрозрачность</span><b></b><input type="range" class="range" data-b="opacity" min="5" max="100"></label>
+          <label class="sl"><span>Мягкость</span><b></b><input type="range" class="range" data-b="soft" min="0" max="100"></label>
+          <label class="sl hue"><span>Тон</span><b></b><input type="range" class="range" data-b="h" min="0" max="360"></label>
+          <label class="sl sat"><span>Насыщенность</span><b></b><input type="range" class="range" data-b="s" min="0" max="100"></label>
+          <label class="sl val"><span>Яркость</span><b></b><input type="range" class="range" data-b="v" min="0" max="100"></label>
+        </div>
+        <div class="drow">
+          <div class="swatches" id="swatches"></div>
+          <label class="well" data-tip="Любой цвет"><input type="color" id="brushHex"></label>
+          <span class="vsep"></span>
+          <div class="bp-list" id="bpList"></div>
+          <button class="tool sm" id="bpSave" data-tip="Сохранить кисть как пресет"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Пресет</button>
+        </div>
+      </div>
     </div>
   </section>
 </div>
@@ -492,6 +582,10 @@ svg { display: block; }
   <div class="samples">
     <button class="sample" data-scene="day"><canvas width="264" height="176"></canvas><span>☀️ День</span></button>
     <button class="sample" data-scene="night"><canvas width="264" height="176"></canvas><span>🌙 Ночь</span></button>
+    <button class="sample" data-scene="meadow"><canvas width="264" height="176"></canvas><span>🌼 Луг</span></button>
+    <button class="sample" data-scene="dunes"><canvas width="264" height="176"></canvas><span>🏜️ Дюны</span></button>
+    <button class="sample" data-scene="city"><canvas width="264" height="176"></canvas><span>🌃 Город</span></button>
+    <button class="sample" data-scene="aurora"><canvas width="264" height="176"></canvas><span>🌌 Сияние</span></button>
   </div>
   <button class="pop-row" id="open2"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4.5"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Открыть своё фото…<kbd>Ctrl O</kbd></button>
 </div>
@@ -507,6 +601,19 @@ svg { display: block; }
     <div class="row-btns">
       <button class="btn ghost" id="presetCancel">Отмена</button>
       <button class="btn primary" id="presetSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Brush preset -->
+<div class="modal" id="brushModal">
+  <div class="sheet glass small" role="dialog" aria-labelledby="bpTitle">
+    <h2 id="bpTitle">Пресет кисти</h2>
+    <p class="sub">Инструмент, цвет, толщина, прозрачность и мягкость сохранятся в этом браузере.</p>
+    <div class="inp"><input id="bpName" maxlength="24" autocomplete="off" spellcheck="false"></div>
+    <div class="row-btns">
+      <button class="btn ghost" id="bpCancel">Отмена</button>
+      <button class="btn primary" id="bpOk">Сохранить</button>
     </div>
   </div>
 </div>
@@ -975,11 +1082,192 @@ window.Scenes = (() => {
     return c;
   }
 
-  return {
-    day: () => cache.day || (cache.day = day()),
-    night: () => cache.night || (cache.night = night()),
-  };
+  const vgrad = (x, y0, y1, stops) => { const g = x.createLinearGradient(0, y0, 0, y1); stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c)); return g; };
+  function hills(x, base, amp, s, fill) {
+    x.beginPath(); x.moveTo(0, H);
+    for (let px = 0; px <= W; px += 6) x.lineTo(px, base - amp * (0.5 + 0.5 * (Math.sin(px * 0.0021 + s) * 0.7 + Math.sin(px * 0.0057 + s * 2.1) * 0.3)));
+    x.lineTo(W, H); x.closePath(); x.fillStyle = fill; x.fill();
+  }
+
+  function meadow() {
+    const [c, x] = canvas(), r = rng(7);
+    x.fillStyle = vgrad(x, 0, 700, ['#2f7fe0', '#77b6f2', '#d7ecfb']); x.fillRect(0, 0, W, H);
+    glow(x, 380, 170, 520, '255,250,225', 0.55);
+    for (let i = 0; i < 9; i++) { const cx = r() * W, cy = 90 + r() * 300; for (let j = 0; j < 14; j++) glow(x, cx + (r() - 0.5) * 260, cy + (r() - 0.5) * 50, 40 + r() * 60, '255,255,255', 0.35); }
+    hills(x, 640, 140, 0.4, vgrad(x, 450, 800, ['#8fb7a8', '#6f9a86']));
+    hills(x, 760, 160, 2.2, vgrad(x, 600, 900, ['#7cb54a', '#4d8a2c']));
+    hills(x, 900, 170, 4.1, vgrad(x, 720, H, ['#5ea83a', '#2e6b1d']));
+    for (let i = 0; i < 2600; i++) {
+      const t = Math.pow(r(), 0.7), y = 820 + t * (H - 820), px = r() * W, h = 6 + t * 26;
+      x.strokeStyle = `rgba(${40 + r() * 60 | 0},${110 + r() * 70 | 0},${30 + r() * 30 | 0},.8)`; x.lineWidth = 1 + t * 1.5;
+      x.beginPath(); x.moveTo(px, y); x.lineTo(px + (r() - 0.5) * 8, y - h); x.stroke();
+      if (r() < 0.12) { x.fillStyle = ['#ffd23f', '#ffffff', '#ff6b9a', '#b58cff', '#ff8a3d'][r() * 5 | 0]; x.beginPath(); x.arc(px, y - h, 1.5 + t * 4, 0, Math.PI * 2); x.fill(); }
+    }
+    pine(x, 1480, 830, 360, '#1f4a22'); pine(x, 1560, 850, 300, '#23522a');
+    return c;
+  }
+
+  function dunes() {
+    const [c, x] = canvas(), r = rng(3);
+    x.fillStyle = vgrad(x, 0, 720, ['#3d7fd1', '#8fc0ec', '#f3e3c4']); x.fillRect(0, 0, W, H);
+    glow(x, 1320, 150, 420, '255,252,235', 0.8);
+    const dune = (base, amp, s, top, bot, shade) => {
+      x.beginPath(); x.moveTo(0, H);
+      const pts = [];
+      for (let px = 0; px <= W; px += 6) { const y = base - amp * Math.pow(0.5 + 0.5 * Math.sin(px * 0.0026 + s + Math.sin(px * 0.0011 + s) * 1.2), 1.6); pts.push([px, y]); x.lineTo(px, y); }
+      x.lineTo(W, H); x.closePath(); x.fillStyle = vgrad(x, base - amp, H, [top, bot]); x.fill();
+      x.save(); x.clip(); x.fillStyle = shade; // shadow side of each crest
+      for (let i = 1; i < pts.length; i++) if (pts[i][1] > pts[i - 1][1]) x.fillRect(pts[i][0], pts[i][1], 6, 140);
+      x.restore();
+    };
+    dune(720, 180, 0.3, '#e7b77c', '#d19a5c', 'rgba(150,80,40,.12)');
+    dune(860, 220, 2.6, '#eaa865', '#c47f3f', 'rgba(130,60,25,.18)');
+    dune(1060, 260, 5.0, '#f0b673', '#b86d31', 'rgba(110,45,15,.22)');
+    for (let i = 0; i < 180; i++) { const y = 900 + r() * 300; x.fillStyle = 'rgba(120,60,20,.08)'; x.fillRect(r() * W, y, 60 + r() * 200, 2); }
+    return c;
+  }
+
+  function city() {
+    const [c, x] = canvas(), r = rng(41), GY = 900;
+    x.fillStyle = vgrad(x, 0, GY, ['#050817', '#141a44', '#3a2c6a', '#b0527a']); x.fillRect(0, 0, W, GY);
+    for (let i = 0; i < 500; i++) { x.fillStyle = `rgba(255,255,255,${r() * 0.6})`; x.fillRect(r() * W, r() * 500, 1.3, 1.3); }
+    const layer = (n, minH, maxH, col, lit) => {
+      let px = -20;
+      while (px < W) {
+        const w = 50 + r() * 110, h = minH + r() * (maxH - minH), top = GY - h;
+        x.fillStyle = col; x.fillRect(px, top, w, h);
+        if (r() < 0.25) x.fillRect(px + w / 2 - 2, top - 40, 4, 40);
+        if (lit) for (let wy = top + 12; wy < GY - 10; wy += 16) for (let wx = px + 8; wx < px + w - 10; wx += 13)
+          if (r() < lit) { x.fillStyle = r() < 0.8 ? `rgba(255,${200 + r() * 40 | 0},${120 + r() * 60 | 0},.9)` : 'rgba(150,200,255,.85)'; x.fillRect(wx, wy, 6, 8); }
+        x.fillStyle = col; px += w + r() * n;
+      }
+    };
+    layer(10, 180, 420, '#1a1c3a', 0);
+    layer(20, 220, 560, '#0d0f24', 0.28);
+    layer(40, 120, 300, '#07081a', 0.4);
+    x.fillStyle = '#04050f'; x.fillRect(0, GY, W, H - GY);
+    mirror(x, c, 0.6, 3);
+    x.fillStyle = vgrad(x, GY, H, ['rgba(4,5,15,.2)', 'rgba(2,2,8,.9)']); x.fillRect(0, GY, W, H - GY);
+    for (let i = 0; i < 220; i++) { x.fillStyle = `rgba(255,200,140,${r() * 0.18})`; x.fillRect(r() * W, GY + r() * (H - GY), 20 + r() * 90, 1.5); }
+    return c;
+  }
+
+  function aurora() {
+    const [c, x] = canvas(), r = rng(17);
+    x.fillStyle = vgrad(x, 0, HZ, ['#01040c', '#04142a', '#0b2a3f']); x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 1100; i++) { x.globalAlpha = 0.2 + r() * 0.8; x.fillStyle = '#fff'; x.fillRect(r() * W, r() * HZ, 1.4, 1.4); }
+    x.globalAlpha = 1;
+    x.save(); x.globalCompositeOperation = 'lighter';
+    [[0.9, '60,255,160'], [0.6, '90,200,255'], [0.35, '200,90,255']].forEach(([a, rgb], k) => {
+      for (let px = 0; px < W; px += 4) {
+        const y = 260 + k * 60 + Math.sin(px * 0.004 + k) * 90 + Math.sin(px * 0.011 + k * 3) * 30, h = 160 + Math.sin(px * 0.007 + k * 2) * 90;
+        const g = x.createLinearGradient(0, y - h, 0, y);
+        g.addColorStop(0, `rgba(${rgb},0)`); g.addColorStop(0.8, `rgba(${rgb},${0.09 * a})`); g.addColorStop(1, `rgba(${rgb},0)`);
+        x.fillStyle = g; x.fillRect(px, y - h, 5, h);
+      }
+    });
+    x.restore();
+    ridge(x, HZ - 30, 260, 2.2, vgrad(x, 450, HZ, ['#dfe9f5', '#8fa6c4']));
+    ridge(x, HZ + 2, 110, 6.1, '#0a1624');
+    treeLine(x, HZ + 2, 110, 6.1, '#040a12', r, 20, 50);
+    x.fillStyle = '#e8f0fa'; x.fillRect(0, HZ, W, H - HZ);
+    mirror(x, c, 0.35, 4);
+    x.fillStyle = vgrad(x, HZ, H, ['rgba(120,150,190,.25)', 'rgba(20,35,60,.75)']); x.fillRect(0, HZ, W, H - HZ);
+    return c;
+  }
+
+  const make = { day, night, meadow, dunes, city, aurora };
+  return Object.fromEntries(Object.keys(make).map(k => [k, () => cache[k] || (cache[k] = make[k]())]));
 })();
+</script>
+<script>
+/* Lumen drawing layer: brush / marker / eraser strokes, color math, brush presets. No DOM access. */
+(function (root) {
+  'use strict';
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const TOOLS = ['brush', 'marker', 'eraser'];
+  const DEFAULT = { tool: 'brush', h: 48, s: 100, v: 100, size: 18, opacity: 100, soft: 30 };
+  const MAX_PRESETS = 24;
+
+  /** h 0–360, s/v 0–100 → "#rrggbb" */
+  function hsvToHex(h, s, v) {
+    h = ((h % 360) + 360) % 360; s = clamp(s, 0, 100) / 100; v = clamp(v, 0, 100) / 100;
+    const f = n => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
+    return '#' + [f(5), f(3), f(1)].map(c => Math.round(c * 255).toString(16).padStart(2, '0')).join('');
+  }
+  function hexToHsv(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    if (!m) return { h: 0, s: 0, v: 0 };
+    const n = parseInt(m[1], 16), r = (n >> 16) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+    const mx = Math.max(r, g, b), d = mx - Math.min(r, g, b);
+    let h = 0;
+    if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return { h: Math.round((h * 60 + 360) % 360), s: Math.round(mx ? d / mx * 100 : 0), v: Math.round(mx * 100) };
+  }
+
+  /** Coerce any stored/untrusted brush into a valid one. */
+  function sanitize(b) {
+    b = b || {};
+    const num = (k, lo, hi) => (Number.isFinite(+b[k]) ? clamp(+b[k], lo, hi) : DEFAULT[k]);
+    return {
+      tool: TOOLS.includes(b.tool) ? b.tool : DEFAULT.tool,
+      h: num('h', 0, 360), s: num('s', 0, 100), v: num('v', 0, 100),
+      size: num('size', 1, 120), opacity: num('opacity', 5, 100), soft: num('soft', 0, 100),
+    };
+  }
+
+  function addPreset(list, brush, name, id) {
+    const p = { id: id || 'b' + Date.now().toString(36), n: String(name || '').trim().slice(0, 24) || 'Кисть', ...sanitize(brush) };
+    return [...list, p].slice(-MAX_PRESETS);
+  }
+  const removePreset = (list, id) => list.filter(p => p.id !== id);
+  const loadPresets = raw => (Array.isArray(raw) ? raw.filter(p => p && p.id).map(p => ({ id: String(p.id), n: String(p.n || 'Кисть').slice(0, 24), ...sanitize(p) })) : []);
+
+  /** Build a stroke from the brush. Points and width are normalised to the frame (0–1, width by long side). */
+  function makeStroke(brush, widthNorm) {
+    const b = sanitize(brush);
+    return { t: b.tool, c: hsvToHex(b.h, b.s, b.v), w: widthNorm, o: b.opacity / 100, soft: b.soft / 100, p: [] };
+  }
+  /** Append a point unless it's closer than minD to the previous one (keeps strokes light). */
+  function addPoint(stroke, x, y, minD) {
+    const p = stroke.p, n = p.length;
+    if (n && Math.hypot(x - p[n - 2], y - p[n - 1]) < (minD || 0)) return false;
+    p.push(+x.toFixed(4), +y.toFixed(4));
+    return true;
+  }
+
+  /** Paint strokes onto ctx sized w×h. Each stroke is one path so its own alpha never stacks. */
+  function render(ctx, strokes, w, h) {
+    ctx.clearRect(0, 0, w, h);
+    const L = Math.max(w, h);
+    for (const s of strokes || []) {
+      if (!s.p || s.p.length < 2) continue;
+      const lw = Math.max(0.5, s.w * L), marker = s.t === 'marker';
+      ctx.save();
+      ctx.globalCompositeOperation = s.t === 'eraser' ? 'destination-out' : 'source-over';
+      ctx.globalAlpha = marker ? Math.min(s.o, 0.85) : s.o;
+      ctx.strokeStyle = ctx.fillStyle = s.t === 'eraser' ? '#000' : s.c;
+      ctx.lineWidth = lw;
+      ctx.lineCap = marker ? 'square' : 'round';
+      ctx.lineJoin = marker ? 'bevel' : 'round';
+      const blur = marker ? 0 : s.soft * lw * 0.35;
+      if (blur > 0.3) ctx.filter = `blur(${blur.toFixed(1)}px)`;
+      ctx.beginPath();
+      const p = s.p;
+      ctx.moveTo(p[0] * w, p[1] * h);
+      if (p.length === 2) ctx.lineTo(p[0] * w + 0.01, p[1] * h);
+      for (let i = 2; i < p.length - 2; i += 2) {
+        const mx = (p[i] + p[i + 2]) / 2, my = (p[i + 1] + p[i + 3]) / 2;
+        ctx.quadraticCurveTo(p[i] * w, p[i + 1] * h, mx * w, my * h);
+      }
+      if (p.length > 2) ctx.lineTo(p[p.length - 2] * w, p[p.length - 1] * h);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  root.Brush = { TOOLS, DEFAULT, MAX_PRESETS, hsvToHex, hexToHsv, sanitize, addPreset, removePreset, loadPresets, makeStroke, addPoint, render };
+})(typeof window !== 'undefined' ? window : globalThis);
 </script>
 <script>
 /* Lumen — UI layer. Depends on Engine (engine.js) and Scenes (scenes.js). */
@@ -1044,7 +1332,7 @@ window.Scenes = (() => {
   ];
 
   const zeroAdj = () => Object.fromEntries(ADJ.map(k => [k, 0]));
-  const fresh = () => ({ ...zeroAdj(), rot: 0, flipH: false, flipV: false, straighten: 0, aspect: 'orig', preset: 'none', amt: 100 });
+  const fresh = () => ({ ...zeroAdj(), rot: 0, flipH: false, flipV: false, straighten: 0, aspect: 'orig', preset: 'none', amt: 100, ink: [] });
   const GEOM = ['rot', 'flipH', 'flipV', 'straighten', 'aspect'];
   const geomSame = (a, b) => GEOM.every(k => a[k] === b[k]);
 
@@ -1063,15 +1351,30 @@ window.Scenes = (() => {
 
   // ---------- Preview rendering ----------
   const PREVIEW = 1800;
-  const cv = $('#cv'), fx = $('#fx'), orig = $('#orig'), photo = $('#photo'), stage = $('#stage');
-  let raf = 0;
+  const cv = $('#cv'), fx = $('#fx'), orig = $('#orig'), photo = $('#photo'), stage = $('#stage'), ink = $('#ink');
+  let raf = 0, liveStroke = null;
   const draw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawNow); };
   function drawNow() {
     if (!src) return;
     const w = cv.width, h = cv.height;
     Engine.render(cv, src, effective(state), PREVIEW);
     if (cv.width !== w || cv.height !== h) fit();
+    paintInk();
     schedHist();
+  }
+  function paintInk() {
+    if (ink.width !== cv.width || ink.height !== cv.height) { ink.width = cv.width; ink.height = cv.height; }
+    Brush.render(ink.getContext('2d'), liveStroke ? [...state.ink, liveStroke] : state.ink, ink.width, ink.height);
+  }
+  /** Engine render + drawing layer, used by export. */
+  function renderFull(out, img, size) {
+    Engine.render(out, img, effective(state), size);
+    if (!state.ink.length) return out;
+    const l = document.createElement('canvas');
+    l.width = out.width; l.height = out.height;
+    Brush.render(l.getContext('2d'), state.ink, l.width, l.height);
+    out.getContext('2d').drawImage(l, 0, 0);
+    return out;
   }
   function fit() {
     if (!cv.width) return;
@@ -1117,7 +1420,7 @@ window.Scenes = (() => {
     next.style.backgroundImage = `url(${t.toDataURL()})`;
     next.classList.add('on'); prev.classList.remove('on');
   }
-  const ambientSoon = () => { clearTimeout(ambT); ambT = setTimeout(ambient, 450); };
+  // Backdrop is painted once per image: re-rendering it on every edit made the whole background flash.
 
   // ---------- History ----------
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -1127,7 +1430,7 @@ window.Scenes = (() => {
     hist.push({ ...state });
     if (hist.length > 100) hist.shift();
     hi = hist.length - 1;
-    updHist(); ambientSoon();
+    updHist();
   }
   function go(d) {
     commit(); // flush an edit still waiting on a debounced commit (wheel / arrow keys)
@@ -1137,7 +1440,7 @@ window.Scenes = (() => {
     hi = n;
     if (geomSame(prev, hist[n])) crossfade(() => (state = { ...hist[n] }));
     else { state = { ...hist[n] }; drawNow(); bump(); }
-    syncUI(); updHist(); ambientSoon();
+    syncUI(); updHist();
   }
   function updHist() { $('#undo').disabled = hi === 0; $('#redo').disabled = hi === hist.length - 1; }
 
@@ -1282,6 +1585,7 @@ window.Scenes = (() => {
     $$('#seg button').forEach(b => b.classList.toggle('on', +b.dataset.tab === t));
     seg.querySelector('.pill').style.transform = `translateX(${t * 100}%)`;
     $$('.panel').forEach(p => p.classList.toggle('on', +p.dataset.panel === t));
+    photo.classList.toggle('drawing', t === 3);
     if (t === 1) setTimeout(() => centerIn($('.thumb.on')), 60);
   }
   seg.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTab(+b.dataset.tab); });
@@ -1549,8 +1853,115 @@ window.Scenes = (() => {
   const cmp = $('#compare');
   cmp.addEventListener('pointerdown', () => compare(true));
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => cmp.addEventListener(ev, () => compare(false)));
-  photo.addEventListener('pointerdown', e => { if (e.button === 0) compare(true); });
+  photo.addEventListener('pointerdown', e => { if (e.button === 0 && tab !== 3) compare(true); });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => photo.addEventListener(ev, () => compare(false)));
+
+  // ---------- Drawing: brush / marker / eraser ----------
+  let brush = Brush.sanitize(store.get('lumen.brush', Brush.DEFAULT));
+  let brushPresets = Brush.loadPresets(store.get('lumen.brushes', []));
+  const dp = $('#drawPanel'), bprev = $('#brushPrev');
+  const SWATCHES = ['#ffffff', '#1c1c1e', '#ff3b30', '#ff9500', '#ffcc00', '#34c759', '#00c7be', '#0a84ff', '#5e5ce6', '#bf5af2', '#ff2d55'];
+  $('#swatches').innerHTML = SWATCHES.map(c => `<button class="sw-dot" data-c="${c}" style="--c:${c}" aria-label="${c}"></button>`).join('');
+  const SL = { size: [1, 120, ' px'], opacity: [5, 100, '%'], soft: [0, 100, '%'], h: [0, 360, '°'], s: [0, 100, '%'], v: [0, 100, '%'] };
+
+  function syncBrush() {
+    const col = Brush.hsvToHex(brush.h, brush.s, brush.v);
+    dp.style.setProperty('--bc', col);
+    dp.style.setProperty('--hue', Brush.hsvToHex(brush.h, 100, 100));
+    dp.style.setProperty('--sat0', Brush.hsvToHex(brush.h, 0, brush.v));
+    $$('#drawTools .tool').forEach(b => b.classList.toggle('on', b.dataset.bt === brush.tool));
+    for (const k in SL) {
+      const r = dp.querySelector(`[data-b="${k}"]`), [lo, hi, u] = SL[k];
+      r.value = brush[k]; r.style.setProperty('--p', ((brush[k] - lo) / (hi - lo) * 100) + '%');
+      r.closest('label').querySelector('b').textContent = Math.round(brush[k]) + u;
+    }
+    $('#brushHex').value = col;
+    $$('.sw-dot').forEach(d => d.classList.toggle('on', d.dataset.c === col));
+    dp.classList.toggle('erasing', brush.tool === 'eraser');
+    // live stroke preview
+    const x = bprev.getContext('2d'), W = bprev.width, H = bprev.height;
+    const s = Brush.makeStroke(brush, brush.size / 2 / W);
+    for (let i = 0; i <= 24; i++) Brush.addPoint(s, 0.12 + i / 24 * 0.76, 0.5 + Math.sin(i / 24 * Math.PI * 2) * 0.18, 0);
+    if (s.t === 'eraser') { s.t = 'brush'; s.c = '#8e8e93'; }
+    Brush.render(x, [s], W, H);
+    store.set('lumen.brush', brush);
+  }
+  dp.addEventListener('input', e => {
+    const k = e.target.dataset.b;
+    if (k) { brush[k] = +e.target.value; syncBrush(); }
+    else if (e.target.id === 'brushHex') { brush = { ...brush, ...Brush.hexToHsv(e.target.value) }; syncBrush(); }
+  });
+  dp.addEventListener('click', e => {
+    const t = e.target.closest('[data-bt]'), d = e.target.closest('.sw-dot');
+    if (t) { brush.tool = t.dataset.bt; if (brush.tool === 'marker' && brush.soft > 0) brush.soft = 0; syncBrush(); }
+    if (d) { brush = { ...brush, ...Brush.hexToHsv(d.dataset.c) }; if (brush.tool === 'eraser') brush.tool = 'brush'; syncBrush(); }
+  });
+  $('#inkUndo').onclick = () => {
+    if (!state.ink.length) return;
+    state.ink = state.ink.slice(0, -1); paintInk(); commit();
+  };
+  $('#inkClear').onclick = () => {
+    if (!state.ink.length) return;
+    state.ink = []; paintInk(); commit(); toast('Рисунок очищен', 'Отменить', () => go(-1));
+  };
+
+  function renderBrushPresets() {
+    $('#bpList').innerHTML = brushPresets.map(p => {
+      const c = Brush.hsvToHex(p.h, p.s, p.v);
+      return `<button class="bp" data-id="${esc(p.id)}" title="${esc(p.n)}"><i class="bp-dot ${p.tool}" style="--c:${c};--sz:${Math.max(6, Math.min(22, p.size / 3 + 5))}px"></i>` +
+        `<span>${esc(p.n)}</span><em class="bp-del" data-del="${esc(p.id)}">${ICON.x}</em></button>`;
+    }).join('') || '<span class="bp-empty">Сохраните любимую кисть — она появится здесь</span>';
+  }
+  $('#bpList').addEventListener('click', e => {
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      brushPresets = Brush.removePreset(brushPresets, del.dataset.del);
+      store.set('lumen.brushes', brushPresets); renderBrushPresets(); return;
+    }
+    const b = e.target.closest('.bp');
+    if (!b) return;
+    const p = brushPresets.find(x => x.id === b.dataset.id);
+    if (p) { brush = Brush.sanitize(p); syncBrush(); restart(b, 'tap'); }
+  });
+  $('#bpSave').onclick = () => {
+    const names = { brush: 'Кисть', marker: 'Фломастер', eraser: 'Ластик' };
+    $('#bpName').value = `${names[brush.tool]} ${Math.round(brush.size)} px`;
+    openModal('#brushModal');
+    setTimeout(() => $('#bpName').select(), 80);
+  };
+  const saveBrushPreset = () => {
+    brushPresets = Brush.addPreset(brushPresets, brush, $('#bpName').value);
+    store.set('lumen.brushes', brushPresets); renderBrushPresets(); closeModal();
+    toast('Пресет кисти сохранён');
+  };
+  $('#bpOk').onclick = saveBrushPreset;
+  $('#bpCancel').onclick = () => closeModal();
+  $('#bpName').addEventListener('keydown', e => { if (e.key === 'Enter') saveBrushPreset(); });
+
+  const inkPos = e => { const r = photo.getBoundingClientRect(); return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)]; };
+  let inkRaf = 0;
+  photo.addEventListener('pointerdown', e => {
+    if (tab !== 3 || e.button !== 0 || !src) return;
+    photo.setPointerCapture(e.pointerId);
+    const r = photo.getBoundingClientRect();
+    liveStroke = Brush.makeStroke(brush, brush.size / Math.max(r.width, r.height));
+    Brush.addPoint(liveStroke, ...inkPos(e), 0);
+    paintInk();
+  });
+  photo.addEventListener('pointermove', e => {
+    if (!liveStroke) return;
+    const co = e.getCoalescedEvents ? e.getCoalescedEvents() : [], evs = co.length ? co : [e];
+    const r = photo.getBoundingClientRect(), minD = 1.5 / Math.max(r.width, r.height);
+    evs.forEach(ev => Brush.addPoint(liveStroke, ...inkPos(ev), minD));
+    cancelAnimationFrame(inkRaf); inkRaf = requestAnimationFrame(paintInk);
+  });
+  const endStroke = () => {
+    if (!liveStroke) return;
+    const s = liveStroke; liveStroke = null;
+    state.ink = [...state.ink, s]; paintInk(); commit();
+  };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => photo.addEventListener(ev, endStroke));
+  renderBrushPresets(); syncBrush();
 
   // ---------- Image loading ----------
   function setImage(img, name) {
@@ -1576,7 +1987,7 @@ window.Scenes = (() => {
     img.onerror = () => { toast('Не удалось открыть файл', null, null, true); URL.revokeObjectURL(url); };
     img.src = url;
   }
-  const SCENES = { day: 'День у озера', night: 'Ночь у озера' };
+  const SCENES = { day: 'День у озера', night: 'Ночь у озера', meadow: 'Летний луг', dunes: 'Полдень в дюнах', city: 'Ночной город', aurora: 'Северное сияние' };
   function loadScene(k) { setImage(Scenes[k](), SCENES[k]); }
 
   // ---------- Samples popover ----------
@@ -1588,7 +1999,8 @@ window.Scenes = (() => {
       const r = brand.getBoundingClientRect();
       pop.style.left = r.left + 'px'; pop.style.top = (r.bottom + 12) + 'px';
       if (!thumbsDrawn) {
-        $$('.sample').forEach(b => { const c = b.querySelector('canvas'); c.getContext('2d').drawImage(Scenes[b.dataset.scene](), 0, 0, c.width, c.height); });
+        // staggered so opening the popover never blocks on painting every scene at once
+        $$('.sample').forEach((b, i) => setTimeout(() => { const c = b.querySelector('canvas'); c.getContext('2d').drawImage(Scenes[b.dataset.scene](), 0, 0, c.width, c.height); }, 40 + i * 60));
         thumbsDrawn = true;
       }
       hideTip();
@@ -1678,9 +2090,7 @@ window.Scenes = (() => {
     store.set('lumen.export', { fmt: ex.fmt, q: ex.q, res: ex.res, frame: ex.frame });
   }
   function renderExPreview(anim) {
-    const t = document.createElement('canvas');
-    Engine.render(t, src, effective(state), 900);
-    const f = frameify(t, ex.frame);
+    const f = frameify(renderFull(document.createElement('canvas'), src, 900), ex.frame);
     const paint = () => { exCv.width = f.width; exCv.height = f.height; exCv.getContext('2d').drawImage(f, 0, 0); exCv.classList.remove('flip'); };
     if (anim) { exCv.classList.add('flip'); setTimeout(paint, 160); } else paint();
     estimate(f);
@@ -1720,9 +2130,7 @@ window.Scenes = (() => {
     await new Promise(r => setTimeout(r, 40));
     try {
       const d = exportDims(ex.res);
-      const out = document.createElement('canvas');
-      Engine.render(out, fullImg, effective(state), d.long);
-      const fin = frameify(out, ex.frame);
+      const fin = frameify(renderFull(document.createElement('canvas'), fullImg, d.long), ex.frame);
       const type = kind === 'copy' ? 'image/png' : 'image/' + ex.fmt;
       const blob = await new Promise((res, rej) => fin.toBlob(b => (b ? res(b) : rej(new Error('encode'))), type, ex.q / 100));
       const name = baseName($('#exName').value) + (kind === 'copy' ? '.png' : EXT[ex.fmt]);
@@ -1802,7 +2210,7 @@ window.Scenes = (() => {
     else if (typing || mod) return;
     else if (code === 'Space' && !e.repeat) { e.preventDefault(); compare(true); }
     else if (code === 'KeyH') toggleHist();
-    else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3') setTab(+code.slice(-1) - 1);
+    else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3' || code === 'Digit4') setTab(+code.slice(-1) - 1);
   });
   addEventListener('keyup', e => { if (e.code === 'Space') compare(false); });
 

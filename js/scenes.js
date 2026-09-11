@@ -204,8 +204,100 @@ window.Scenes = (() => {
     return c;
   }
 
-  return {
-    day: () => cache.day || (cache.day = day()),
-    night: () => cache.night || (cache.night = night()),
-  };
+  const vgrad = (x, y0, y1, stops) => { const g = x.createLinearGradient(0, y0, 0, y1); stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c)); return g; };
+  function hills(x, base, amp, s, fill) {
+    x.beginPath(); x.moveTo(0, H);
+    for (let px = 0; px <= W; px += 6) x.lineTo(px, base - amp * (0.5 + 0.5 * (Math.sin(px * 0.0021 + s) * 0.7 + Math.sin(px * 0.0057 + s * 2.1) * 0.3)));
+    x.lineTo(W, H); x.closePath(); x.fillStyle = fill; x.fill();
+  }
+
+  function meadow() {
+    const [c, x] = canvas(), r = rng(7);
+    x.fillStyle = vgrad(x, 0, 700, ['#2f7fe0', '#77b6f2', '#d7ecfb']); x.fillRect(0, 0, W, H);
+    glow(x, 380, 170, 520, '255,250,225', 0.55);
+    for (let i = 0; i < 9; i++) { const cx = r() * W, cy = 90 + r() * 300; for (let j = 0; j < 14; j++) glow(x, cx + (r() - 0.5) * 260, cy + (r() - 0.5) * 50, 40 + r() * 60, '255,255,255', 0.35); }
+    hills(x, 640, 140, 0.4, vgrad(x, 450, 800, ['#8fb7a8', '#6f9a86']));
+    hills(x, 760, 160, 2.2, vgrad(x, 600, 900, ['#7cb54a', '#4d8a2c']));
+    hills(x, 900, 170, 4.1, vgrad(x, 720, H, ['#5ea83a', '#2e6b1d']));
+    for (let i = 0; i < 2600; i++) {
+      const t = Math.pow(r(), 0.7), y = 820 + t * (H - 820), px = r() * W, h = 6 + t * 26;
+      x.strokeStyle = `rgba(${40 + r() * 60 | 0},${110 + r() * 70 | 0},${30 + r() * 30 | 0},.8)`; x.lineWidth = 1 + t * 1.5;
+      x.beginPath(); x.moveTo(px, y); x.lineTo(px + (r() - 0.5) * 8, y - h); x.stroke();
+      if (r() < 0.12) { x.fillStyle = ['#ffd23f', '#ffffff', '#ff6b9a', '#b58cff', '#ff8a3d'][r() * 5 | 0]; x.beginPath(); x.arc(px, y - h, 1.5 + t * 4, 0, Math.PI * 2); x.fill(); }
+    }
+    pine(x, 1480, 830, 360, '#1f4a22'); pine(x, 1560, 850, 300, '#23522a');
+    return c;
+  }
+
+  function dunes() {
+    const [c, x] = canvas(), r = rng(3);
+    x.fillStyle = vgrad(x, 0, 720, ['#3d7fd1', '#8fc0ec', '#f3e3c4']); x.fillRect(0, 0, W, H);
+    glow(x, 1320, 150, 420, '255,252,235', 0.8);
+    const dune = (base, amp, s, top, bot, shade) => {
+      x.beginPath(); x.moveTo(0, H);
+      const pts = [];
+      for (let px = 0; px <= W; px += 6) { const y = base - amp * Math.pow(0.5 + 0.5 * Math.sin(px * 0.0026 + s + Math.sin(px * 0.0011 + s) * 1.2), 1.6); pts.push([px, y]); x.lineTo(px, y); }
+      x.lineTo(W, H); x.closePath(); x.fillStyle = vgrad(x, base - amp, H, [top, bot]); x.fill();
+      x.save(); x.clip(); x.fillStyle = shade; // shadow side of each crest
+      for (let i = 1; i < pts.length; i++) if (pts[i][1] > pts[i - 1][1]) x.fillRect(pts[i][0], pts[i][1], 6, 140);
+      x.restore();
+    };
+    dune(720, 180, 0.3, '#e7b77c', '#d19a5c', 'rgba(150,80,40,.12)');
+    dune(860, 220, 2.6, '#eaa865', '#c47f3f', 'rgba(130,60,25,.18)');
+    dune(1060, 260, 5.0, '#f0b673', '#b86d31', 'rgba(110,45,15,.22)');
+    for (let i = 0; i < 180; i++) { const y = 900 + r() * 300; x.fillStyle = 'rgba(120,60,20,.08)'; x.fillRect(r() * W, y, 60 + r() * 200, 2); }
+    return c;
+  }
+
+  function city() {
+    const [c, x] = canvas(), r = rng(41), GY = 900;
+    x.fillStyle = vgrad(x, 0, GY, ['#050817', '#141a44', '#3a2c6a', '#b0527a']); x.fillRect(0, 0, W, GY);
+    for (let i = 0; i < 500; i++) { x.fillStyle = `rgba(255,255,255,${r() * 0.6})`; x.fillRect(r() * W, r() * 500, 1.3, 1.3); }
+    const layer = (n, minH, maxH, col, lit) => {
+      let px = -20;
+      while (px < W) {
+        const w = 50 + r() * 110, h = minH + r() * (maxH - minH), top = GY - h;
+        x.fillStyle = col; x.fillRect(px, top, w, h);
+        if (r() < 0.25) x.fillRect(px + w / 2 - 2, top - 40, 4, 40);
+        if (lit) for (let wy = top + 12; wy < GY - 10; wy += 16) for (let wx = px + 8; wx < px + w - 10; wx += 13)
+          if (r() < lit) { x.fillStyle = r() < 0.8 ? `rgba(255,${200 + r() * 40 | 0},${120 + r() * 60 | 0},.9)` : 'rgba(150,200,255,.85)'; x.fillRect(wx, wy, 6, 8); }
+        x.fillStyle = col; px += w + r() * n;
+      }
+    };
+    layer(10, 180, 420, '#1a1c3a', 0);
+    layer(20, 220, 560, '#0d0f24', 0.28);
+    layer(40, 120, 300, '#07081a', 0.4);
+    x.fillStyle = '#04050f'; x.fillRect(0, GY, W, H - GY);
+    mirror(x, c, 0.6, 3);
+    x.fillStyle = vgrad(x, GY, H, ['rgba(4,5,15,.2)', 'rgba(2,2,8,.9)']); x.fillRect(0, GY, W, H - GY);
+    for (let i = 0; i < 220; i++) { x.fillStyle = `rgba(255,200,140,${r() * 0.18})`; x.fillRect(r() * W, GY + r() * (H - GY), 20 + r() * 90, 1.5); }
+    return c;
+  }
+
+  function aurora() {
+    const [c, x] = canvas(), r = rng(17);
+    x.fillStyle = vgrad(x, 0, HZ, ['#01040c', '#04142a', '#0b2a3f']); x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 1100; i++) { x.globalAlpha = 0.2 + r() * 0.8; x.fillStyle = '#fff'; x.fillRect(r() * W, r() * HZ, 1.4, 1.4); }
+    x.globalAlpha = 1;
+    x.save(); x.globalCompositeOperation = 'lighter';
+    [[0.9, '60,255,160'], [0.6, '90,200,255'], [0.35, '200,90,255']].forEach(([a, rgb], k) => {
+      for (let px = 0; px < W; px += 4) {
+        const y = 260 + k * 60 + Math.sin(px * 0.004 + k) * 90 + Math.sin(px * 0.011 + k * 3) * 30, h = 160 + Math.sin(px * 0.007 + k * 2) * 90;
+        const g = x.createLinearGradient(0, y - h, 0, y);
+        g.addColorStop(0, `rgba(${rgb},0)`); g.addColorStop(0.8, `rgba(${rgb},${0.09 * a})`); g.addColorStop(1, `rgba(${rgb},0)`);
+        x.fillStyle = g; x.fillRect(px, y - h, 5, h);
+      }
+    });
+    x.restore();
+    ridge(x, HZ - 30, 260, 2.2, vgrad(x, 450, HZ, ['#dfe9f5', '#8fa6c4']));
+    ridge(x, HZ + 2, 110, 6.1, '#0a1624');
+    treeLine(x, HZ + 2, 110, 6.1, '#040a12', r, 20, 50);
+    x.fillStyle = '#e8f0fa'; x.fillRect(0, HZ, W, H - HZ);
+    mirror(x, c, 0.35, 4);
+    x.fillStyle = vgrad(x, HZ, H, ['rgba(120,150,190,.25)', 'rgba(20,35,60,.75)']); x.fillRect(0, HZ, W, H - HZ);
+    return c;
+  }
+
+  const make = { day, night, meadow, dunes, city, aurora };
+  return Object.fromEntries(Object.keys(make).map(k => [k, () => cache[k] || (cache[k] = make[k]())]));
 })();

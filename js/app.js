@@ -60,7 +60,7 @@
   ];
 
   const zeroAdj = () => Object.fromEntries(ADJ.map(k => [k, 0]));
-  const fresh = () => ({ ...zeroAdj(), rot: 0, flipH: false, flipV: false, straighten: 0, aspect: 'orig', preset: 'none', amt: 100 });
+  const fresh = () => ({ ...zeroAdj(), rot: 0, flipH: false, flipV: false, straighten: 0, aspect: 'orig', preset: 'none', amt: 100, ink: [] });
   const GEOM = ['rot', 'flipH', 'flipV', 'straighten', 'aspect'];
   const geomSame = (a, b) => GEOM.every(k => a[k] === b[k]);
 
@@ -79,15 +79,30 @@
 
   // ---------- Preview rendering ----------
   const PREVIEW = 1800;
-  const cv = $('#cv'), fx = $('#fx'), orig = $('#orig'), photo = $('#photo'), stage = $('#stage');
-  let raf = 0;
+  const cv = $('#cv'), fx = $('#fx'), orig = $('#orig'), photo = $('#photo'), stage = $('#stage'), ink = $('#ink');
+  let raf = 0, liveStroke = null;
   const draw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawNow); };
   function drawNow() {
     if (!src) return;
     const w = cv.width, h = cv.height;
     Engine.render(cv, src, effective(state), PREVIEW);
     if (cv.width !== w || cv.height !== h) fit();
+    paintInk();
     schedHist();
+  }
+  function paintInk() {
+    if (ink.width !== cv.width || ink.height !== cv.height) { ink.width = cv.width; ink.height = cv.height; }
+    Brush.render(ink.getContext('2d'), liveStroke ? [...state.ink, liveStroke] : state.ink, ink.width, ink.height);
+  }
+  /** Engine render + drawing layer, used by export. */
+  function renderFull(out, img, size) {
+    Engine.render(out, img, effective(state), size);
+    if (!state.ink.length) return out;
+    const l = document.createElement('canvas');
+    l.width = out.width; l.height = out.height;
+    Brush.render(l.getContext('2d'), state.ink, l.width, l.height);
+    out.getContext('2d').drawImage(l, 0, 0);
+    return out;
   }
   function fit() {
     if (!cv.width) return;
@@ -133,7 +148,7 @@
     next.style.backgroundImage = `url(${t.toDataURL()})`;
     next.classList.add('on'); prev.classList.remove('on');
   }
-  const ambientSoon = () => { clearTimeout(ambT); ambT = setTimeout(ambient, 450); };
+  // Backdrop is painted once per image: re-rendering it on every edit made the whole background flash.
 
   // ---------- History ----------
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -143,7 +158,7 @@
     hist.push({ ...state });
     if (hist.length > 100) hist.shift();
     hi = hist.length - 1;
-    updHist(); ambientSoon();
+    updHist();
   }
   function go(d) {
     commit(); // flush an edit still waiting on a debounced commit (wheel / arrow keys)
@@ -153,7 +168,7 @@
     hi = n;
     if (geomSame(prev, hist[n])) crossfade(() => (state = { ...hist[n] }));
     else { state = { ...hist[n] }; drawNow(); bump(); }
-    syncUI(); updHist(); ambientSoon();
+    syncUI(); updHist();
   }
   function updHist() { $('#undo').disabled = hi === 0; $('#redo').disabled = hi === hist.length - 1; }
 
@@ -298,6 +313,7 @@
     $$('#seg button').forEach(b => b.classList.toggle('on', +b.dataset.tab === t));
     seg.querySelector('.pill').style.transform = `translateX(${t * 100}%)`;
     $$('.panel').forEach(p => p.classList.toggle('on', +p.dataset.panel === t));
+    photo.classList.toggle('drawing', t === 3);
     if (t === 1) setTimeout(() => centerIn($('.thumb.on')), 60);
   }
   seg.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTab(+b.dataset.tab); });
@@ -565,8 +581,115 @@
   const cmp = $('#compare');
   cmp.addEventListener('pointerdown', () => compare(true));
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => cmp.addEventListener(ev, () => compare(false)));
-  photo.addEventListener('pointerdown', e => { if (e.button === 0) compare(true); });
+  photo.addEventListener('pointerdown', e => { if (e.button === 0 && tab !== 3) compare(true); });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => photo.addEventListener(ev, () => compare(false)));
+
+  // ---------- Drawing: brush / marker / eraser ----------
+  let brush = Brush.sanitize(store.get('lumen.brush', Brush.DEFAULT));
+  let brushPresets = Brush.loadPresets(store.get('lumen.brushes', []));
+  const dp = $('#drawPanel'), bprev = $('#brushPrev');
+  const SWATCHES = ['#ffffff', '#1c1c1e', '#ff3b30', '#ff9500', '#ffcc00', '#34c759', '#00c7be', '#0a84ff', '#5e5ce6', '#bf5af2', '#ff2d55'];
+  $('#swatches').innerHTML = SWATCHES.map(c => `<button class="sw-dot" data-c="${c}" style="--c:${c}" aria-label="${c}"></button>`).join('');
+  const SL = { size: [1, 120, ' px'], opacity: [5, 100, '%'], soft: [0, 100, '%'], h: [0, 360, '°'], s: [0, 100, '%'], v: [0, 100, '%'] };
+
+  function syncBrush() {
+    const col = Brush.hsvToHex(brush.h, brush.s, brush.v);
+    dp.style.setProperty('--bc', col);
+    dp.style.setProperty('--hue', Brush.hsvToHex(brush.h, 100, 100));
+    dp.style.setProperty('--sat0', Brush.hsvToHex(brush.h, 0, brush.v));
+    $$('#drawTools .tool').forEach(b => b.classList.toggle('on', b.dataset.bt === brush.tool));
+    for (const k in SL) {
+      const r = dp.querySelector(`[data-b="${k}"]`), [lo, hi, u] = SL[k];
+      r.value = brush[k]; r.style.setProperty('--p', ((brush[k] - lo) / (hi - lo) * 100) + '%');
+      r.closest('label').querySelector('b').textContent = Math.round(brush[k]) + u;
+    }
+    $('#brushHex').value = col;
+    $$('.sw-dot').forEach(d => d.classList.toggle('on', d.dataset.c === col));
+    dp.classList.toggle('erasing', brush.tool === 'eraser');
+    // live stroke preview
+    const x = bprev.getContext('2d'), W = bprev.width, H = bprev.height;
+    const s = Brush.makeStroke(brush, brush.size / 2 / W);
+    for (let i = 0; i <= 24; i++) Brush.addPoint(s, 0.12 + i / 24 * 0.76, 0.5 + Math.sin(i / 24 * Math.PI * 2) * 0.18, 0);
+    if (s.t === 'eraser') { s.t = 'brush'; s.c = '#8e8e93'; }
+    Brush.render(x, [s], W, H);
+    store.set('lumen.brush', brush);
+  }
+  dp.addEventListener('input', e => {
+    const k = e.target.dataset.b;
+    if (k) { brush[k] = +e.target.value; syncBrush(); }
+    else if (e.target.id === 'brushHex') { brush = { ...brush, ...Brush.hexToHsv(e.target.value) }; syncBrush(); }
+  });
+  dp.addEventListener('click', e => {
+    const t = e.target.closest('[data-bt]'), d = e.target.closest('.sw-dot');
+    if (t) { brush.tool = t.dataset.bt; if (brush.tool === 'marker' && brush.soft > 0) brush.soft = 0; syncBrush(); }
+    if (d) { brush = { ...brush, ...Brush.hexToHsv(d.dataset.c) }; if (brush.tool === 'eraser') brush.tool = 'brush'; syncBrush(); }
+  });
+  $('#inkUndo').onclick = () => {
+    if (!state.ink.length) return;
+    state.ink = state.ink.slice(0, -1); paintInk(); commit();
+  };
+  $('#inkClear').onclick = () => {
+    if (!state.ink.length) return;
+    state.ink = []; paintInk(); commit(); toast('Рисунок очищен', 'Отменить', () => go(-1));
+  };
+
+  function renderBrushPresets() {
+    $('#bpList').innerHTML = brushPresets.map(p => {
+      const c = Brush.hsvToHex(p.h, p.s, p.v);
+      return `<button class="bp" data-id="${esc(p.id)}" title="${esc(p.n)}"><i class="bp-dot ${p.tool}" style="--c:${c};--sz:${Math.max(6, Math.min(22, p.size / 3 + 5))}px"></i>` +
+        `<span>${esc(p.n)}</span><em class="bp-del" data-del="${esc(p.id)}">${ICON.x}</em></button>`;
+    }).join('') || '<span class="bp-empty">Сохраните любимую кисть — она появится здесь</span>';
+  }
+  $('#bpList').addEventListener('click', e => {
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      brushPresets = Brush.removePreset(brushPresets, del.dataset.del);
+      store.set('lumen.brushes', brushPresets); renderBrushPresets(); return;
+    }
+    const b = e.target.closest('.bp');
+    if (!b) return;
+    const p = brushPresets.find(x => x.id === b.dataset.id);
+    if (p) { brush = Brush.sanitize(p); syncBrush(); restart(b, 'tap'); }
+  });
+  $('#bpSave').onclick = () => {
+    const names = { brush: 'Кисть', marker: 'Фломастер', eraser: 'Ластик' };
+    $('#bpName').value = `${names[brush.tool]} ${Math.round(brush.size)} px`;
+    openModal('#brushModal');
+    setTimeout(() => $('#bpName').select(), 80);
+  };
+  const saveBrushPreset = () => {
+    brushPresets = Brush.addPreset(brushPresets, brush, $('#bpName').value);
+    store.set('lumen.brushes', brushPresets); renderBrushPresets(); closeModal();
+    toast('Пресет кисти сохранён');
+  };
+  $('#bpOk').onclick = saveBrushPreset;
+  $('#bpCancel').onclick = () => closeModal();
+  $('#bpName').addEventListener('keydown', e => { if (e.key === 'Enter') saveBrushPreset(); });
+
+  const inkPos = e => { const r = photo.getBoundingClientRect(); return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)]; };
+  let inkRaf = 0;
+  photo.addEventListener('pointerdown', e => {
+    if (tab !== 3 || e.button !== 0 || !src) return;
+    photo.setPointerCapture(e.pointerId);
+    const r = photo.getBoundingClientRect();
+    liveStroke = Brush.makeStroke(brush, brush.size / Math.max(r.width, r.height));
+    Brush.addPoint(liveStroke, ...inkPos(e), 0);
+    paintInk();
+  });
+  photo.addEventListener('pointermove', e => {
+    if (!liveStroke) return;
+    const co = e.getCoalescedEvents ? e.getCoalescedEvents() : [], evs = co.length ? co : [e];
+    const r = photo.getBoundingClientRect(), minD = 1.5 / Math.max(r.width, r.height);
+    evs.forEach(ev => Brush.addPoint(liveStroke, ...inkPos(ev), minD));
+    cancelAnimationFrame(inkRaf); inkRaf = requestAnimationFrame(paintInk);
+  });
+  const endStroke = () => {
+    if (!liveStroke) return;
+    const s = liveStroke; liveStroke = null;
+    state.ink = [...state.ink, s]; paintInk(); commit();
+  };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => photo.addEventListener(ev, endStroke));
+  renderBrushPresets(); syncBrush();
 
   // ---------- Image loading ----------
   function setImage(img, name) {
@@ -592,7 +715,7 @@
     img.onerror = () => { toast('Не удалось открыть файл', null, null, true); URL.revokeObjectURL(url); };
     img.src = url;
   }
-  const SCENES = { day: 'День у озера', night: 'Ночь у озера' };
+  const SCENES = { day: 'День у озера', night: 'Ночь у озера', meadow: 'Летний луг', dunes: 'Полдень в дюнах', city: 'Ночной город', aurora: 'Северное сияние' };
   function loadScene(k) { setImage(Scenes[k](), SCENES[k]); }
 
   // ---------- Samples popover ----------
@@ -604,7 +727,8 @@
       const r = brand.getBoundingClientRect();
       pop.style.left = r.left + 'px'; pop.style.top = (r.bottom + 12) + 'px';
       if (!thumbsDrawn) {
-        $$('.sample').forEach(b => { const c = b.querySelector('canvas'); c.getContext('2d').drawImage(Scenes[b.dataset.scene](), 0, 0, c.width, c.height); });
+        // staggered so opening the popover never blocks on painting every scene at once
+        $$('.sample').forEach((b, i) => setTimeout(() => { const c = b.querySelector('canvas'); c.getContext('2d').drawImage(Scenes[b.dataset.scene](), 0, 0, c.width, c.height); }, 40 + i * 60));
         thumbsDrawn = true;
       }
       hideTip();
@@ -694,9 +818,7 @@
     store.set('lumen.export', { fmt: ex.fmt, q: ex.q, res: ex.res, frame: ex.frame });
   }
   function renderExPreview(anim) {
-    const t = document.createElement('canvas');
-    Engine.render(t, src, effective(state), 900);
-    const f = frameify(t, ex.frame);
+    const f = frameify(renderFull(document.createElement('canvas'), src, 900), ex.frame);
     const paint = () => { exCv.width = f.width; exCv.height = f.height; exCv.getContext('2d').drawImage(f, 0, 0); exCv.classList.remove('flip'); };
     if (anim) { exCv.classList.add('flip'); setTimeout(paint, 160); } else paint();
     estimate(f);
@@ -736,9 +858,7 @@
     await new Promise(r => setTimeout(r, 40));
     try {
       const d = exportDims(ex.res);
-      const out = document.createElement('canvas');
-      Engine.render(out, fullImg, effective(state), d.long);
-      const fin = frameify(out, ex.frame);
+      const fin = frameify(renderFull(document.createElement('canvas'), fullImg, d.long), ex.frame);
       const type = kind === 'copy' ? 'image/png' : 'image/' + ex.fmt;
       const blob = await new Promise((res, rej) => fin.toBlob(b => (b ? res(b) : rej(new Error('encode'))), type, ex.q / 100));
       const name = baseName($('#exName').value) + (kind === 'copy' ? '.png' : EXT[ex.fmt]);
@@ -818,7 +938,7 @@
     else if (typing || mod) return;
     else if (code === 'Space' && !e.repeat) { e.preventDefault(); compare(true); }
     else if (code === 'KeyH') toggleHist();
-    else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3') setTab(+code.slice(-1) - 1);
+    else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3' || code === 'Digit4') setTab(+code.slice(-1) - 1);
   });
   addEventListener('keyup', e => { if (e.code === 'Space') compare(false); });
 
