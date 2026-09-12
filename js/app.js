@@ -77,10 +77,13 @@
     { id: 'purple', c: '#bf5af2', ink: '#fdf3ff', n: 'Сирень' },
   ];
   const QUALITY = [1200, 1800, 2400];
-  const DEF_SET = { accent: 'gold', ambient: true, anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
+  const THEMES = ['system', 'light', 'dark'];
+  const THEME_N = { system: 'системная', light: 'светлая', dark: 'тёмная' };
+  const DEF_SET = { theme: 'system', accent: 'gold', ambient: true, anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
   let settings = { ...DEF_SET, ...store.get('lumen.settings', {}) };
   // Storage is user-editable, so every field is coerced back into range before it reaches the UI.
   if (!ACCENTS.some(a => a.id === settings.accent)) settings.accent = DEF_SET.accent;
+  if (!THEMES.includes(settings.theme)) settings.theme = DEF_SET.theme;
   if (!QUALITY.includes(settings.quality)) settings.quality = DEF_SET.quality;
   settings.dice = clamp(Math.round(+settings.dice || DEF_SET.dice), 3, 14);
   ['ambient', 'anim', 'tips', 'promo'].forEach(k => (settings[k] = settings[k] !== false));
@@ -959,6 +962,7 @@
     else if (code === 'KeyG') openCharts();
     else if (code === 'KeyI') openInfo();
     else if (code === 'KeyR') $('#dice').click();
+    else if (code === 'KeyT') $('#themeBtn').click();
     else if (e.key === ',') openSettings();
     else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3' || code === 'Digit4') setTab(+code.slice(-1) - 1);
   });
@@ -983,10 +987,31 @@
 
   // ---------- Settings sheet ----------
   const accentHex = () => (ACCENTS.find(a => a.id === settings.accent) || ACCENTS[0]).c;
+
+  // «Система» is resolved here rather than in CSS: the stylesheet only ever sees data-theme="light"
+  // or "dark", so no rule needs a media query of its own and the switch stays instant.
+  const sysLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
+  const resolvedTheme = () => (settings.theme === 'system' ? (sysLight && sysLight.matches ? 'light' : 'dark') : settings.theme);
+  function applyTheme() {
+    const t = resolvedTheme();
+    document.documentElement.dataset.theme = t;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = t === 'light' ? '#eceef3' : '#050507';
+    $$('#themeBtn .theme-ic svg').forEach(s => s.classList.toggle('on', s.dataset.th === settings.theme));
+    $('#themeBtn').dataset.tip = `Тема: ${THEME_N[settings.theme]}`;
+  }
+  if (sysLight) sysLight.addEventListener('change', () => { if (settings.theme === 'system') applyTheme(); });
+  $('#themeBtn').onclick = () => {
+    settings.theme = THEMES[(THEMES.indexOf(settings.theme) + 1) % THEMES.length];
+    applySettings(); syncSettings(); hideTip();
+    toast(`Тема: ${THEME_N[settings.theme]}`);
+  };
+
   function applySettings() {
     const a = ACCENTS.find(x => x.id === settings.accent) || ACCENTS[0];
     document.documentElement.style.setProperty('--accent', a.c);
     document.documentElement.style.setProperty('--accent-ink', a.ink);
+    applyTheme();
     document.body.classList.toggle('no-anim', !settings.anim);
     document.body.classList.toggle('no-ambient', !settings.ambient);
     PREVIEW = settings.quality;
@@ -999,6 +1024,11 @@
     $$('#settingsModal [data-set]').forEach(b => {
       b.classList.toggle('on', !!settings[b.dataset.set]);
       b.setAttribute('aria-checked', String(!!settings[b.dataset.set]));
+    });
+    $$('#setTheme button').forEach((b, i) => {
+      const on = b.dataset.v === settings.theme;
+      b.classList.toggle('on', on);
+      if (on) $('#setTheme .pill').style.transform = `translateX(${i * 100}%)`;
     });
     $$('#setQ button').forEach((b, i) => {
       const on = +b.dataset.v === settings.quality;
@@ -1017,7 +1047,8 @@
   $('#settingsBtn').onclick = () => { togglePop(false); openSettings(); };
   $('#setClose').onclick = closeModal;
   $('#settingsModal').addEventListener('click', e => {
-    const t = e.target.closest('[data-set]'), a = e.target.closest('[data-acc]'), q = e.target.closest('#setQ button');
+    const t = e.target.closest('[data-set]'), a = e.target.closest('[data-acc]');
+    const q = e.target.closest('#setQ button'), th = e.target.closest('#setTheme button');
     if (t) {
       const k = t.dataset.set;
       settings[k] = !settings[k];
@@ -1026,6 +1057,7 @@
       if (k === 'promo') { store.set('lumen.promoHidden', false); showPromo(settings.promo); }
     }
     if (a) { settings.accent = a.dataset.acc; applySettings(); syncSettings(); }
+    if (th) { settings.theme = th.dataset.v; applySettings(); syncSettings(); }
     if (q) { settings.quality = +q.dataset.v; applySettings(); syncSettings(); drawNow(); }
   });
   $('#setDice').addEventListener('input', e => {
@@ -1156,26 +1188,34 @@
   $('#infoClose').onclick = closeModal;
 
   // ---------- Dice: shuffle the look ----------
-  const FACE = { 1: 'rotateY(0deg)', 2: 'rotateY(-90deg)', 3: 'rotateX(-90deg)', 4: 'rotateX(90deg)', 5: 'rotateY(90deg)', 6: 'rotateY(180deg)' };
-  let spins = 0;
+  const PIPS = { 1: ['c'], 2: ['tl', 'br'], 3: ['tl', 'c', 'br'], 4: ['tl', 'tr', 'bl', 'br'], 5: ['tl', 'tr', 'c', 'bl', 'br'], 6: ['tl', 'ml', 'bl', 'tr', 'mr', 'br'] };
+  const pips = $$('#die .pip');
+  const setFace = n => pips.forEach(p => p.classList.toggle('on', PIPS[n].includes(p.dataset.p)));
+  let rollT = 0;
+  setFace(5);
   $('#dice').onclick = () => {
     if (!src) return;
-    const btn = $('#dice'), cube = $('#dieCube');
-    btn.classList.add('rolling');
-    spins += 2 + Math.floor(Math.random() * 3);
+    const btn = $('#dice');
     const face = 1 + Math.floor(Math.random() * 6);
-    cube.style.transform = `rotateX(${spins * 360}deg) rotateY(${spins * 360}deg) ${FACE[face]}`;
     const target = Analysis.roll(Math.random, settings.dice);
     const n = Object.values(target).filter(v => v !== 0).length;
+    const spin = settings.anim ? 780 : 0;
+    if (spin) {
+      btn.classList.add('rolling');
+      clearInterval(rollT);
+      rollT = setInterval(() => setFace(1 + Math.floor(Math.random() * 6)), 90); // faces flicker while it tumbles
+    }
     setTimeout(() => {
+      clearInterval(rollT);
       btn.classList.remove('rolling');
+      setFace(face);
       restart(btn, 'lucky');
       if (tab !== 0) setTab(0);
       tweenTo(target, 820, () => {
         commit();
         toast(`Выпало ${face} · перемешано ${n} ${plural(n, 'настройка', 'настройки', 'настроек')}`, 'Отменить', () => go(-1));
       });
-    }, settings.anim ? 380 : 0);
+    }, spin);
   };
 
   // ---------- Onboarding tour ----------

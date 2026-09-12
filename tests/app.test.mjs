@@ -39,14 +39,14 @@ test('drawing UI is wired: 4th tab, ink layer, all brush controls', () => {
 });
 
 test('settings, about, charts, info, tour and promo are all wired up', () => {
-  for (const id of ['settingsModal', 'aboutModal', 'chartsModal', 'infoModal', 'tour', 'promo', 'dice', 'dieCube'])
+  for (const id of ['settingsModal', 'aboutModal', 'chartsModal', 'infoModal', 'tour', 'promo', 'dice', 'die'])
     assert.match(html, new RegExp(`id="${id}"`), id);
-  for (const id of ['statsBtn', 'infoBtn', 'settingsBtn', 'aboutBtn', 'promoX', 'btnTour', 'btnWipe', 'setAccent', 'setQ', 'setDice'])
+  for (const id of ['statsBtn', 'infoBtn', 'settingsBtn', 'aboutBtn', 'promoX', 'btnTour', 'btnWipe', 'setAccent', 'setQ', 'setDice', 'themeBtn', 'setTheme'])
     assert.match(html, new RegExp(`id="${id}"`), id);
   for (const id of ['chHist', 'chCurve', 'chDonut', 'chRadar', 'chBars', 'chWave'])
     assert.match(html, new RegExp(`<canvas id="${id}">`), id);
   for (const k of ['ambient', 'anim', 'tips', 'promo']) assert.match(html, new RegExp(`data-set="${k}"`), k);
-  assert.equal([...html.matchAll(/<i class="f[1-6]">/g)].length, 6); // six faces on the cube
+  assert.equal([...html.matchAll(/class="pip"/g)].length, 7); // seven pip positions cover every face
   assert.match(html, /rupolitcompass\.website/);
 });
 
@@ -54,7 +54,22 @@ test('settings that are persisted are also sanitised on load', () => {
   const app = read('js/app.js');
   assert.match(app, /store\.get\('lumen\.settings'/);
   assert.match(app, /if \(!QUALITY\.includes\(settings\.quality\)\)/);
+  assert.match(app, /if \(!THEMES\.includes\(settings\.theme\)\)/);
   assert.match(app, /settings\.dice = clamp\(/);
+});
+
+test('theme: three choices, «система» resolved in JS, CSS themed by attribute only', () => {
+  const app = read('js/app.js'), css = read('css/style.css');
+  assert.match(app, /const THEMES = \['system', 'light', 'dark'\]/);
+  assert.match(app, /matchMedia\('\(prefers-color-scheme: light\)'\)/);
+  assert.match(app, /document\.documentElement\.dataset\.theme = t;/);
+  assert.match(app, /meta\[name="theme-color"\]/);
+  // The stylesheet must not branch on the OS itself — otherwise an explicit choice would be
+  // overridden by the system whenever the two disagree.
+  assert.doesNotMatch(css, /prefers-color-scheme/);
+  assert.match(css, /:root\[data-theme="light"\]/);
+  for (const token of ['--glass-bg', '--solid', '--track', '--surface', '--needle', '--page'])
+    assert.ok(css.split(`${token}:`).length >= 3, `${token} needs a value in both themes`);
 });
 
 test('backdrop is not re-rendered on edits', () => {
