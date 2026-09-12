@@ -2391,29 +2391,50 @@ window.Scenes = (() => {
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
   };
 
-  // ---------- Slider sound: a synthesized mechanical detent, no audio files ----------
+  // ---------- UI sound: synthesized mechanical clicks, no audio files ----------
   const SFX = (() => {
-    let actx, lastPlay = 0;
+    let actx, lastTick = 0, lastSelect = 0;
     const ctx = () => actx || (actx = new (window.AudioContext || window.webkitAudioContext)());
+    const live = ac => { if (ac.state === 'suspended') ac.resume(); };
+    // Slider detent: a quiet ratchet click as a dial/range crosses each notch.
     function tick(vel) {
       const now = performance.now();
-      if (now - lastPlay < 22) return; // a real crank can't click faster than this
+      if (now - lastTick < 22) return; // a real crank can't click faster than this
       let ac;
-      try { ac = ctx(); if (ac.state === 'suspended') ac.resume(); } catch { return; }
-      lastPlay = now;
+      try { ac = ctx(); live(ac); } catch { return; }
+      lastTick = now;
       const t0 = ac.currentTime, amt = clamp(0.45 + Math.abs(vel || 0.5), 0.45, 1.5);
       const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.02), ac.sampleRate), d = buf.getChannelData(0);
       for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
       const noise = ac.createBufferSource(); noise.buffer = buf;
       const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400 + Math.random() * 900; bp.Q.value = 1.4;
-      const ng = ac.createGain(); ng.gain.setValueAtTime(0.15 * amt, t0); ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.045);
+      const ng = ac.createGain(); ng.gain.setValueAtTime(0.07 * amt, t0); ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.045);
       noise.connect(bp).connect(ng).connect(ac.destination); noise.start(t0); noise.stop(t0 + 0.05);
       const osc = ac.createOscillator(); osc.type = 'square';
       osc.frequency.setValueAtTime(520 + Math.random() * 140, t0); osc.frequency.exponentialRampToValueAtTime(180, t0 + 0.03);
-      const og = ac.createGain(); og.gain.setValueAtTime(0.05 * amt, t0); og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.035);
+      const og = ac.createGain(); og.gain.setValueAtTime(0.022 * amt, t0); og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.035);
       osc.connect(og).connect(ac.destination); osc.start(t0); osc.stop(t0 + 0.04);
     }
-    return { tick };
+    // Discrete pick: a firmer camera-dial "clack" for choosing a filter, tool or aspect ratio.
+    function select() {
+      const now = performance.now();
+      if (now - lastSelect < 60) return;
+      let ac;
+      try { ac = ctx(); live(ac); } catch { return; }
+      lastSelect = now;
+      const t0 = ac.currentTime;
+      const osc = ac.createOscillator(); osc.type = 'triangle';
+      osc.frequency.setValueAtTime(260, t0); osc.frequency.exponentialRampToValueAtTime(85, t0 + 0.055);
+      const og = ac.createGain(); og.gain.setValueAtTime(0.08, t0); og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.07);
+      osc.connect(og).connect(ac.destination); osc.start(t0); osc.stop(t0 + 0.08);
+      const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.012), ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const noise = ac.createBufferSource(); noise.buffer = buf;
+      const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2200;
+      const ng = ac.createGain(); ng.gain.setValueAtTime(0.07, t0); ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.03);
+      noise.connect(hp).connect(ng).connect(ac.destination); noise.start(t0); noise.stop(t0 + 0.035);
+    }
+    return { tick, select };
   })();
 
   // ---------- Tools ----------
@@ -2791,6 +2812,7 @@ window.Scenes = (() => {
     const c = e.target.closest('.chip');
     if (!c) return;
     if (c.id === 'autoChip') return autoEnhance();
+    if (c.dataset.k !== cur) SFX.select();
     selectTool(c.dataset.k, true);
   });
   chips.addEventListener('dblclick', e => {
@@ -2899,6 +2921,7 @@ window.Scenes = (() => {
   thumbs.addEventListener('click', e => {
     const b = e.target.closest('.thumb[data-id]');
     if (!b || b.dataset.id === state.preset) return;
+    SFX.select();
     crossfade(() => { state.preset = b.dataset.id; state.amt = 100; });
     syncUI(); commit();
   });
@@ -2971,6 +2994,7 @@ window.Scenes = (() => {
   $('#aspects').addEventListener('click', e => {
     const b = e.target.closest('[data-aspect]');
     if (!b || b.dataset.aspect === state.aspect) return;
+    SFX.select();
     state.aspect = b.dataset.aspect;
     state.ox = 0; state.oy = 0; // a new ratio starts centred; «Умная обрезка» moves it from there
     syncUI(); drawNow(); commit();
@@ -3160,7 +3184,7 @@ window.Scenes = (() => {
   });
   dp.addEventListener('click', e => {
     const t = e.target.closest('[data-bt]'), d = e.target.closest('.sw-dot');
-    if (t) { brush.tool = t.dataset.bt; if (brush.tool === 'marker' && brush.soft > 0) brush.soft = 0; syncBrush(); }
+    if (t && t.dataset.bt !== brush.tool) { SFX.select(); brush.tool = t.dataset.bt; if (brush.tool === 'marker' && brush.soft > 0) brush.soft = 0; syncBrush(); }
     if (d) { brush = { ...brush, ...Brush.hexToHsv(d.dataset.c) }; if (brush.tool === 'eraser') brush.tool = 'brush'; syncBrush(); }
   });
   $('#inkUndo').onclick = () => {
