@@ -470,6 +470,192 @@ svg { display: block; }
   .drow { flex-wrap: wrap; justify-content: center; }
   #seg button { font-size: 12px; }
 }
+
+/* ---------- Premium polish ---------- */
+/* A slow specular sweep across the primary action — the one place the eye should land first. */
+.btn.primary { position: relative; overflow: hidden; }
+.btn.primary::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .55), transparent);
+  transform: translateX(-160%) skewX(-14deg); animation: sheen 6.5s 2.4s cubic-bezier(.5, 0, .2, 1) infinite; }
+@keyframes sheen { 0% { transform: translateX(-160%) skewX(-14deg); } 18%, 100% { transform: translateX(360%) skewX(-14deg); } }
+.topbar, .dock { transition: box-shadow .6s var(--smooth); }
+.brand-name { background: linear-gradient(100deg, #fff 30%, rgba(255, 255, 255, .72) 50%, #fff 70%); background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 9s linear infinite; }
+@keyframes shimmer { to { background-position: -220% 0; } }
+.logo { transition: transform .8s var(--spring), box-shadow .5s; }
+.brand:hover .logo { transform: rotate(-14deg) scale(1.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), 0 8px 22px -4px rgba(255, 140, 80, .8); }
+.seg .pill, .ring, .thumb canvas { will-change: transform; }
+.body-boot .app { animation: fadeUp .9s var(--smooth) both; }
+@keyframes fadeUp { from { opacity: 0; } }
+
+/* Settings-driven global switches */
+body.no-anim *, body.no-anim *::before, body.no-anim *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+body.no-ambient .blob, body.no-ambient .amb { display: none; }
+body.dense .panels { height: 168px; }
+
+/* ---------- Shared sheet furniture ---------- */
+.sheet.pane { position: relative; width: min(620px, 100%); padding: 26px 26px 22px; }
+.sheet.wide { width: min(1020px, 100%); }
+.sheet-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.sheet-head .si { width: 46px; height: 46px; border-radius: 15px; flex: none; display: grid; place-items: center;
+  background: linear-gradient(150deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .06));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 10px 24px -12px rgba(0, 0, 0, .9); }
+.sheet-head .si svg { width: 23px; height: 23px; }
+.sheet-head h2 { margin: 0; }
+.sheet-head .sub { margin-top: 2px; }
+.group { margin-bottom: 18px; }
+.group > h3, .card > h3 { margin: 0 0 9px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+.rows { border-radius: 18px; overflow: hidden; background: rgba(255, 255, 255, .05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07); }
+.srow { display: flex; align-items: center; gap: 14px; min-height: 54px; padding: 9px 15px; transition: background .3s; }
+.srow + .srow { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07); }
+.srow:hover { background: rgba(255, 255, 255, .035); }
+.srow .tx { flex: 1; min-width: 0; }
+.srow .tx b { display: block; font-size: 14.5px; font-weight: 600; }
+.srow .tx small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+.srow .val { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* toggle */
+.tgl { flex: none; width: 46px; height: 28px; border-radius: 15px; background: rgba(255, 255, 255, .16); position: relative;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .35); transition: background .35s var(--smooth); }
+.tgl::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .45); transition: transform .5s var(--spring), width .3s var(--spring); }
+.tgl.on { background: #30d158; }
+.tgl.on::after { transform: translateX(18px); }
+.tgl:active::after { width: 27px; }
+.tgl.on:active::after { transform: translateX(13px); }
+
+/* accent swatches */
+.accents { display: flex; gap: 10px; }
+.acc { width: 30px; height: 30px; border-radius: 50%; background: var(--c); flex: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 5px 14px -5px var(--c); transition: transform .5s var(--spring), box-shadow .3s; }
+.acc:hover { transform: scale(1.12); }
+.acc.on { box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--c), 0 6px 16px -4px var(--c); transform: scale(1.06); }
+
+/* ---------- About ---------- */
+.about-hero { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 6px 0 20px; text-align: center; }
+.about-hero .logo { width: 76px; height: 76px; border-radius: 24px; animation: spinLogo 22s linear infinite; }
+.about-hero .logo::after { inset: 19px; }
+@keyframes spinLogo { to { filter: hue-rotate(360deg); } }
+.about-hero h2 { font-size: 30px; letter-spacing: -.035em; }
+.about-hero p { max-width: 420px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.ver { padding: 4px 11px; border-radius: 10px; background: var(--fill); font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .02em; }
+.facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px; }
+.fact { border-radius: 16px; padding: 14px 8px; text-align: center; background: rgba(255, 255, 255, .05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07); }
+.fact b { display: block; font-size: 22px; font-weight: 700; letter-spacing: -.03em; color: var(--accent); font-variant-numeric: tabular-nums; }
+.fact span { font-size: 11px; color: var(--muted); font-weight: 600; }
+.links { display: flex; gap: 8px; flex-wrap: wrap; }
+.links a { flex: 1 1 160px; height: 46px; border-radius: 15px; display: flex; align-items: center; justify-content: center; gap: 9px;
+  background: var(--fill); color: inherit; text-decoration: none; font-weight: 600; font-size: 14px;
+  transition: background .3s, transform .45s var(--spring); }
+.links a:hover { background: var(--fill-2); }
+.links a:active { transform: scale(.96); }
+.links a svg { width: 18px; height: 18px; }
+
+/* ---------- Charts ---------- */
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.card { border-radius: 20px; padding: 14px 15px 12px; background: rgba(255, 255, 255, .05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07); opacity: 0; transform: translateY(16px) scale(.985);
+  animation: reveal .8s var(--spring) forwards; }
+@keyframes reveal { to { opacity: 1; transform: none; } }
+.card canvas { width: 100%; display: block; border-radius: 8px; }
+.card.span2 { grid-column: span 2; }
+.card .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 9px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.card .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; background: var(--c); margin-right: 5px; vertical-align: -1px; }
+.card .empty { display: grid; place-items: center; height: 120px; color: var(--faint); font-size: 12.5px; text-align: center; padding: 0 20px; }
+
+/* ---------- Image info ---------- */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { border-radius: 15px; padding: 12px 13px; background: rgba(255, 255, 255, .05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07); }
+.stat span { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.stat b { display: block; margin-top: 4px; font-size: 16px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.stat b small { font-size: 11.5px; font-weight: 600; color: var(--muted); margin-left: 3px; }
+.meter { height: 7px; border-radius: 4px; margin-top: 8px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; border-radius: 4px; background: linear-gradient(90deg, var(--accent), #ff9f0a);
+  transition: width .9s var(--smooth); }
+.pal { display: flex; gap: 6px; margin-top: 2px; }
+.pal i { flex: 1; height: 46px; border-radius: 12px; background: var(--c); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18);
+  position: relative; transform: scaleY(.4); opacity: 0; animation: palIn .6s var(--spring) forwards; }
+@keyframes palIn { to { transform: none; opacity: 1; } }
+.pal i::after { content: attr(data-p); position: absolute; left: 0; right: 0; bottom: -17px; text-align: center; font-size: 10px;
+  font-weight: 700; color: var(--muted); }
+.info-shot { height: 188px; margin-bottom: 18px; border-radius: 18px; display: grid; place-items: center; padding: 12px;
+  background: radial-gradient(ellipse at 50% 35%, rgba(255, 255, 255, .07), transparent 70%), rgba(0, 0, 0, .28);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); }
+.info-shot canvas { max-width: 100%; max-height: 164px; display: block; border-radius: 10px;
+  box-shadow: 0 18px 36px -16px rgba(0, 0, 0, .9), 0 0 0 .5px rgba(255, 255, 255, .14); }
+
+/* ---------- Dice ---------- */
+.die-wrap { width: 22px; height: 22px; perspective: 90px; }
+.die { position: relative; width: 22px; height: 22px; transform-style: preserve-3d; transition: transform 1.05s cubic-bezier(.22, .9, .26, 1); }
+.die i { position: absolute; inset: 0; border-radius: 6px; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 2.5px;
+  background: linear-gradient(150deg, #fff, #d8d8de); box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .2); }
+.die i b { width: 4px; height: 4px; border-radius: 50%; background: #17171a; align-self: center; justify-self: center; }
+.die .f1 { transform: translateZ(11px); } .die .f6 { transform: rotateY(180deg) translateZ(11px); }
+.die .f2 { transform: rotateY(90deg) translateZ(11px); } .die .f5 { transform: rotateY(-90deg) translateZ(11px); }
+.die .f3 { transform: rotateX(90deg) translateZ(11px); } .die .f4 { transform: rotateX(-90deg) translateZ(11px); }
+#dice.rolling { pointer-events: none; }
+#dice.lucky { animation: lucky .9s var(--spring); }
+@keyframes lucky { 40% { box-shadow: 0 0 0 6px rgba(255, 214, 10, .18), 0 0 26px rgba(255, 214, 10, .55); } }
+
+/* ---------- Onboarding tour ---------- */
+.tour { position: fixed; inset: 0; z-index: 75; opacity: 0; visibility: hidden; transition: opacity .45s var(--smooth), visibility 0s linear .5s; }
+.tour.on { opacity: 1; visibility: visible; transition: opacity .45s var(--smooth), visibility 0s; }
+.tour-dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); }
+.spot { position: absolute; border-radius: 26px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .58), inset 0 0 0 1.5px rgba(255, 255, 255, .5);
+  transition: all .75s var(--spring); pointer-events: none; }
+.spot::after { content: ""; position: absolute; inset: -4px; border-radius: inherit; box-shadow: 0 0 0 2px rgba(255, 214, 10, .55);
+  animation: halo 2.2s ease-out infinite; }
+@keyframes halo { 0% { opacity: .9; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.06); } }
+.tour-card { position: absolute; width: min(340px, calc(100vw - 32px)); border-radius: 26px; padding: 20px 20px 16px;
+  transition: left .75s var(--spring), top .75s var(--spring); }
+.tour-card h3 { margin: 0 0 6px; font-size: 19px; font-weight: 700; letter-spacing: -.025em; }
+.tour-card p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; min-height: 60px; }
+.tour-card .tc-in { animation: tcIn .55s var(--spring) both; }
+@keyframes tcIn { from { opacity: 0; transform: translateY(10px); } }
+.tour-emoji { font-size: 26px; line-height: 1; margin-bottom: 8px; display: block; animation: tcPop .7s var(--spring) both; }
+@keyframes tcPop { from { opacity: 0; transform: scale(.5) rotate(-18deg); } }
+.tour-foot { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.dots { display: flex; gap: 6px; flex: 1; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .25); transition: all .5s var(--spring); }
+.dots i.on { width: 20px; border-radius: 3px; background: var(--accent); }
+.tour-foot .btn { height: 36px; border-radius: 18px; font-size: 13.5px; }
+.tour-skip { position: absolute; top: 16px; right: 18px; z-index: 1; color: var(--muted); font-size: 13px; font-weight: 600;
+  padding: 6px 12px; border-radius: 14px; background: rgba(0, 0, 0, .35); transition: color .3s, background .3s; }
+.tour-skip:hover { color: #fff; background: rgba(0, 0, 0, .55); }
+
+/* ---------- Corner promo ---------- */
+.promo { position: fixed; left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); z-index: 44;
+  width: 268px; border-radius: 22px; padding: 13px 14px; display: flex; gap: 11px; align-items: flex-start;
+  opacity: 0; transform: translateY(22px) scale(.94); pointer-events: none; transition: opacity .5s var(--smooth), transform .8s var(--spring); }
+.promo.on { opacity: 1; transform: none; pointer-events: auto; }
+.promo.gone { opacity: 0; transform: translateY(18px) scale(.9); pointer-events: none; }
+.promo .pm-ic { width: 38px; height: 38px; border-radius: 12px; flex: none; display: grid; place-items: center; font-size: 19px;
+  background: linear-gradient(150deg, #ff375f, #5e5ce6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 8px 18px -8px rgba(94, 92, 230, .9); }
+.promo .pm-tx { flex: 1; min-width: 0; }
+.promo .pm-tx b { display: block; font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; }
+.promo .pm-tx small { display: block; color: var(--muted); font-size: 11.5px; line-height: 1.35; margin-top: 2px; }
+.promo .pm-tx a { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; color: var(--accent); font-size: 12.5px;
+  font-weight: 700; text-decoration: none; }
+.promo .pm-tx a svg { width: 12px; height: 12px; transition: transform .4s var(--spring); }
+.promo .pm-tx a:hover svg { transform: translateX(3px); }
+.promo .pm-x { position: absolute; top: 7px; right: 7px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+  color: var(--muted); background: rgba(255, 255, 255, .08); transition: all .4s var(--spring); }
+.promo .pm-x svg { width: 9px; height: 9px; }
+.promo .pm-x:hover { background: rgba(255, 255, 255, .2); color: #fff; }
+.promo .pm-x:active { transform: scale(.85) rotate(90deg); }
+.promo .ad-tag { position: absolute; bottom: 6px; right: 11px; font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 700; }
+
+@media (max-width: 900px) {
+  .charts { grid-template-columns: 1fr; }
+  .card.span2 { grid-column: span 1; }
+}
+@media (max-width: 620px) {
+  .facts { grid-template-columns: repeat(2, 1fr); }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .promo { width: auto; right: max(14px, env(safe-area-inset-right)); }
+  .sheet.pane { padding: 20px 18px 18px; }
+}
 </style>
 </head>
 <body>
@@ -487,6 +673,16 @@ svg { display: block; }
       <span class="sep"></span>
       <button class="btn" id="compare" data-tip="Удерживайте — оригинал" data-key="Пробел"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M12 4v16"/><path d="M12 4h5.5A3.5 3.5 0 0 1 21 7.5v9a3.5 3.5 0 0 1-3.5 3.5H12z" fill="currentColor" opacity=".35" stroke="none"/></svg></button>
       <button class="btn" id="histBtn" data-tip="Гистограмма" data-key="H"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 20c2-1 2.5-9 5-9s3 5 5 5 2.5-10 6-11v15"/></svg></button>
+      <button class="btn" id="statsBtn" data-tip="Графики и диаграммы" data-key="G"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
+      <button class="btn hide-sm" id="infoBtn" data-tip="Об изображении" data-key="I"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r=".9" fill="currentColor"/></svg></button>
+      <button class="btn" id="dice" data-tip="Случайный вид — бросьте кубик" data-key="R"><span class="die-wrap"><span class="die" id="dieCube">
+        <i class="f1"><b style="grid-area:2/2"></b></i>
+        <i class="f2"><b style="grid-area:1/1"></b><b style="grid-area:3/3"></b></i>
+        <i class="f3"><b style="grid-area:1/1"></b><b style="grid-area:2/2"></b><b style="grid-area:3/3"></b></i>
+        <i class="f4"><b style="grid-area:1/1"></b><b style="grid-area:1/3"></b><b style="grid-area:3/1"></b><b style="grid-area:3/3"></b></i>
+        <i class="f5"><b style="grid-area:1/1"></b><b style="grid-area:1/3"></b><b style="grid-area:2/2"></b><b style="grid-area:3/1"></b><b style="grid-area:3/3"></b></i>
+        <i class="f6"><b style="grid-area:1/1"></b><b style="grid-area:2/1"></b><b style="grid-area:3/1"></b><b style="grid-area:1/3"></b><b style="grid-area:2/3"></b><b style="grid-area:3/3"></b></i>
+      </span></span></button>
       <button class="btn hide-sm" id="resetAll" data-tip="Вернуть к оригиналу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
       <span class="sep hide-sm"></span>
       <button class="btn pill hide-sm" id="open" data-tip="Открыть фото" data-key="Ctrl O"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4.5"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Открыть</button>
@@ -588,6 +784,8 @@ svg { display: block; }
     <button class="sample" data-scene="aurora"><canvas width="264" height="176"></canvas><span>🌌 Сияние</span></button>
   </div>
   <button class="pop-row" id="open2"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4.5"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Открыть своё фото…<kbd>Ctrl O</kbd></button>
+  <button class="pop-row" id="settingsBtn"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 14a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-2.9 1.2V22a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 2 14H2a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 20 12h.1a2 2 0 1 1 0 4H20z"/></svg>Настройки<kbd>,</kbd></button>
+  <button class="pop-row" id="aboutBtn"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r=".9" fill="currentColor"/></svg>О проекте</button>
 </div>
 
 <!-- New preset -->
@@ -653,6 +851,155 @@ svg { display: block; }
     </div>
   </div>
 </div>
+
+<!-- Settings -->
+<div class="modal" id="settingsModal">
+  <div class="sheet glass pane" role="dialog" aria-labelledby="setTitle">
+    <button class="xbtn" id="setClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="sheet-head">
+      <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 14a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-2.9 1.2V22a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 2 14a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 20 12h.1a2 2 0 1 1 0 4z"/></svg></div>
+      <div><h2 id="setTitle">Настройки приложения</h2><p class="sub">Оформление, качество и данные — всё хранится только в этом браузере.</p></div>
+    </div>
+
+    <div class="group">
+      <h3>Оформление</h3>
+      <div class="rows">
+        <div class="srow"><div class="tx"><b>Акцентный цвет</b><small>Красит линейки, кнопку экспорта и графики</small></div><div class="accents" id="setAccent"></div></div>
+        <div class="srow"><div class="tx"><b>Фоновое свечение</b><small>Размытые цветные пятна и отсвет фото за окном</small></div><button class="tgl" data-set="ambient" role="switch" aria-label="Фоновое свечение"></button></div>
+        <div class="srow"><div class="tx"><b>Анимации</b><small>Пружины, переходы и плавные появления</small></div><button class="tgl" data-set="anim" role="switch" aria-label="Анимации"></button></div>
+        <div class="srow"><div class="tx"><b>Подсказки</b><small>Всплывающие названия кнопок при наведении</small></div><button class="tgl" data-set="tips" role="switch" aria-label="Подсказки"></button></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Редактор</h3>
+      <div class="rows">
+        <div class="srow" style="display:block">
+          <div class="tx" style="margin-bottom:10px"><b>Качество предпросмотра</b><small>Больше — чётче на экране, но тяжелее для видеокарты. На экспорт не влияет.</small></div>
+          <div class="seg seg3" id="setQ"><span class="pill"></span><button data-v="1200">Быстро</button><button data-v="1800">Баланс</button><button data-v="2400">Максимум</button></div>
+        </div>
+        <div class="srow" style="display:block">
+          <div class="tx" style="margin-bottom:6px"><b>Размах кубика <span class="val" id="setDiceVal">7</span></b><small>Сколько настроек перемешивает один бросок</small></div>
+          <input type="range" class="range" id="setDice" min="3" max="14" step="1">
+        </div>
+        <div class="srow"><div class="tx"><b>Уголок с рекомендацией</b><small>Маленькая карточка о втором проекте автора</small></div><button class="tgl" data-set="promo" role="switch" aria-label="Уголок с рекомендацией"></button></div>
+      </div>
+    </div>
+
+    <div class="group" style="margin-bottom:6px">
+      <h3>Данные</h3>
+      <div class="rows">
+        <div class="srow"><div class="tx"><b>Обучение</b><small>Короткий тур по интерфейсу</small></div><button class="btn ghost" id="btnTour">Показать</button></div>
+        <div class="srow"><div class="tx"><b>Сохранённое в браузере</b><small id="setStorage">—</small></div><button class="btn ghost" id="btnWipe">Очистить</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- About -->
+<div class="modal" id="aboutModal">
+  <div class="sheet glass pane" role="dialog" aria-labelledby="aboutTitle">
+    <button class="xbtn" id="aboutClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="about-hero">
+      <i class="logo"></i>
+      <h2 id="aboutTitle">Lumen</h2>
+      <span class="ver">версия 3.0 · «Кубик»</span>
+      <p>Фоторедактор, который живёт в одном HTML-файле. Вся цветокоррекция считается на видеокарте одним WebGL-шейдером, интерфейс собран в стиле Apple: жидкое стекло, пружинные анимации и линейка-«крутилка» как в «Фото» на iPhone. Ни сервера, ни сборщика, ни единой зависимости — фотографии никуда не уходят из браузера.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>18</b><span>настроек</span></div>
+      <div class="fact"><b>14</b><span>фильтров</span></div>
+      <div class="fact"><b>6</b><span>тестовых сцен</span></div>
+      <div class="fact"><b>0</b><span>зависимостей</span></div>
+    </div>
+    <div class="group">
+      <h3>Из чего собрано</h3>
+      <div class="rows">
+        <div class="srow"><div class="tx"><b>WebGL-шейдер</b><small>Экспозиция, тон, цвет, резкость, зерно и виньетка — один проход по кадру</small></div></div>
+        <div class="srow"><div class="tx"><b>Canvas 2D</b><small>Геометрия кадра, размытие без тёмных краёв, слой рисования и экспорт</small></div></div>
+        <div class="srow"><div class="tx"><b>localStorage</b><small>Свои пресеты, кисти, настройки приложения — только в вашем браузере</small></div></div>
+      </div>
+    </div>
+    <div class="links">
+      <a href="https://github.com/Arbuzyakaby/lumen-photo-editor" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48l-.01-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.36 1.09 2.94.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85l-.01 2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>GitHub</a>
+      <a href="https://arbuzyakaby.github.io/lumen-photo-editor/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg>Сайт проекта</a>
+      <a href="https://rupolitcompass.website" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>RuPolitCompass</a>
+    </div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="modal" id="chartsModal">
+  <div class="sheet glass pane wide" role="dialog" aria-labelledby="chTitle">
+    <button class="xbtn" id="chClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="sheet-head">
+      <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+      <div><h2 id="chTitle">Графики и диаграммы</h2><p class="sub">Как выглядит кадр прямо сейчас — со всеми настройками, фильтром и штрихами.</p></div>
+    </div>
+    <div class="charts">
+      <div class="card span2" style="animation-delay:.02s"><h3>Гистограмма RGB</h3><canvas id="chHist"></canvas>
+        <div class="legend"><span><i style="--c:rgba(255,69,58,.8)"></i>Красный</span><span><i style="--c:rgba(48,209,88,.8)"></i>Зелёный</span><span><i style="--c:rgba(10,132,255,.9)"></i>Синий</span><span><i style="--c:rgba(255,255,255,.35)"></i>Яркость</span></div>
+      </div>
+      <div class="card" style="animation-delay:.08s"><h3>Тоновая кривая</h3><canvas id="chCurve"></canvas>
+        <div class="legend"><span>Накопленная яркость: выше пунктира — кадр светлее нейтрального</span></div>
+      </div>
+      <div class="card" style="animation-delay:.14s"><h3>Распределение оттенков</h3><canvas id="chDonut"></canvas>
+        <div class="legend" id="chDonutLeg"></div>
+      </div>
+      <div class="card" style="animation-delay:.2s"><h3>Профиль настроек</h3><canvas id="chRadar"></canvas>
+        <div class="legend"><span>Средний круг — ноль, наружу — плюс</span></div>
+      </div>
+      <div class="card" style="animation-delay:.26s"><h3>Изменённые настройки</h3><canvas id="chBars"></canvas><div class="empty" id="chBarsEmpty" hidden>Пока всё по нулям — покрутите линейку или бросьте кубик</div>
+        <div class="legend"><span><i style="--c:var(--accent)"></i>Плюс</span><span><i style="--c:rgba(10,132,255,.85)"></i>Минус</span></div>
+      </div>
+      <div class="card span2" style="animation-delay:.32s"><h3>Волновая форма</h3><canvas id="chWave"></canvas>
+        <div class="legend"><span>Слева направо — столбцы кадра, снизу вверх — от теней к светам</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image info -->
+<div class="modal" id="infoModal">
+  <div class="sheet glass pane" role="dialog" aria-labelledby="infoTitle">
+    <button class="xbtn" id="infoClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="sheet-head">
+      <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4.5"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>
+      <div><h2 id="infoTitle">Об изображении</h2><p class="sub" id="infoName">—</p></div>
+    </div>
+    <div class="info-shot"><canvas id="infoPrev"></canvas></div>
+    <div class="group"><h3>Кадр</h3><div class="stats" id="infoStats"></div></div>
+    <div class="group"><h3>Тон и цвет</h3><div class="stats" id="infoTone"></div></div>
+    <div class="group" style="margin-bottom:8px"><h3>Основные цвета</h3><div class="pal" id="infoPal"></div></div>
+  </div>
+</div>
+
+<!-- Onboarding tour -->
+<div class="tour" id="tour">
+  <div class="tour-dim"></div>
+  <div class="spot" id="tourSpot"></div>
+  <button class="tour-skip" id="tourSkip">Пропустить</button>
+  <div class="tour-card glass" id="tourCard">
+    <div id="tourBody"></div>
+    <div class="tour-foot">
+      <div class="dots" id="tourDots"></div>
+      <button class="btn ghost" id="tourPrev">Назад</button>
+      <button class="btn primary" id="tourNext">Далее</button>
+    </div>
+  </div>
+</div>
+
+<!-- Corner promo -->
+<aside class="promo glass" id="promo">
+  <span class="pm-ic">🧭</span>
+  <div class="pm-tx">
+    <b>RuPolitCompass</b>
+    <small>Второй проект автора: тест политических координат — узнайте, где вы на карте взглядов.</small>
+    <a href="https://rupolitcompass.website" target="_blank" rel="noopener">Открыть<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+  <button class="pm-x" id="promoX" aria-label="Скрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <span class="ad-tag">реклама</span>
+</aside>
 
 <div class="toast glass" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastTxt"></span><button id="toastAct"></button></div>
 <div class="tip glass" id="tip"></div>
@@ -1270,6 +1617,292 @@ window.Scenes = (() => {
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 <script>
+/* Lumen analysis: image statistics, chart painting and the dice roll.
+ * Pure math lives at the top (unit-tested in node); painters only ever touch a canvas context
+ * handed to them, so nothing here looks anything up in the DOM.
+ */
+(function (root) {
+  'use strict';
+  const BINS = 64;
+  const HUES = 12;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const TAU = Math.PI * 2;
+
+  // ---------- Pure statistics ----------
+
+  /** Histograms, averages and hue spread from raw RGBA bytes. `step` skips pixels for speed. */
+  function summarize(data, step) {
+    step = Math.max(1, step || 1);
+    const r = new Float32Array(BINS), g = new Float32Array(BINS), b = new Float32Array(BINS), l = new Float32Array(BINS);
+    const hues = new Float32Array(HUES);
+    let n = 0, sr = 0, sg = 0, sb = 0, sl = 0, sl2 = 0, ssat = 0, gray = 0, dark = 0, blown = 0;
+    const stride = 4 * step;
+    for (let i = 0; i < data.length; i += stride) {
+      const R = data[i], G = data[i + 1], B = data[i + 2];
+      const L = R * 0.2126 + G * 0.7152 + B * 0.0722;
+      r[R >> 2]++; g[G >> 2]++; b[B >> 2]++; l[clamp(L, 0, 255) >> 2]++;
+      sr += R; sg += G; sb += B; sl += L; sl2 += L * L;
+      const mx = Math.max(R, G, B), mn = Math.min(R, G, B), d = mx - mn;
+      const sat = mx ? d / mx : 0;
+      ssat += sat;
+      if (d < 16) gray++;
+      else {
+        let h = mx === R ? ((G - B) / d) % 6 : mx === G ? (B - R) / d + 2 : (R - G) / d + 4;
+        h = ((h * 60 + 360) % 360);
+        hues[Math.min(HUES - 1, Math.floor(h / 360 * HUES))] += sat;
+      }
+      if (L < 8) dark++;
+      if (L > 247) blown++;
+      n++;
+    }
+    if (!n) n = 1;
+    const mean = sl / n;
+    return {
+      bins: BINS, n, r, g, b, l, hues,
+      avg: { r: sr / n, g: sg / n, b: sb / n },
+      luma: mean / 255,
+      contrast: Math.sqrt(Math.max(0, sl2 / n - mean * mean)) / 128,
+      saturation: ssat / n,
+      grayShare: gray / n,
+      clipDark: dark / n,
+      clipLight: blown / n,
+    };
+  }
+
+  /** Cumulative tone distribution, 0–1 per bin — the shape of the tone curve chart. */
+  function cumulative(hist) {
+    const out = new Float32Array(hist.length);
+    let acc = 0, total = 0;
+    for (let i = 0; i < hist.length; i++) total += hist[i];
+    for (let i = 0; i < hist.length; i++) { acc += hist[i]; out[i] = total ? acc / total : 0; }
+    return out;
+  }
+
+  /** Top colours by 4-bit-per-channel bucket, brightest-first within equal shares. */
+  function dominant(data, count, step) {
+    step = Math.max(1, step || 1);
+    const map = new Map();
+    let n = 0;
+    for (let i = 0; i < data.length; i += 4 * step) {
+      const k = (data[i] >> 4) << 8 | (data[i + 1] >> 4) << 4 | data[i + 2] >> 4;
+      const e = map.get(k);
+      if (e) { e.r += data[i]; e.g += data[i + 1]; e.b += data[i + 2]; e.n++; }
+      else map.set(k, { r: data[i], g: data[i + 1], b: data[i + 2], n: 1 });
+      n++;
+    }
+    const hx = v => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0');
+    return [...map.values()]
+      .sort((a, z) => z.n - a.n)
+      .slice(0, count || 6)
+      .map(e => ({ hex: '#' + hx(e.r / e.n) + hx(e.g / e.n) + hx(e.b / e.n), share: e.n / (n || 1) }));
+  }
+
+  /** Luminance density per column — the waveform chart. cols × BINS values, 0–1. */
+  function waveform(data, w, h, cols) {
+    cols = Math.max(1, cols || 96);
+    const out = new Float32Array(cols * BINS);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        const L = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+        out[Math.min(cols - 1, Math.floor(x / w * cols)) * BINS + (clamp(L, 0, 255) >> 2)]++;
+      }
+    }
+    let mx = 1;
+    for (let i = 0; i < out.length; i++) mx = Math.max(mx, out[i]);
+    for (let i = 0; i < out.length; i++) out[i] /= mx;
+    return { cols, bins: BINS, d: out };
+  }
+
+  // ---------- Dice ----------
+
+  /** Tasteful random adjustments. Deterministic when handed a seeded `rnd`. */
+  const ROLL = [
+    { k: 'exposure', lo: -22, hi: 26 }, { k: 'brilliance', lo: 0, hi: 40 },
+    { k: 'highlights', lo: -45, hi: 20 }, { k: 'shadows', lo: -25, hi: 45 },
+    { k: 'contrast', lo: -18, hi: 45 }, { k: 'brightness', lo: -14, hi: 16 },
+    { k: 'blacks', lo: -10, hi: 32 }, { k: 'saturation', lo: -35, hi: 32 },
+    { k: 'vibrance', lo: -15, hi: 45 }, { k: 'warmth', lo: -40, hi: 40 },
+    { k: 'tint', lo: -25, hi: 25 }, { k: 'hue', lo: -24, hi: 24 },
+    { k: 'sharpness', lo: 0, hi: 40 }, { k: 'clarity', lo: -20, hi: 45 },
+    { k: 'fade', lo: 0, hi: 38 }, { k: 'vignette', lo: -20, hi: 55 },
+    { k: 'grain', lo: 0, hi: 40 }, { k: 'blur', lo: 0, hi: 8 },
+  ];
+  /** Each roll touches `keep` of the eighteen settings and leaves the rest at zero. */
+  function roll(rnd, keep) {
+    rnd = rnd || Math.random;
+    const pool = ROLL.map(s => s);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const out = {};
+    ROLL.forEach(s => (out[s.k] = 0));
+    const take = clamp(keep || 7, 1, ROLL.length);
+    pool.slice(0, take).forEach(s => {
+      const v = Math.round(s.lo + rnd() * (s.hi - s.lo));
+      out[s.k] = v;
+    });
+    return out;
+  }
+
+  // ---------- Chart painting ----------
+  // Every painter takes (ctx, w, h, data, t) where t is 0–1 animation progress.
+
+  const ease = t => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
+  const GRID = 'rgba(255,255,255,.08)';
+  const INK = 'rgba(235,235,245,.55)';
+  const FONT = '600 10px -apple-system, "SF Pro Text", Inter, system-ui, sans-serif';
+
+  function frame(ctx, w, h, rows) {
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = GRID; ctx.lineWidth = 1;
+    for (let i = 0; i <= (rows || 4); i++) {
+      const y = Math.round(h * i / (rows || 4)) + .5;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+  }
+
+  /** Filled area of one histogram channel. */
+  function area(ctx, w, h, a, mx, col, t) {
+    const k = ease(t);
+    ctx.beginPath(); ctx.moveTo(0, h);
+    for (let i = 0; i < a.length; i++) {
+      ctx.lineTo(i / (a.length - 1) * w, h - Math.min(1, Math.sqrt(a[i] / mx)) * h * 0.94 * k);
+    }
+    ctx.lineTo(w, h); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill();
+  }
+
+  function drawHistogram(ctx, w, h, s, t) {
+    frame(ctx, w, h, 4);
+    let mx = 1;
+    [s.r, s.g, s.b, s.l].forEach(a => { for (let i = 1; i < BINS - 1; i++) mx = Math.max(mx, a[i]); });
+    ctx.globalCompositeOperation = 'source-over';
+    area(ctx, w, h, s.l, mx, 'rgba(255,255,255,.22)', t);
+    ctx.globalCompositeOperation = 'screen';
+    area(ctx, w, h, s.r, mx, 'rgba(255,69,58,.78)', t);
+    area(ctx, w, h, s.g, mx, 'rgba(48,209,88,.72)', t);
+    area(ctx, w, h, s.b, mx, 'rgba(10,132,255,.82)', t);
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  /** Cumulative tone curve against the straight line of an untouched image. */
+  function drawCurve(ctx, w, h, cdf, t, accent) {
+    frame(ctx, w, h, 4);
+    ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, h); ctx.lineTo(w, 0); ctx.stroke(); ctx.setLineDash([]);
+    const k = ease(t), last = Math.max(1, Math.floor((cdf.length - 1) * k));
+    ctx.beginPath();
+    for (let i = 0; i <= last; i++) ctx.lineTo(i / (cdf.length - 1) * w, h - cdf[i] * h);
+    ctx.strokeStyle = accent || '#ffd60a'; ctx.lineWidth = 2.2; ctx.lineJoin = 'round';
+    ctx.stroke();
+    ctx.lineTo(last / (cdf.length - 1) * w, h); ctx.lineTo(0, h); ctx.closePath();
+    const grd = ctx.createLinearGradient(0, 0, 0, h);
+    grd.addColorStop(0, 'rgba(255,214,10,.28)'); grd.addColorStop(1, 'rgba(255,214,10,0)');
+    ctx.fillStyle = grd; ctx.fill();
+  }
+
+  /** Spider chart of the current adjustments: the middle ring is zero. */
+  function drawRadar(ctx, w, h, items, t, accent) {
+    ctx.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2 + 2, R = Math.min(w, h) / 2 - 26, k = ease(t), n = items.length;
+    for (let ring = 1; ring <= 4; ring++) {
+      ctx.beginPath();
+      for (let i = 0; i <= n; i++) {
+        const a = i / n * TAU - Math.PI / 2, r = R * ring / 4;
+        ctx[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = ring === 2 ? 'rgba(255,255,255,.22)' : GRID;
+      ctx.lineWidth = 1; ctx.stroke();
+    }
+    ctx.beginPath();
+    items.forEach((it, i) => {
+      const a = i / n * TAU - Math.PI / 2, r = R * (0.5 + clamp(it.v, -1, 1) / 2) * k;
+      ctx[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    });
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,214,10,.22)'; ctx.fill();
+    ctx.strokeStyle = accent || '#ffd60a'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = accent || '#ffd60a';
+    items.forEach((it, i) => {
+      const a = i / n * TAU - Math.PI / 2, r = R * (0.5 + clamp(it.v, -1, 1) / 2) * k;
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, it.v ? 2.6 : 1.6, 0, TAU); ctx.fill();
+    });
+    ctx.font = FONT; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    items.forEach((it, i) => {
+      const a = i / n * TAU - Math.PI / 2, r = R + 13;
+      ctx.fillText(it.n, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    });
+  }
+
+  /** Horizontal bars around a zero axis — one per changed setting. */
+  function drawBars(ctx, w, h, items, t, accent) {
+    ctx.clearRect(0, 0, w, h);
+    if (!items.length) return;
+    const k = ease(t), pad = 74, zero = pad + (w - pad - 14) / 2, half = (w - pad - 14) / 2;
+    const rowH = Math.min(26, h / items.length), bh = Math.min(11, rowH - 7);
+    ctx.strokeStyle = 'rgba(255,255,255,.16)';
+    ctx.beginPath(); ctx.moveTo(zero + .5, 0); ctx.lineTo(zero + .5, items.length * rowH); ctx.stroke();
+    ctx.font = FONT; ctx.textBaseline = 'middle';
+    items.forEach((it, i) => {
+      const y = i * rowH + rowH / 2, len = half * clamp(Math.abs(it.v), 0, 1) * k;
+      ctx.fillStyle = INK; ctx.textAlign = 'right';
+      ctx.fillText(it.n, pad - 10, y);
+      ctx.fillStyle = it.v < 0 ? 'rgba(10,132,255,.85)' : (accent || '#ffd60a');
+      const x = it.v < 0 ? zero - len : zero;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y - bh / 2, Math.max(2, len), bh, bh / 2);
+      else ctx.rect(x, y - bh / 2, Math.max(2, len), bh);
+      ctx.fill();
+    });
+  }
+
+  /** Ring of hue shares plus the neutral slice in the middle of the hole. */
+  function drawDonut(ctx, w, h, segs, t) {
+    ctx.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 10, r0 = R * 0.58, k = ease(t);
+    const total = segs.reduce((s, x) => s + x.v, 0) || 1;
+    let a0 = -Math.PI / 2;
+    segs.forEach(s => {
+      const a1 = a0 + s.v / total * TAU * k;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, a0, a1); ctx.arc(cx, cy, r0, a1, a0, true); ctx.closePath();
+      ctx.fillStyle = s.c; ctx.fill();
+      a0 = a1;
+    });
+    ctx.beginPath(); ctx.arc(cx, cy, r0 - 1, 0, TAU);
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  /** Luminance waveform: brightness distribution left-to-right across the frame. */
+  function drawWave(ctx, w, h, wave, t) {
+    ctx.clearRect(0, 0, w, h);
+    const k = ease(t), cw = w / wave.cols, ch = h / wave.bins;
+    for (let x = 0; x < wave.cols; x++) {
+      for (let y = 0; y < wave.bins; y++) {
+        const v = wave.d[x * wave.bins + y];
+        if (v < 0.004) continue;
+        ctx.fillStyle = `rgba(255,255,255,${Math.min(0.9, Math.sqrt(v) * 0.95 * k).toFixed(3)})`;
+        ctx.fillRect(x * cw, h - (y + 1) * ch, Math.ceil(cw), Math.ceil(ch));
+      }
+    }
+    ctx.strokeStyle = GRID; ctx.lineWidth = 1;
+    for (let i = 1; i < 4; i++) {
+      const y = Math.round(h * i / 4) + .5;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+  }
+
+  root.Analysis = {
+    BINS, HUES, ROLL,
+    summarize, cumulative, dominant, waveform, roll,
+    drawHistogram, drawCurve, drawRadar, drawBars, drawDonut, drawWave,
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
 /* Lumen — UI layer. Depends on Engine (engine.js) and Scenes (scenes.js). */
 (() => {
   'use strict';
@@ -1340,6 +1973,23 @@ window.Scenes = (() => {
   let fullImg = null, src = null, srcName = '';
   let userPresets = store.get('lumen.presets', []);
 
+  // ---------- App settings (accent, motion, preview quality) ----------
+  const ACCENTS = [
+    { id: 'gold', c: '#ffd60a', ink: '#1c1500', n: 'Золото' },
+    { id: 'blue', c: '#0a84ff', ink: '#f2f8ff', n: 'Океан' },
+    { id: 'pink', c: '#ff375f', ink: '#fff1f4', n: 'Закат' },
+    { id: 'green', c: '#30d158', ink: '#04240e', n: 'Мята' },
+    { id: 'purple', c: '#bf5af2', ink: '#fdf3ff', n: 'Сирень' },
+  ];
+  const QUALITY = [1200, 1800, 2400];
+  const DEF_SET = { accent: 'gold', ambient: true, anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
+  let settings = { ...DEF_SET, ...store.get('lumen.settings', {}) };
+  // Storage is user-editable, so every field is coerced back into range before it reaches the UI.
+  if (!ACCENTS.some(a => a.id === settings.accent)) settings.accent = DEF_SET.accent;
+  if (!QUALITY.includes(settings.quality)) settings.quality = DEF_SET.quality;
+  settings.dice = clamp(Math.round(+settings.dice || DEF_SET.dice), 3, 14);
+  ['ambient', 'anim', 'tips', 'promo'].forEach(k => (settings[k] = settings[k] !== false));
+
   const allPresets = () => [...PRESETS, ...userPresets];
   const presetById = id => allPresets().find(p => p.id === id) || PRESETS[0];
   function effective(s) {
@@ -1350,7 +2000,7 @@ window.Scenes = (() => {
   }
 
   // ---------- Preview rendering ----------
-  const PREVIEW = 1800;
+  let PREVIEW = settings.quality;
   const cv = $('#cv'), fx = $('#fx'), orig = $('#orig'), photo = $('#photo'), stage = $('#stage'), ink = $('#ink');
   let raf = 0, liveStroke = null;
   const draw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawNow); };
@@ -2183,6 +2833,7 @@ window.Scenes = (() => {
       if (e.pointerType !== 'mouse') return;
       clearTimeout(tipT);
       tipT = setTimeout(() => {
+        if (!settings.tips) return;
         if (el.closest('.modal:not(.open)') || pop.classList.contains('open') && el === brand) return;
         tip.innerHTML = esc(el.dataset.tip) + (el.dataset.key ? `<kbd>${esc(el.dataset.key)}</kbd>` : '');
         const r = el.getBoundingClientRect(), tw2 = tip.offsetWidth;
@@ -2201,7 +2852,7 @@ window.Scenes = (() => {
   addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey, code = e.code;
     const typing = e.target.matches('input:not([type=range]), textarea');
-    if (e.key === 'Escape') { closeModal(); togglePop(false); return; }
+    if (e.key === 'Escape') { closeModal(); togglePop(false); if ($('#tour').classList.contains('on')) endTour(); return; }
     if (activeModal) return;
     if (mod && code === 'KeyZ') { e.preventDefault(); go(e.shiftKey ? 1 : -1); }
     else if (mod && code === 'KeyY') { e.preventDefault(); go(1); }
@@ -2210,6 +2861,10 @@ window.Scenes = (() => {
     else if (typing || mod) return;
     else if (code === 'Space' && !e.repeat) { e.preventDefault(); compare(true); }
     else if (code === 'KeyH') toggleHist();
+    else if (code === 'KeyG') openCharts();
+    else if (code === 'KeyI') openInfo();
+    else if (code === 'KeyR') $('#dice').click();
+    else if (e.key === ',') openSettings();
     else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3' || code === 'Digit4') setTab(+code.slice(-1) - 1);
   });
   addEventListener('keyup', e => { if (e.code === 'Space') compare(false); });
@@ -2231,11 +2886,272 @@ window.Scenes = (() => {
     g.style.setProperty('--my', (e.clientY - r.top) + 'px');
   }, { passive: true });
 
+  // ---------- Settings sheet ----------
+  const accentHex = () => (ACCENTS.find(a => a.id === settings.accent) || ACCENTS[0]).c;
+  function applySettings() {
+    const a = ACCENTS.find(x => x.id === settings.accent) || ACCENTS[0];
+    document.documentElement.style.setProperty('--accent', a.c);
+    document.documentElement.style.setProperty('--accent-ink', a.ink);
+    document.body.classList.toggle('no-anim', !settings.anim);
+    document.body.classList.toggle('no-ambient', !settings.ambient);
+    PREVIEW = settings.quality;
+    store.set('lumen.settings', settings);
+  }
+  function syncSettings() {
+    $('#setAccent').innerHTML = ACCENTS.map(a =>
+      `<button class="acc${a.id === settings.accent ? ' on' : ''}" data-acc="${a.id}" data-tip="${a.n}" aria-label="${a.n}" style="--c:${a.c}"></button>`).join('');
+    $$('#setAccent .acc').forEach(bindTip);
+    $$('#settingsModal [data-set]').forEach(b => {
+      b.classList.toggle('on', !!settings[b.dataset.set]);
+      b.setAttribute('aria-checked', String(!!settings[b.dataset.set]));
+    });
+    $$('#setQ button').forEach((b, i) => {
+      const on = +b.dataset.v === settings.quality;
+      b.classList.toggle('on', on);
+      if (on) $('#setQ .pill').style.transform = `translateX(${i * 100}%)`;
+    });
+    const d = $('#setDice');
+    d.value = settings.dice;
+    d.style.setProperty('--p', ((settings.dice - 3) / 11 * 100) + '%');
+    $('#setDiceVal').textContent = settings.dice;
+    const p = userPresets.length, b = brushPresets.length;
+    $('#setStorage').textContent =
+      `${p} ${plural(p, 'пресет', 'пресета', 'пресетов')} и ${b} ${plural(b, 'кисть', 'кисти', 'кистей')}`;
+  }
+  function openSettings() { syncSettings(); openModal('#settingsModal'); }
+  $('#settingsBtn').onclick = () => { togglePop(false); openSettings(); };
+  $('#setClose').onclick = closeModal;
+  $('#settingsModal').addEventListener('click', e => {
+    const t = e.target.closest('[data-set]'), a = e.target.closest('[data-acc]'), q = e.target.closest('#setQ button');
+    if (t) {
+      const k = t.dataset.set;
+      settings[k] = !settings[k];
+      applySettings(); syncSettings();
+      if (k === 'ambient' && settings.ambient) ambient();
+      if (k === 'promo') { store.set('lumen.promoHidden', false); showPromo(settings.promo); }
+    }
+    if (a) { settings.accent = a.dataset.acc; applySettings(); syncSettings(); }
+    if (q) { settings.quality = +q.dataset.v; applySettings(); syncSettings(); drawNow(); }
+  });
+  $('#setDice').addEventListener('input', e => {
+    settings.dice = +e.target.value;
+    e.target.style.setProperty('--p', ((settings.dice - 3) / 11 * 100) + '%');
+    $('#setDiceVal').textContent = settings.dice;
+    applySettings();
+  });
+  $('#btnTour').onclick = () => { closeModal(); setTimeout(startTour, 280); };
+  $('#btnWipe').onclick = () => {
+    ['lumen.presets', 'lumen.brushes', 'lumen.export', 'lumen.hist', 'lumen.settings', 'lumen.tour', 'lumen.promoHidden', 'lumen.brush']
+      .forEach(k => { try { localStorage.removeItem(k); } catch { /* storage unavailable */ } });
+    userPresets = []; brushPresets = [];
+    settings = { ...DEF_SET };
+    applySettings(); buildThumbs(); renderBrushPresets(); syncSettings(); syncUI();
+    toast('Сохранённые данные очищены');
+  };
+
+  // ---------- About ----------
+  $('#aboutBtn').onclick = () => { togglePop(false); openModal('#aboutModal'); };
+  $('#aboutClose').onclick = closeModal;
+
+  // ---------- Charts & diagrams ----------
+  const HUE_C = ['#ff453a', '#ff9f0a', '#ffd60a', '#a2e02a', '#30d158', '#2ee6b6', '#40c8e0', '#0a84ff', '#5e5ce6', '#bf5af2', '#ff2d9b', '#ff375f'];
+  const HUE_N = ['красный', 'оранжевый', 'жёлтый', 'лайм', 'зелёный', 'бирюзовый', 'голубой', 'синий', 'индиго', 'фиолетовый', 'розовый', 'малиновый'];
+  const RADAR = ['exposure', 'contrast', 'highlights', 'shadows', 'saturation', 'warmth', 'clarity', 'vignette'];
+  let chRaf = 0;
+
+  /** Current look (adjustments + filter + strokes) rendered small, plus its pixels. */
+  function snapshot(size) {
+    const c = renderFull(document.createElement('canvas'), src, size);
+    return { c, d: c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height) };
+  }
+  /** Size a chart canvas to its CSS box at device resolution and hand back a scaled context. */
+  function prep(c, hCss) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1), w = Math.max(80, c.clientWidth || 320);
+    c.style.height = hCss + 'px';
+    c.width = Math.round(w * dpr); c.height = Math.round(hCss * dpr);
+    const x = c.getContext('2d');
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { x, w, h: hCss };
+  }
+  const norm = k => effective(state)[k] / Math.max(Math.abs(TOOL[k].min), TOOL[k].max);
+
+  function openCharts() {
+    if (!src) return;
+    openModal('#chartsModal');
+    cancelAnimationFrame(chRaf);
+    requestAnimationFrame(() => {
+      const { d } = snapshot(360);
+      const s = Analysis.summarize(d.data, 1);
+      const cdf = Analysis.cumulative(s.l);
+      const wave = Analysis.waveform(d.data, d.width, d.height, 120);
+      const eff = effective(state), acc = accentHex();
+      const radar = RADAR.map(k => ({ n: TOOL[k].n, v: norm(k) }));
+      const bars = TOOLS.map(t => ({ n: t.n, v: norm(t.k), raw: eff[t.k] }))
+        .filter(b => Math.round(b.raw) !== 0)
+        .sort((a, z) => Math.abs(z.v) - Math.abs(a.v))
+        .slice(0, 9);
+      const hsum = [...s.hues].reduce((a, x) => a + x, 0);
+      const segs = [...s.hues].map((v, i) => ({ v, c: HUE_C[i] }));
+      segs.push({ v: hsum * s.grayShare / Math.max(0.001, 1 - s.grayShare), c: 'rgba(255,255,255,.32)' });
+      const top = [...s.hues].map((v, i) => ({ v, i })).sort((a, b) => b.v - a.v).filter(x => x.v > 0).slice(0, 4);
+      $('#chDonutLeg').innerHTML = top.map(x => `<span><i style="--c:${HUE_C[x.i]}"></i>${HUE_N[x.i]}</span>`).join('') +
+        `<span><i style="--c:rgba(255,255,255,.32)"></i>нейтральный ${Math.round(s.grayShare * 100)}%</span>`;
+
+      $('#chBarsEmpty').hidden = bars.length > 0;
+      $('#chBars').style.display = bars.length ? '' : 'none';
+      const A = prep($('#chHist'), 150), B = prep($('#chCurve'), 132), C = prep($('#chDonut'), 132),
+        D = prep($('#chRadar'), 210), F = prep($('#chWave'), 150);
+      const E = bars.length ? prep($('#chBars'), bars.length * 24 + 6) : null;
+      // The waveform is thousands of cells, so it is painted once instead of every animation frame.
+      Analysis.drawWave(F.x, F.w, F.h, wave, 1);
+      const t0 = performance.now();
+      const step = now => {
+        const t = settings.anim ? Math.min(1, (now - t0) / 900) : 1;
+        Analysis.drawHistogram(A.x, A.w, A.h, s, t);
+        Analysis.drawCurve(B.x, B.w, B.h, cdf, t, acc);
+        Analysis.drawDonut(C.x, C.w, C.h, segs, t);
+        Analysis.drawRadar(D.x, D.w, D.h, radar, t, acc);
+        if (E) Analysis.drawBars(E.x, E.w, E.h, bars, t, acc);
+        if (t < 1) chRaf = requestAnimationFrame(step);
+      };
+      chRaf = requestAnimationFrame(step);
+    });
+  }
+  $('#statsBtn').onclick = openCharts;
+  $('#chClose').onclick = () => { cancelAnimationFrame(chRaf); closeModal(); };
+
+  // ---------- Image info ----------
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  function openInfo() {
+    if (!src) return;
+    const { c, d } = snapshot(420);
+    const s = Analysis.summarize(d.data, 2);
+    const pal = Analysis.dominant(d.data, 6, 3);
+    const p = $('#infoPrev');
+    p.width = c.width; p.height = c.height;
+    p.getContext('2d').drawImage(c, 0, 0);
+    const W = fullImg.width, H = fullImg.height, g = gcd(W, H) || 1;
+    const L = exportDims('orig'), eff = effective(state);
+    // Counted over TOOLS, not ADJ: sepia/gray have no dial of their own and would inflate the total.
+    const changed = TOOLS.filter(t => Math.round(eff[t.k]) !== 0).length;
+    const cell = (n, v, sub) => `<div class="stat"><span>${n}</span><b>${v}${sub ? `<small>${sub}</small>` : ''}</b></div>`;
+    const meter = (n, v, pct) => `<div class="stat"><span>${n}</span><b>${v}</b><div class="meter"><i data-w="${clamp(pct, 0, 100).toFixed(1)}"></i></div></div>`;
+    const dec = (v, k) => (v * 100).toFixed(k).replace('.', ',');
+    $('#infoName').textContent = srcName || 'Без имени';
+    $('#infoStats').innerHTML =
+      cell('Исходник', `${W} × ${H}`, 'px') +
+      cell('Мегапикселей', (W * H / 1e6).toFixed(1).replace('.', ',')) +
+      cell('Пропорции', `${Math.round(W / g)} : ${Math.round(H / g)}`) +
+      cell('Кадр сейчас', `${L.w} × ${L.h}`, 'px') +
+      cell('Штрихов', String(state.ink.length)) +
+      cell('Настроек изменено', `${changed}`, `из ${TOOLS.length}`);
+    $('#infoTone').innerHTML =
+      meter('Средняя яркость', Math.round(s.luma * 100) + '%', s.luma * 100) +
+      meter('Контраст', Math.round(s.contrast * 100) + '%', s.contrast * 100) +
+      meter('Насыщенность', Math.round(s.saturation * 100) + '%', s.saturation * 100) +
+      meter('Нейтральные тона', Math.round(s.grayShare * 100) + '%', s.grayShare * 100) +
+      meter('Провалы в тень', dec(s.clipDark, 1) + '%', s.clipDark * 400) +
+      meter('Пересветы', dec(s.clipLight, 1) + '%', s.clipLight * 400);
+    $('#infoPal').innerHTML = pal.map((x, i) =>
+      `<i style="--c:${x.hex};animation-delay:${i * 60}ms" data-p="${Math.round(x.share * 100)}%" title="${x.hex}"></i>`).join('');
+    openModal('#infoModal');
+    requestAnimationFrame(() => $$('#infoTone .meter i').forEach(el => (el.style.width = el.dataset.w + '%')));
+  }
+  $('#infoBtn').onclick = openInfo;
+  $('#infoClose').onclick = closeModal;
+
+  // ---------- Dice: shuffle the look ----------
+  const FACE = { 1: 'rotateY(0deg)', 2: 'rotateY(-90deg)', 3: 'rotateX(-90deg)', 4: 'rotateX(90deg)', 5: 'rotateY(90deg)', 6: 'rotateY(180deg)' };
+  let spins = 0;
+  $('#dice').onclick = () => {
+    if (!src) return;
+    const btn = $('#dice'), cube = $('#dieCube');
+    btn.classList.add('rolling');
+    spins += 2 + Math.floor(Math.random() * 3);
+    const face = 1 + Math.floor(Math.random() * 6);
+    cube.style.transform = `rotateX(${spins * 360}deg) rotateY(${spins * 360}deg) ${FACE[face]}`;
+    const target = Analysis.roll(Math.random, settings.dice);
+    const n = Object.values(target).filter(v => v !== 0).length;
+    setTimeout(() => {
+      btn.classList.remove('rolling');
+      restart(btn, 'lucky');
+      if (tab !== 0) setTab(0);
+      tweenTo(target, 820, () => {
+        commit();
+        toast(`Выпало ${face} · перемешано ${n} ${plural(n, 'настройка', 'настройки', 'настроек')}`, 'Отменить', () => go(-1));
+      });
+    }, settings.anim ? 380 : 0);
+  };
+
+  // ---------- Onboarding tour ----------
+  const TOUR = [
+    { e: '🌅', t: 'Добро пожаловать в Lumen', d: 'Фоторедактор целиком живёт в браузере: снимки никуда не загружаются, а весь цвет считает видеокарта. Полминуты — и вы знаете, где что лежит.', sel: '.topbar', pad: 8 },
+    { e: '🖼️', t: 'Ваше фото', d: 'Перетащите файл в окно, вставьте из буфера или выберите тестовую сцену в меню слева. Удерживайте снимок мышью — покажем оригинал до правок.', sel: '#photo', pad: 10 },
+    { e: '🎛️', t: 'Крутите линейку', d: 'Внизу четыре вкладки: настройки, фильтры, кадр и рисование. Линейка работает как в «Фото» на iPhone — тяните, крутите колесо, двойной клик сбрасывает.', sel: '.dock', pad: 10 },
+    { e: '🎲', t: 'Бросьте кубик', d: 'Кубик случайно перемешивает характеристики кадра — быстрый способ наткнуться на неожиданный вид. Размах броска настраивается.', sel: '#dice', pad: 6 },
+    { e: '📊', t: 'Смотрите на графики', d: 'Гистограмма, тоновая кривая, круг оттенков, профиль настроек и волновая форма — чтобы видеть, что именно вы сделали с кадром.', sel: '#statsBtn', pad: 6 },
+    { e: '⬇️', t: 'Сохраните результат', d: 'Экспорт в JPEG, PNG или WebP: размер, качество, рамка и примерный вес файла. Всё считается локально, прямо здесь.', sel: '#export', pad: 6 },
+  ];
+  let ti = 0;
+  function placeTour() {
+    const s = TOUR[ti], el = $(s.sel), spot = $('#tourSpot'), card = $('#tourCard');
+    const r = el ? el.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0, bottom: innerHeight / 2 };
+    const p = s.pad || 8;
+    spot.style.left = (r.left - p) + 'px';
+    spot.style.top = (r.top - p) + 'px';
+    spot.style.width = (r.width + p * 2) + 'px';
+    spot.style.height = (r.height + p * 2) + 'px';
+    spot.style.borderRadius = Math.min(34, r.height / 2 + p) + 'px';
+    const cw = card.offsetWidth, ch = card.offsetHeight;
+    const below = r.top + r.height / 2 < innerHeight / 2;
+    card.style.left = clamp(r.left + r.width / 2 - cw / 2, 12, Math.max(12, innerWidth - cw - 12)) + 'px';
+    card.style.top = clamp(below ? r.bottom + p + 16 : r.top - p - 16 - ch, 12, Math.max(12, innerHeight - ch - 12)) + 'px';
+  }
+  function renderTour() {
+    const s = TOUR[ti];
+    $('#tourBody').innerHTML = `<div class="tc-in"><span class="tour-emoji">${s.e}</span><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p></div>`;
+    $('#tourDots').innerHTML = TOUR.map((_, i) => `<i class="${i === ti ? 'on' : ''}"></i>`).join('');
+    $('#tourPrev').style.visibility = ti ? 'visible' : 'hidden';
+    $('#tourNext').textContent = ti === TOUR.length - 1 ? 'Начать' : 'Далее';
+    placeTour();
+  }
+  function startTour() {
+    ti = 0;
+    closeModal(); togglePop(false); hideTip();
+    $('#tour').classList.add('on');
+    renderTour();
+    requestAnimationFrame(placeTour); // card size is only known once it is on screen
+  }
+  function endTour() {
+    $('#tour').classList.remove('on');
+    store.set('lumen.tour', 1);
+    if (settings.promo && !store.get('lumen.promoHidden', false)) setTimeout(() => showPromo(true), 1200);
+  }
+  $('#tourNext').onclick = () => { if (ti === TOUR.length - 1) { endTour(); toast('Готово — приятной ретуши'); } else { ti++; renderTour(); } };
+  $('#tourPrev').onclick = () => { if (ti) { ti--; renderTour(); } };
+  $('#tourSkip').onclick = endTour;
+  addEventListener('resize', () => { if ($('#tour').classList.contains('on')) placeTour(); });
+
+  // ---------- Corner promo ----------
+  function showPromo(on) {
+    $('#promo').classList.toggle('on', !!on);
+    $('#promo').classList.toggle('gone', !on);
+  }
+  $('#promoX').onclick = () => {
+    showPromo(false);
+    store.set('lumen.promoHidden', true);
+    toast('Уголок скрыт — вернуть можно в настройках');
+  };
+
   // ---------- Boot ----------
+  applySettings();
   toggleHist(histOn);
   selectTool('exposure', false);
   loadScene('day');
   if (!Engine.webgl) setTimeout(() => toast('WebGL недоступен — цветокоррекция отключена', null, null, true), 800);
+  const seenTour = store.get('lumen.tour', 0);
+  if (!seenTour) setTimeout(startTour, 950);
+  else if (settings.promo && !store.get('lumen.promoHidden', false)) setTimeout(() => showPromo(true), 2600);
 })();
 </script>
 </body>

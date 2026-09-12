@@ -68,6 +68,23 @@
   let fullImg = null, src = null, srcName = '';
   let userPresets = store.get('lumen.presets', []);
 
+  // ---------- App settings (accent, motion, preview quality) ----------
+  const ACCENTS = [
+    { id: 'gold', c: '#ffd60a', ink: '#1c1500', n: 'Золото' },
+    { id: 'blue', c: '#0a84ff', ink: '#f2f8ff', n: 'Океан' },
+    { id: 'pink', c: '#ff375f', ink: '#fff1f4', n: 'Закат' },
+    { id: 'green', c: '#30d158', ink: '#04240e', n: 'Мята' },
+    { id: 'purple', c: '#bf5af2', ink: '#fdf3ff', n: 'Сирень' },
+  ];
+  const QUALITY = [1200, 1800, 2400];
+  const DEF_SET = { accent: 'gold', ambient: true, anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
+  let settings = { ...DEF_SET, ...store.get('lumen.settings', {}) };
+  // Storage is user-editable, so every field is coerced back into range before it reaches the UI.
+  if (!ACCENTS.some(a => a.id === settings.accent)) settings.accent = DEF_SET.accent;
+  if (!QUALITY.includes(settings.quality)) settings.quality = DEF_SET.quality;
+  settings.dice = clamp(Math.round(+settings.dice || DEF_SET.dice), 3, 14);
+  ['ambient', 'anim', 'tips', 'promo'].forEach(k => (settings[k] = settings[k] !== false));
+
   const allPresets = () => [...PRESETS, ...userPresets];
   const presetById = id => allPresets().find(p => p.id === id) || PRESETS[0];
   function effective(s) {
@@ -78,7 +95,7 @@
   }
 
   // ---------- Preview rendering ----------
-  const PREVIEW = 1800;
+  let PREVIEW = settings.quality;
   const cv = $('#cv'), fx = $('#fx'), orig = $('#orig'), photo = $('#photo'), stage = $('#stage'), ink = $('#ink');
   let raf = 0, liveStroke = null;
   const draw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawNow); };
@@ -911,6 +928,7 @@
       if (e.pointerType !== 'mouse') return;
       clearTimeout(tipT);
       tipT = setTimeout(() => {
+        if (!settings.tips) return;
         if (el.closest('.modal:not(.open)') || pop.classList.contains('open') && el === brand) return;
         tip.innerHTML = esc(el.dataset.tip) + (el.dataset.key ? `<kbd>${esc(el.dataset.key)}</kbd>` : '');
         const r = el.getBoundingClientRect(), tw2 = tip.offsetWidth;
@@ -929,7 +947,7 @@
   addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey, code = e.code;
     const typing = e.target.matches('input:not([type=range]), textarea');
-    if (e.key === 'Escape') { closeModal(); togglePop(false); return; }
+    if (e.key === 'Escape') { closeModal(); togglePop(false); if ($('#tour').classList.contains('on')) endTour(); return; }
     if (activeModal) return;
     if (mod && code === 'KeyZ') { e.preventDefault(); go(e.shiftKey ? 1 : -1); }
     else if (mod && code === 'KeyY') { e.preventDefault(); go(1); }
@@ -938,6 +956,10 @@
     else if (typing || mod) return;
     else if (code === 'Space' && !e.repeat) { e.preventDefault(); compare(true); }
     else if (code === 'KeyH') toggleHist();
+    else if (code === 'KeyG') openCharts();
+    else if (code === 'KeyI') openInfo();
+    else if (code === 'KeyR') $('#dice').click();
+    else if (e.key === ',') openSettings();
     else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3' || code === 'Digit4') setTab(+code.slice(-1) - 1);
   });
   addEventListener('keyup', e => { if (e.code === 'Space') compare(false); });
@@ -959,9 +981,270 @@
     g.style.setProperty('--my', (e.clientY - r.top) + 'px');
   }, { passive: true });
 
+  // ---------- Settings sheet ----------
+  const accentHex = () => (ACCENTS.find(a => a.id === settings.accent) || ACCENTS[0]).c;
+  function applySettings() {
+    const a = ACCENTS.find(x => x.id === settings.accent) || ACCENTS[0];
+    document.documentElement.style.setProperty('--accent', a.c);
+    document.documentElement.style.setProperty('--accent-ink', a.ink);
+    document.body.classList.toggle('no-anim', !settings.anim);
+    document.body.classList.toggle('no-ambient', !settings.ambient);
+    PREVIEW = settings.quality;
+    store.set('lumen.settings', settings);
+  }
+  function syncSettings() {
+    $('#setAccent').innerHTML = ACCENTS.map(a =>
+      `<button class="acc${a.id === settings.accent ? ' on' : ''}" data-acc="${a.id}" data-tip="${a.n}" aria-label="${a.n}" style="--c:${a.c}"></button>`).join('');
+    $$('#setAccent .acc').forEach(bindTip);
+    $$('#settingsModal [data-set]').forEach(b => {
+      b.classList.toggle('on', !!settings[b.dataset.set]);
+      b.setAttribute('aria-checked', String(!!settings[b.dataset.set]));
+    });
+    $$('#setQ button').forEach((b, i) => {
+      const on = +b.dataset.v === settings.quality;
+      b.classList.toggle('on', on);
+      if (on) $('#setQ .pill').style.transform = `translateX(${i * 100}%)`;
+    });
+    const d = $('#setDice');
+    d.value = settings.dice;
+    d.style.setProperty('--p', ((settings.dice - 3) / 11 * 100) + '%');
+    $('#setDiceVal').textContent = settings.dice;
+    const p = userPresets.length, b = brushPresets.length;
+    $('#setStorage').textContent =
+      `${p} ${plural(p, 'пресет', 'пресета', 'пресетов')} и ${b} ${plural(b, 'кисть', 'кисти', 'кистей')}`;
+  }
+  function openSettings() { syncSettings(); openModal('#settingsModal'); }
+  $('#settingsBtn').onclick = () => { togglePop(false); openSettings(); };
+  $('#setClose').onclick = closeModal;
+  $('#settingsModal').addEventListener('click', e => {
+    const t = e.target.closest('[data-set]'), a = e.target.closest('[data-acc]'), q = e.target.closest('#setQ button');
+    if (t) {
+      const k = t.dataset.set;
+      settings[k] = !settings[k];
+      applySettings(); syncSettings();
+      if (k === 'ambient' && settings.ambient) ambient();
+      if (k === 'promo') { store.set('lumen.promoHidden', false); showPromo(settings.promo); }
+    }
+    if (a) { settings.accent = a.dataset.acc; applySettings(); syncSettings(); }
+    if (q) { settings.quality = +q.dataset.v; applySettings(); syncSettings(); drawNow(); }
+  });
+  $('#setDice').addEventListener('input', e => {
+    settings.dice = +e.target.value;
+    e.target.style.setProperty('--p', ((settings.dice - 3) / 11 * 100) + '%');
+    $('#setDiceVal').textContent = settings.dice;
+    applySettings();
+  });
+  $('#btnTour').onclick = () => { closeModal(); setTimeout(startTour, 280); };
+  $('#btnWipe').onclick = () => {
+    ['lumen.presets', 'lumen.brushes', 'lumen.export', 'lumen.hist', 'lumen.settings', 'lumen.tour', 'lumen.promoHidden', 'lumen.brush']
+      .forEach(k => { try { localStorage.removeItem(k); } catch { /* storage unavailable */ } });
+    userPresets = []; brushPresets = [];
+    settings = { ...DEF_SET };
+    applySettings(); buildThumbs(); renderBrushPresets(); syncSettings(); syncUI();
+    toast('Сохранённые данные очищены');
+  };
+
+  // ---------- About ----------
+  $('#aboutBtn').onclick = () => { togglePop(false); openModal('#aboutModal'); };
+  $('#aboutClose').onclick = closeModal;
+
+  // ---------- Charts & diagrams ----------
+  const HUE_C = ['#ff453a', '#ff9f0a', '#ffd60a', '#a2e02a', '#30d158', '#2ee6b6', '#40c8e0', '#0a84ff', '#5e5ce6', '#bf5af2', '#ff2d9b', '#ff375f'];
+  const HUE_N = ['красный', 'оранжевый', 'жёлтый', 'лайм', 'зелёный', 'бирюзовый', 'голубой', 'синий', 'индиго', 'фиолетовый', 'розовый', 'малиновый'];
+  const RADAR = ['exposure', 'contrast', 'highlights', 'shadows', 'saturation', 'warmth', 'clarity', 'vignette'];
+  let chRaf = 0;
+
+  /** Current look (adjustments + filter + strokes) rendered small, plus its pixels. */
+  function snapshot(size) {
+    const c = renderFull(document.createElement('canvas'), src, size);
+    return { c, d: c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height) };
+  }
+  /** Size a chart canvas to its CSS box at device resolution and hand back a scaled context. */
+  function prep(c, hCss) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1), w = Math.max(80, c.clientWidth || 320);
+    c.style.height = hCss + 'px';
+    c.width = Math.round(w * dpr); c.height = Math.round(hCss * dpr);
+    const x = c.getContext('2d');
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { x, w, h: hCss };
+  }
+  const norm = k => effective(state)[k] / Math.max(Math.abs(TOOL[k].min), TOOL[k].max);
+
+  function openCharts() {
+    if (!src) return;
+    openModal('#chartsModal');
+    cancelAnimationFrame(chRaf);
+    requestAnimationFrame(() => {
+      const { d } = snapshot(360);
+      const s = Analysis.summarize(d.data, 1);
+      const cdf = Analysis.cumulative(s.l);
+      const wave = Analysis.waveform(d.data, d.width, d.height, 120);
+      const eff = effective(state), acc = accentHex();
+      const radar = RADAR.map(k => ({ n: TOOL[k].n, v: norm(k) }));
+      const bars = TOOLS.map(t => ({ n: t.n, v: norm(t.k), raw: eff[t.k] }))
+        .filter(b => Math.round(b.raw) !== 0)
+        .sort((a, z) => Math.abs(z.v) - Math.abs(a.v))
+        .slice(0, 9);
+      const hsum = [...s.hues].reduce((a, x) => a + x, 0);
+      const segs = [...s.hues].map((v, i) => ({ v, c: HUE_C[i] }));
+      segs.push({ v: hsum * s.grayShare / Math.max(0.001, 1 - s.grayShare), c: 'rgba(255,255,255,.32)' });
+      const top = [...s.hues].map((v, i) => ({ v, i })).sort((a, b) => b.v - a.v).filter(x => x.v > 0).slice(0, 4);
+      $('#chDonutLeg').innerHTML = top.map(x => `<span><i style="--c:${HUE_C[x.i]}"></i>${HUE_N[x.i]}</span>`).join('') +
+        `<span><i style="--c:rgba(255,255,255,.32)"></i>нейтральный ${Math.round(s.grayShare * 100)}%</span>`;
+
+      $('#chBarsEmpty').hidden = bars.length > 0;
+      $('#chBars').style.display = bars.length ? '' : 'none';
+      const A = prep($('#chHist'), 150), B = prep($('#chCurve'), 132), C = prep($('#chDonut'), 132),
+        D = prep($('#chRadar'), 210), F = prep($('#chWave'), 150);
+      const E = bars.length ? prep($('#chBars'), bars.length * 24 + 6) : null;
+      // The waveform is thousands of cells, so it is painted once instead of every animation frame.
+      Analysis.drawWave(F.x, F.w, F.h, wave, 1);
+      const t0 = performance.now();
+      const step = now => {
+        const t = settings.anim ? Math.min(1, (now - t0) / 900) : 1;
+        Analysis.drawHistogram(A.x, A.w, A.h, s, t);
+        Analysis.drawCurve(B.x, B.w, B.h, cdf, t, acc);
+        Analysis.drawDonut(C.x, C.w, C.h, segs, t);
+        Analysis.drawRadar(D.x, D.w, D.h, radar, t, acc);
+        if (E) Analysis.drawBars(E.x, E.w, E.h, bars, t, acc);
+        if (t < 1) chRaf = requestAnimationFrame(step);
+      };
+      chRaf = requestAnimationFrame(step);
+    });
+  }
+  $('#statsBtn').onclick = openCharts;
+  $('#chClose').onclick = () => { cancelAnimationFrame(chRaf); closeModal(); };
+
+  // ---------- Image info ----------
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  function openInfo() {
+    if (!src) return;
+    const { c, d } = snapshot(420);
+    const s = Analysis.summarize(d.data, 2);
+    const pal = Analysis.dominant(d.data, 6, 3);
+    const p = $('#infoPrev');
+    p.width = c.width; p.height = c.height;
+    p.getContext('2d').drawImage(c, 0, 0);
+    const W = fullImg.width, H = fullImg.height, g = gcd(W, H) || 1;
+    const L = exportDims('orig'), eff = effective(state);
+    // Counted over TOOLS, not ADJ: sepia/gray have no dial of their own and would inflate the total.
+    const changed = TOOLS.filter(t => Math.round(eff[t.k]) !== 0).length;
+    const cell = (n, v, sub) => `<div class="stat"><span>${n}</span><b>${v}${sub ? `<small>${sub}</small>` : ''}</b></div>`;
+    const meter = (n, v, pct) => `<div class="stat"><span>${n}</span><b>${v}</b><div class="meter"><i data-w="${clamp(pct, 0, 100).toFixed(1)}"></i></div></div>`;
+    const dec = (v, k) => (v * 100).toFixed(k).replace('.', ',');
+    $('#infoName').textContent = srcName || 'Без имени';
+    $('#infoStats').innerHTML =
+      cell('Исходник', `${W} × ${H}`, 'px') +
+      cell('Мегапикселей', (W * H / 1e6).toFixed(1).replace('.', ',')) +
+      cell('Пропорции', `${Math.round(W / g)} : ${Math.round(H / g)}`) +
+      cell('Кадр сейчас', `${L.w} × ${L.h}`, 'px') +
+      cell('Штрихов', String(state.ink.length)) +
+      cell('Настроек изменено', `${changed}`, `из ${TOOLS.length}`);
+    $('#infoTone').innerHTML =
+      meter('Средняя яркость', Math.round(s.luma * 100) + '%', s.luma * 100) +
+      meter('Контраст', Math.round(s.contrast * 100) + '%', s.contrast * 100) +
+      meter('Насыщенность', Math.round(s.saturation * 100) + '%', s.saturation * 100) +
+      meter('Нейтральные тона', Math.round(s.grayShare * 100) + '%', s.grayShare * 100) +
+      meter('Провалы в тень', dec(s.clipDark, 1) + '%', s.clipDark * 400) +
+      meter('Пересветы', dec(s.clipLight, 1) + '%', s.clipLight * 400);
+    $('#infoPal').innerHTML = pal.map((x, i) =>
+      `<i style="--c:${x.hex};animation-delay:${i * 60}ms" data-p="${Math.round(x.share * 100)}%" title="${x.hex}"></i>`).join('');
+    openModal('#infoModal');
+    requestAnimationFrame(() => $$('#infoTone .meter i').forEach(el => (el.style.width = el.dataset.w + '%')));
+  }
+  $('#infoBtn').onclick = openInfo;
+  $('#infoClose').onclick = closeModal;
+
+  // ---------- Dice: shuffle the look ----------
+  const FACE = { 1: 'rotateY(0deg)', 2: 'rotateY(-90deg)', 3: 'rotateX(-90deg)', 4: 'rotateX(90deg)', 5: 'rotateY(90deg)', 6: 'rotateY(180deg)' };
+  let spins = 0;
+  $('#dice').onclick = () => {
+    if (!src) return;
+    const btn = $('#dice'), cube = $('#dieCube');
+    btn.classList.add('rolling');
+    spins += 2 + Math.floor(Math.random() * 3);
+    const face = 1 + Math.floor(Math.random() * 6);
+    cube.style.transform = `rotateX(${spins * 360}deg) rotateY(${spins * 360}deg) ${FACE[face]}`;
+    const target = Analysis.roll(Math.random, settings.dice);
+    const n = Object.values(target).filter(v => v !== 0).length;
+    setTimeout(() => {
+      btn.classList.remove('rolling');
+      restart(btn, 'lucky');
+      if (tab !== 0) setTab(0);
+      tweenTo(target, 820, () => {
+        commit();
+        toast(`Выпало ${face} · перемешано ${n} ${plural(n, 'настройка', 'настройки', 'настроек')}`, 'Отменить', () => go(-1));
+      });
+    }, settings.anim ? 380 : 0);
+  };
+
+  // ---------- Onboarding tour ----------
+  const TOUR = [
+    { e: '🌅', t: 'Добро пожаловать в Lumen', d: 'Фоторедактор целиком живёт в браузере: снимки никуда не загружаются, а весь цвет считает видеокарта. Полминуты — и вы знаете, где что лежит.', sel: '.topbar', pad: 8 },
+    { e: '🖼️', t: 'Ваше фото', d: 'Перетащите файл в окно, вставьте из буфера или выберите тестовую сцену в меню слева. Удерживайте снимок мышью — покажем оригинал до правок.', sel: '#photo', pad: 10 },
+    { e: '🎛️', t: 'Крутите линейку', d: 'Внизу четыре вкладки: настройки, фильтры, кадр и рисование. Линейка работает как в «Фото» на iPhone — тяните, крутите колесо, двойной клик сбрасывает.', sel: '.dock', pad: 10 },
+    { e: '🎲', t: 'Бросьте кубик', d: 'Кубик случайно перемешивает характеристики кадра — быстрый способ наткнуться на неожиданный вид. Размах броска настраивается.', sel: '#dice', pad: 6 },
+    { e: '📊', t: 'Смотрите на графики', d: 'Гистограмма, тоновая кривая, круг оттенков, профиль настроек и волновая форма — чтобы видеть, что именно вы сделали с кадром.', sel: '#statsBtn', pad: 6 },
+    { e: '⬇️', t: 'Сохраните результат', d: 'Экспорт в JPEG, PNG или WebP: размер, качество, рамка и примерный вес файла. Всё считается локально, прямо здесь.', sel: '#export', pad: 6 },
+  ];
+  let ti = 0;
+  function placeTour() {
+    const s = TOUR[ti], el = $(s.sel), spot = $('#tourSpot'), card = $('#tourCard');
+    const r = el ? el.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0, bottom: innerHeight / 2 };
+    const p = s.pad || 8;
+    spot.style.left = (r.left - p) + 'px';
+    spot.style.top = (r.top - p) + 'px';
+    spot.style.width = (r.width + p * 2) + 'px';
+    spot.style.height = (r.height + p * 2) + 'px';
+    spot.style.borderRadius = Math.min(34, r.height / 2 + p) + 'px';
+    const cw = card.offsetWidth, ch = card.offsetHeight;
+    const below = r.top + r.height / 2 < innerHeight / 2;
+    card.style.left = clamp(r.left + r.width / 2 - cw / 2, 12, Math.max(12, innerWidth - cw - 12)) + 'px';
+    card.style.top = clamp(below ? r.bottom + p + 16 : r.top - p - 16 - ch, 12, Math.max(12, innerHeight - ch - 12)) + 'px';
+  }
+  function renderTour() {
+    const s = TOUR[ti];
+    $('#tourBody').innerHTML = `<div class="tc-in"><span class="tour-emoji">${s.e}</span><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p></div>`;
+    $('#tourDots').innerHTML = TOUR.map((_, i) => `<i class="${i === ti ? 'on' : ''}"></i>`).join('');
+    $('#tourPrev').style.visibility = ti ? 'visible' : 'hidden';
+    $('#tourNext').textContent = ti === TOUR.length - 1 ? 'Начать' : 'Далее';
+    placeTour();
+  }
+  function startTour() {
+    ti = 0;
+    closeModal(); togglePop(false); hideTip();
+    $('#tour').classList.add('on');
+    renderTour();
+    requestAnimationFrame(placeTour); // card size is only known once it is on screen
+  }
+  function endTour() {
+    $('#tour').classList.remove('on');
+    store.set('lumen.tour', 1);
+    if (settings.promo && !store.get('lumen.promoHidden', false)) setTimeout(() => showPromo(true), 1200);
+  }
+  $('#tourNext').onclick = () => { if (ti === TOUR.length - 1) { endTour(); toast('Готово — приятной ретуши'); } else { ti++; renderTour(); } };
+  $('#tourPrev').onclick = () => { if (ti) { ti--; renderTour(); } };
+  $('#tourSkip').onclick = endTour;
+  addEventListener('resize', () => { if ($('#tour').classList.contains('on')) placeTour(); });
+
+  // ---------- Corner promo ----------
+  function showPromo(on) {
+    $('#promo').classList.toggle('on', !!on);
+    $('#promo').classList.toggle('gone', !on);
+  }
+  $('#promoX').onclick = () => {
+    showPromo(false);
+    store.set('lumen.promoHidden', true);
+    toast('Уголок скрыт — вернуть можно в настройках');
+  };
+
   // ---------- Boot ----------
+  applySettings();
   toggleHist(histOn);
   selectTool('exposure', false);
   loadScene('day');
   if (!Engine.webgl) setTimeout(() => toast('WebGL недоступен — цветокоррекция отключена', null, null, true), 800);
+  const seenTour = store.get('lumen.tour', 0);
+  if (!seenTour) setTimeout(startTour, 950);
+  else if (settings.promo && !store.get('lumen.promoHidden', false)) setTimeout(() => showPromo(true), 2600);
 })();

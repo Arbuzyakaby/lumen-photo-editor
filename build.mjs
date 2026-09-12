@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 export const ROOT = dirname(fileURLToPath(import.meta.url));
-export const SCRIPTS = ['js/engine.js', 'js/scenes.js', 'js/brush.js', 'js/app.js'];
+export const SCRIPTS = ['js/engine.js', 'js/scenes.js', 'js/brush.js', 'js/analysis.js', 'js/app.js'];
 const read = f => readFileSync(join(ROOT, f), 'utf8').replace(/\r\n/g, '\n').trimEnd();
 
 export function build(html) {
