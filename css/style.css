@@ -192,7 +192,9 @@ svg { display: block; }
 .tip kbd { font: inherit; color: var(--muted); margin-left: 8px; }
 
 /* ---------- Popover ---------- */
-.popover { position: fixed; z-index: 40; width: 340px; border-radius: 24px; padding: 14px; transform-origin: 30px -10px;
+/* Above the corner promo (44), below the modals (50): with eight samples the popover is tall
+   enough to reach the bottom corner, and the card was covering its last row. */
+.popover { position: fixed; z-index: 46; width: 340px; border-radius: 24px; padding: 14px; transform-origin: 30px -10px;
   opacity: 0; transform: scale(.9) translateY(-8px); pointer-events: none; transition: opacity .3s var(--smooth), transform .5s var(--spring); }
 .popover.open { opacity: 1; transform: none; pointer-events: auto; }
 .pop-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 2px 4px 10px; }
@@ -702,6 +704,51 @@ body.no-ambient .blob, body.no-ambient .amb { display: none; }
 :root[data-theme="light"] .ver, :root[data-theme="light"] .head b,
 :root[data-theme="light"] .srow .val, :root[data-theme="light"] .field > span b,
 :root[data-theme="light"] .fact b { color: #a87400; }
+
+/* ---------- Font choice ----------
+   Only the two tokens change; every rule already reads them. */
+:root { --tracking: -.01em; }
+:root[data-font="compact"] {
+  --font: "SF Compact Text", "Roboto Condensed", "Segoe UI Semibold", "Inter Tight", system-ui, sans-serif;
+  --tracking: -.022em;
+}
+:root[data-font="creative"] {
+  --font: "SF Pro Rounded", "Nunito", "Comfortaa", "Segoe UI Variable Display", system-ui, sans-serif;
+  --tracking: .004em;
+}
+body { letter-spacing: var(--tracking); }
+:root[data-font="creative"] .sheet h2, :root[data-font="creative"] .brand-name,
+:root[data-font="creative"] .tour-card h3 { letter-spacing: -.01em; }
+
+/* ---------- App menu ---------- */
+.popover.menu { width: 268px; padding: 10px; }
+.popover.menu .pop-row { margin-top: 6px; }
+.popover.menu .pop-row:first-child { margin-top: 0; }
+#menuBtn.on { background: var(--fill-2); }
+#menuBtn svg { transition: transform .7s var(--spring); }
+#menuBtn.on svg { transform: rotate(90deg); }
+
+/* ---------- Zoom ---------- */
+.stage { overflow: hidden; }
+.photo { will-change: transform; }
+.stage.zoomed .photo { cursor: grab; }
+.stage.zoomed .photo:active { cursor: grabbing; }
+.stage.zoomed.comparing .photo, .photo.drawing { cursor: crosshair; }
+.zoombar { position: absolute; right: 10px; bottom: 10px; z-index: 4; height: 34px; border-radius: 17px; padding: 0 4px;
+  display: flex; align-items: center; gap: 2px; opacity: 0; transform: translateY(8px) scale(.96); pointer-events: none;
+  transition: opacity .35s var(--smooth), transform .5s var(--spring); }
+.stage:hover .zoombar, .zoombar.on { opacity: 1; transform: none; pointer-events: auto; }
+.zoombar button { width: 28px; height: 28px; border-radius: 14px; display: grid; place-items: center; color: var(--muted);
+  transition: background .25s, color .25s, transform .4s var(--spring); }
+.zoombar button:hover { background: var(--fill-2); color: var(--text); }
+.zoombar button:active { transform: scale(.85); }
+.zoombar button:disabled { opacity: .3; pointer-events: none; }
+.zoombar svg { width: 14px; height: 14px; }
+.zoombar b { min-width: 48px; text-align: center; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; }
+
+/* custom accent well sits next to the preset swatches */
+#setAccentWell { width: 30px; height: 30px; box-shadow: inset 0 0 0 3px var(--glass-bg); }
+#setAccentWell.on::after { box-shadow: 0 0 0 1.5px #fff, 0 0 0 3.5px var(--accent); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {

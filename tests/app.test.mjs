@@ -19,8 +19,12 @@ test('build keeps `$` sequences from sources literally', () => {
 
 test('every demo scene has a sample button, a title and a painter', () => {
   const scenes = [...html.matchAll(/data-scene="(\w+)"/g)].map(m => m[1]);
-  assert.deepEqual(scenes, ['day', 'night', 'meadow', 'dunes', 'city', 'aurora']);
+  assert.deepEqual(scenes, ['day', 'night', 'meadow', 'dunes', 'city', 'aurora', 'beach', 'fog']);
   const app = read('js/app.js'), src = read('js/scenes.js');
+  // Scenes are painted large and shrunk once — without that the far detail aliases into shimmer.
+  assert.match(src, /SS = 2/);
+  assert.match(src, /function shrink\(/);
+  assert.match(src, /cache\[k\] = shrink\(make\[k\]\(\)\)/);
   const titles = /const SCENES = \{([^}]*)\}/.exec(app)[1];
   for (const k of scenes) {
     assert.match(titles, new RegExp(`\\b${k}:`));
@@ -41,8 +45,16 @@ test('drawing UI is wired: 4th tab, ink layer, all brush controls', () => {
 test('settings, about, charts, info, tour and promo are all wired up', () => {
   for (const id of ['settingsModal', 'aboutModal', 'chartsModal', 'infoModal', 'tour', 'promo', 'dice', 'die'])
     assert.match(html, new RegExp(`id="${id}"`), id);
-  for (const id of ['statsBtn', 'infoBtn', 'settingsBtn', 'aboutBtn', 'promoX', 'btnTour', 'btnWipe', 'setAccent', 'setQ', 'setDice', 'themeBtn', 'setTheme'])
+  for (const id of ['statsBtn', 'infoBtn', 'settingsBtn', 'aboutBtn', 'promoX', 'btnTour', 'btnWipe', 'setAccent', 'setQ', 'setDice', 'themeBtn', 'setTheme',
+    'menu', 'menuBtn', 'tourBtn', 'smartCrop', 'zoomBar', 'zoomIn', 'zoomOut', 'setFont', 'setAccentHex'])
     assert.match(html, new RegExp(`id="${id}"`), id);
+  // Settings moved out of the samples popover into a menu of their own: check which block
+  // each row actually sits in, not how close the two happen to be in the file.
+  const samplesBlock = html.slice(html.indexOf('id="samples"'), html.indexOf('id="menu"'));
+  const menuBlock = html.slice(html.indexOf('id="menu"'), html.indexOf('<!-- New preset -->'));
+  assert.doesNotMatch(samplesBlock, /id="settingsBtn"|id="aboutBtn"/);
+  assert.match(samplesBlock, /id="open2"/);
+  for (const id of ['settingsBtn', 'tourBtn', 'aboutBtn']) assert.match(menuBlock, new RegExp(`id="${id}"`), id);
   for (const id of ['chHist', 'chCurve', 'chDonut', 'chRadar', 'chBars', 'chWave'])
     assert.match(html, new RegExp(`<canvas id="${id}">`), id);
   for (const k of ['ambient', 'anim', 'tips', 'promo']) assert.match(html, new RegExp(`data-set="${k}"`), k);
@@ -70,6 +82,28 @@ test('theme: three choices, «система» resolved in JS, CSS themed by att
   assert.match(css, /:root\[data-theme="light"\]/);
   for (const token of ['--glass-bg', '--solid', '--track', '--surface', '--needle', '--page'])
     assert.ok(css.split(`${token}:`).length >= 3, `${token} needs a value in both themes`);
+});
+
+test('crop offsets travel through geometry, history and the geo cache key', () => {
+  const app = read('js/app.js'), eng = read('js/engine.js');
+  assert.match(app, /const GEOM = \['rot', 'flipH', 'flipV', 'straighten', 'aspect', 'ox', 'oy'\]/);
+  assert.match(app, /aspect: 'orig', ox: 0, oy: 0/); // a fresh state starts centred
+  assert.match(eng, /s\.ox \|\| 0, s\.oy \|\| 0/);      // …and both are part of the cache key
+  assert.match(eng, /-clamp\(s\.ox \|\| 0, -1, 1\) \* slackX/);
+  assert.match(app, /state\.ox = 0; state\.oy = 0;/);  // changing the ratio recentres
+});
+
+test('fonts and zoom are wired end to end', () => {
+  const css = read('css/style.css'), app = read('js/app.js');
+  for (const v of ['modern', 'compact', 'creative']) assert.match(html, new RegExp(`data-v="${v}"`), v);
+  assert.match(css, /:root\[data-font="compact"\]/);
+  assert.match(css, /:root\[data-font="creative"\]/);
+  assert.match(css, /body \{ letter-spacing: var\(--tracking\); \}/);
+  assert.match(app, /if \(!FONTS\.includes\(settings\.font\)\)/);
+  assert.match(app, /dataset\.font = settings\.font/);
+  assert.match(app, /function setZoom\(/);
+  assert.match(app, /clamp\(z, 1, 8\)/);
+  assert.match(app, /zoom === 1 \? '' : `translate\(/);
 });
 
 test('backdrop is not re-rendered on edits', () => {

@@ -94,6 +94,46 @@ test('roll stays inside every setting range and touches only `keep` of them', ()
   assert.deepEqual(A.roll(seeded(42), 5), A.roll(seeded(42), 5)); // same seed, same look
 });
 
+/** Greyscale image builder: f(x, y) → 0…255. */
+const grid = (w, h, f) => {
+  const d = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4;
+    d[i] = d[i + 1] = d[i + 2] = f(x, y); d[i + 3] = 255;
+  }
+  return d;
+};
+
+test('energyMap concentrates where the detail is', () => {
+  const m = A.energyMap(grid(64, 32, x => (x < 16 ? (x % 2 ? 255 : 0) : 128)), 64, 32, 8, 4);
+  assert.equal(m.cols, 8); assert.equal(m.rows, 4);
+  assert.equal(m.d.length, 32);
+  assert.ok([...m.d].every(Number.isFinite));
+  const left = m.d[0], right = m.d[6];
+  assert.ok(left > right * 5, `left ${left} should dwarf right ${right}`);
+});
+
+test('smartCrop slides the frame onto the detail and stays centred when there is none', () => {
+  const wide = A.energyMap(grid(64, 32, x => (x < 16 ? (x % 2 ? 255 : 0) : 128)), 64, 32, 32, 16);
+  const left = A.smartCrop(wide, 1, 2); // square crop out of a 2:1 picture — horizontal slack only
+  assert.ok(left.ox < -0.5, `ox ${left.ox} should pull left`);
+  assert.equal(left.oy, 0);
+  assert.ok(left.keep > 0.8);
+
+  const flat = A.smartCrop(A.energyMap(grid(64, 32, () => 128), 64, 32, 32, 16), 1, 2);
+  assert.equal(flat.ox, 0); // nothing to chase: the centre prior decides
+  assert.equal(flat.oy, 0);
+
+  const tall = A.energyMap(grid(32, 32, (x, y) => (y > 23 ? (y % 2 ? 255 : 0) : 128)), 32, 32, 16, 16);
+  const down = A.smartCrop(tall, 2, 1); // 2:1 crop out of a square — vertical slack only
+  assert.ok(down.oy > 0.5, `oy ${down.oy} should pull down`);
+  assert.equal(down.ox, 0);
+
+  const none = A.smartCrop(wide, 2, 2); // crop matches the picture: nothing to move, nothing lost
+  assert.deepEqual({ ox: none.ox, oy: none.oy }, { ox: 0, oy: 0 });
+  assert.ok(Math.abs(none.keep - 1) < 1e-9);
+});
+
 test('painters only touch the context they are given', () => {
   const calls = [];
   const stub = new Proxy({}, {

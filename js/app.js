@@ -60,8 +60,9 @@
   ];
 
   const zeroAdj = () => Object.fromEntries(ADJ.map(k => [k, 0]));
-  const fresh = () => ({ ...zeroAdj(), rot: 0, flipH: false, flipV: false, straighten: 0, aspect: 'orig', preset: 'none', amt: 100, ink: [] });
-  const GEOM = ['rot', 'flipH', 'flipV', 'straighten', 'aspect'];
+  // ox/oy slide the crop window within whatever slack the aspect leaves — see Engine.paintGeo.
+  const fresh = () => ({ ...zeroAdj(), rot: 0, flipH: false, flipV: false, straighten: 0, aspect: 'orig', ox: 0, oy: 0, preset: 'none', amt: 100, ink: [] });
+  const GEOM = ['rot', 'flipH', 'flipV', 'straighten', 'aspect', 'ox', 'oy'];
   const geomSame = (a, b) => GEOM.every(k => a[k] === b[k]);
 
   let state = fresh(), hist = [fresh()], hi = 0, cur = 'exposure', tab = 0;
@@ -77,12 +78,15 @@
     { id: 'purple', c: '#bf5af2', ink: '#fdf3ff', n: 'Сирень' },
   ];
   const QUALITY = [1200, 1800, 2400];
+  const FONTS = ['modern', 'compact', 'creative'];
   const THEMES = ['system', 'light', 'dark'];
   const THEME_N = { system: 'системная', light: 'светлая', dark: 'тёмная' };
-  const DEF_SET = { theme: 'system', accent: 'gold', ambient: true, anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
+  const DEF_SET = { theme: 'system', accent: 'gold', accentHex: '#ffd60a', font: 'modern', ambient: true, anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
   let settings = { ...DEF_SET, ...store.get('lumen.settings', {}) };
   // Storage is user-editable, so every field is coerced back into range before it reaches the UI.
-  if (!ACCENTS.some(a => a.id === settings.accent)) settings.accent = DEF_SET.accent;
+  if (!/^#[0-9a-f]{6}$/i.test(String(settings.accentHex))) settings.accentHex = DEF_SET.accentHex;
+  if (settings.accent !== 'custom' && !ACCENTS.some(a => a.id === settings.accent)) settings.accent = DEF_SET.accent;
+  if (!FONTS.includes(settings.font)) settings.font = DEF_SET.font;
   if (!THEMES.includes(settings.theme)) settings.theme = DEF_SET.theme;
   if (!QUALITY.includes(settings.quality)) settings.quality = DEF_SET.quality;
   settings.dice = clamp(Math.round(+settings.dice || DEF_SET.dice), 3, 14);
@@ -541,8 +545,96 @@
     const b = e.target.closest('[data-aspect]');
     if (!b || b.dataset.aspect === state.aspect) return;
     state.aspect = b.dataset.aspect;
+    state.ox = 0; state.oy = 0; // a new ratio starts centred; «Умная обрезка» moves it from there
     syncUI(); drawNow(); commit();
   });
+
+  // ---------- Smart crop ----------
+  const RATIOS = ['1:1', '4:5', '3:2', '16:9', '9:16'];
+  $('#smartCrop').onclick = () => {
+    if (!src) return;
+    // Geometry only (no colour, no blur), the whole frame: that is what the crop slides over.
+    const c = document.createElement('canvas');
+    Engine.render(c, src, { ...effective(state), aspect: 'orig', ox: 0, oy: 0, blur: 0 }, 380, true);
+    const d = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height);
+    const map = Analysis.energyMap(d.data, c.width, c.height, 44, 44);
+    const imgRatio = c.width / c.height;
+
+    let aspect = state.aspect, best = null;
+    if (aspect === 'orig') {
+      // Nothing is cropped at «Исходные», so pick the ratio whose frame is densest in detail,
+      // with a penalty that keeps it from throwing half the picture away for a small gain.
+      let bestScore = -Infinity;
+      for (const a of RATIOS) {
+        const r = Engine.ASPECTS[a];
+        const res = Analysis.smartCrop(map, r, imgRatio);
+        const area = (imgRatio > r ? r / imgRatio : 1) * (imgRatio > r ? 1 : imgRatio / r);
+        const score = res.keep / area - (1 - area) * 0.5;
+        if (score > bestScore) { bestScore = score; aspect = a; best = res; }
+      }
+    } else best = Analysis.smartCrop(map, Engine.ASPECTS[aspect] || imgRatio, imgRatio);
+
+    const same2 = aspect === state.aspect && Math.abs(best.ox - state.ox) < 0.02 && Math.abs(best.oy - state.oy) < 0.02;
+    if (same2) return toast('Кадр уже собран по содержимому');
+    const from = { ox: state.ox, oy: state.oy };
+    if (aspect !== state.aspect) crossfade(() => { state.aspect = aspect; state.ox = from.ox; state.oy = from.oy; });
+    syncUI();
+    tweenTo({ ox: best.ox, oy: best.oy }, 520, () => {
+      commit();
+      toast(`Кадр ${aspect === 'orig' ? 'подобран' : aspect} · сохранено ${Math.round(best.keep * 100)}% деталей`, 'Отменить', () => go(-1));
+    });
+  };
+
+  // ---------- Zoom & pan ----------
+  let zoom = 1, panX = 0, panY = 0, panning = null;
+  function clampPan() {
+    if (zoom <= 1) { panX = panY = 0; return; }
+    const w = photo.offsetWidth * (zoom - 1) / 2, h = photo.offsetHeight * (zoom - 1) / 2;
+    panX = clamp(panX, -w, w); panY = clamp(panY, -h, h);
+  }
+  function applyZoom() {
+    photo.style.transform = zoom === 1 ? '' : `translate(${panX.toFixed(1)}px, ${panY.toFixed(1)}px) scale(${zoom.toFixed(3)})`;
+    $('#zoomVal').textContent = Math.round(zoom * 100) + '%';
+    $('#zoomBar').classList.toggle('on', zoom !== 1);
+    $('#zoomOut').disabled = zoom <= 1;
+    $('#zoomIn').disabled = zoom >= 8;
+    stage.classList.toggle('zoomed', zoom > 1);
+  }
+  /** Zoom around a screen point, so whatever is under the cursor stays under it. */
+  function setZoom(z, cx, cy) {
+    const prev = zoom;
+    zoom = clamp(z, 1, 8);
+    if (zoom === prev) return;
+    if (cx != null) {
+      const r = photo.getBoundingClientRect();
+      panX -= (cx - (r.left + r.width / 2)) * (zoom / prev - 1);
+      panY -= (cy - (r.top + r.height / 2)) * (zoom / prev - 1);
+    }
+    clampPan(); applyZoom();
+  }
+  const resetZoom = () => { zoom = 1; panX = panY = 0; applyZoom(); };
+  stage.addEventListener('wheel', e => {
+    if (!src) return;
+    e.preventDefault();
+    setZoom(zoom * Math.pow(1.0018, -e.deltaY * (e.deltaMode === 1 ? 18 : 1)), e.clientX, e.clientY);
+  }, { passive: false });
+  $('#zoomIn').onclick = () => setZoom(zoom * 1.5);
+  $('#zoomOut').onclick = () => setZoom(zoom / 1.5);
+  $('#zoomVal').onclick = resetZoom;
+  photo.addEventListener('dblclick', () => { if (tab !== 3) (zoom > 1 ? resetZoom() : setZoom(2)); });
+  photo.addEventListener('pointerdown', e => {
+    if (tab === 3 || zoom === 1 || e.button !== 0 || !src) return;
+    panning = { x: e.clientX, y: e.clientY, px: panX, py: panY };
+    photo.setPointerCapture(e.pointerId);
+  });
+  photo.addEventListener('pointermove', e => {
+    if (!panning) return;
+    panX = panning.px + (e.clientX - panning.x);
+    panY = panning.py + (e.clientY - panning.y);
+    clampPan(); applyZoom();
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => photo.addEventListener(ev, () => (panning = null)));
+  new ResizeObserver(() => { clampPan(); applyZoom(); }).observe(photo);
 
   function syncUI() {
     selectTool(cur, false); updChips();
@@ -601,7 +693,7 @@
   const cmp = $('#compare');
   cmp.addEventListener('pointerdown', () => compare(true));
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => cmp.addEventListener(ev, () => compare(false)));
-  photo.addEventListener('pointerdown', e => { if (e.button === 0 && tab !== 3) compare(true); });
+  photo.addEventListener('pointerdown', e => { if (e.button === 0 && tab !== 3 && zoom === 1) compare(true); });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => photo.addEventListener(ev, () => compare(false)));
 
   // ---------- Drawing: brush / marker / eraser ----------
@@ -724,6 +816,7 @@
     state = fresh(); hist = [fresh()]; hi = 0; updHist();
     $('#fname').textContent = name;
     cancelAnimationFrame(raf); drawNow();
+    resetZoom();
     photo.classList.add('nt'); fit(); reflow(photo); photo.classList.remove('nt');
     syncUI(); restart(photo, 'pop');
     buildThumbs(); ambient();
@@ -735,7 +828,7 @@
     img.onerror = () => { toast('Не удалось открыть файл', null, null, true); URL.revokeObjectURL(url); };
     img.src = url;
   }
-  const SCENES = { day: 'День у озера', night: 'Ночь у озера', meadow: 'Летний луг', dunes: 'Полдень в дюнах', city: 'Ночной город', aurora: 'Северное сияние' };
+  const SCENES = { day: 'День у озера', night: 'Ночь у озера', meadow: 'Летний луг', dunes: 'Полдень в дюнах', city: 'Ночной город', aurora: 'Северное сияние', beach: 'Берег океана', fog: 'Туман в лесу' };
   function loadScene(k) { setImage(Scenes[k](), SCENES[k]); }
 
   // ---------- Samples popover ----------
@@ -950,7 +1043,7 @@
   addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey, code = e.code;
     const typing = e.target.matches('input:not([type=range]), textarea');
-    if (e.key === 'Escape') { closeModal(); togglePop(false); if ($('#tour').classList.contains('on')) endTour(); return; }
+    if (e.key === 'Escape') { closeModal(); togglePop(false); toggleMenu(false); if ($('#tour').classList.contains('on')) endTour(); return; }
     if (activeModal) return;
     if (mod && code === 'KeyZ') { e.preventDefault(); go(e.shiftKey ? 1 : -1); }
     else if (mod && code === 'KeyY') { e.preventDefault(); go(1); }
@@ -963,6 +1056,10 @@
     else if (code === 'KeyI') openInfo();
     else if (code === 'KeyR') $('#dice').click();
     else if (code === 'KeyT') $('#themeBtn').click();
+    else if (code === 'KeyC') $('#smartCrop').click();
+    else if (code === 'Equal' || e.key === '+') setZoom(zoom * 1.5);
+    else if (code === 'Minus' || e.key === '-') setZoom(zoom / 1.5);
+    else if (code === 'Digit0') resetZoom();
     else if (e.key === ',') openSettings();
     else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3' || code === 'Digit4') setTab(+code.slice(-1) - 1);
   });
@@ -986,7 +1083,13 @@
   }, { passive: true });
 
   // ---------- Settings sheet ----------
-  const accentHex = () => (ACCENTS.find(a => a.id === settings.accent) || ACCENTS[0]).c;
+  const accentHex = () => (settings.accent === 'custom' ? settings.accentHex : (ACCENTS.find(a => a.id === settings.accent) || ACCENTS[0]).c);
+  /** Ink that stays readable on the chosen accent — a custom colour can be anything. */
+  function accentInk(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    const l = ((n >> 16 & 255) * 0.2126 + (n >> 8 & 255) * 0.7152 + (n & 255) * 0.0722) / 255;
+    return l > 0.55 ? '#1c1500' : '#ffffff';
+  }
 
   // «Система» is resolved here rather than in CSS: the stylesheet only ever sees data-theme="light"
   // or "dark", so no rule needs a media query of its own and the switch stays instant.
@@ -1008,9 +1111,11 @@
   };
 
   function applySettings() {
-    const a = ACCENTS.find(x => x.id === settings.accent) || ACCENTS[0];
-    document.documentElement.style.setProperty('--accent', a.c);
-    document.documentElement.style.setProperty('--accent-ink', a.ink);
+    const c = accentHex();
+    const preset = settings.accent !== 'custom' && ACCENTS.find(x => x.id === settings.accent);
+    document.documentElement.style.setProperty('--accent', c);
+    document.documentElement.style.setProperty('--accent-ink', preset ? preset.ink : accentInk(c));
+    document.documentElement.dataset.font = settings.font;
     applyTheme();
     document.body.classList.toggle('no-anim', !settings.anim);
     document.body.classList.toggle('no-ambient', !settings.ambient);
@@ -1021,6 +1126,14 @@
     $('#setAccent').innerHTML = ACCENTS.map(a =>
       `<button class="acc${a.id === settings.accent ? ' on' : ''}" data-acc="${a.id}" data-tip="${a.n}" aria-label="${a.n}" style="--c:${a.c}"></button>`).join('');
     $$('#setAccent .acc').forEach(bindTip);
+    $('#setAccentHex').value = accentHex();
+    $('#setAccentWell').style.setProperty('--bc', accentHex());
+    $('#setAccentWell').classList.toggle('on', settings.accent === 'custom');
+    $$('#setFont button').forEach((b, i) => {
+      const on = b.dataset.v === settings.font;
+      b.classList.toggle('on', on);
+      if (on) $('#setFont .pill').style.transform = `translateX(${i * 100}%)`;
+    });
     $$('#settingsModal [data-set]').forEach(b => {
       b.classList.toggle('on', !!settings[b.dataset.set]);
       b.setAttribute('aria-checked', String(!!settings[b.dataset.set]));
@@ -1044,11 +1157,32 @@
       `${p} ${plural(p, 'пресет', 'пресета', 'пресетов')} и ${b} ${plural(b, 'кисть', 'кисти', 'кистей')}`;
   }
   function openSettings() { syncSettings(); openModal('#settingsModal'); }
-  $('#settingsBtn').onclick = () => { togglePop(false); openSettings(); };
+
+  // ---------- App menu ----------
+  const menu = $('#menu'), menuBtn = $('#menuBtn');
+  function toggleMenu(on) {
+    on = on ?? !menu.classList.contains('open');
+    if (on) {
+      const r = menuBtn.getBoundingClientRect();
+      menu.style.left = clamp(r.right - 268, 12, Math.max(12, innerWidth - 280)) + 'px';
+      menu.style.top = (r.bottom + 12) + 'px';
+      togglePop(false); hideTip();
+    }
+    menu.classList.toggle('open', on);
+    menuBtn.classList.toggle('on', on);
+  }
+  menuBtn.addEventListener('click', e => { e.stopPropagation(); toggleMenu(); });
+  menu.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', () => toggleMenu(false));
+
+  $('#settingsBtn').onclick = () => { toggleMenu(false); openSettings(); };
+  $('#tourBtn').onclick = () => { toggleMenu(false); setTimeout(startTour, 200); };
   $('#setClose').onclick = closeModal;
   $('#settingsModal').addEventListener('click', e => {
     const t = e.target.closest('[data-set]'), a = e.target.closest('[data-acc]');
     const q = e.target.closest('#setQ button'), th = e.target.closest('#setTheme button');
+    const f = e.target.closest('#setFont button');
+    if (f) { settings.font = f.dataset.v; applySettings(); syncSettings(); }
     if (t) {
       const k = t.dataset.set;
       settings[k] = !settings[k];
@@ -1059,6 +1193,10 @@
     if (a) { settings.accent = a.dataset.acc; applySettings(); syncSettings(); }
     if (th) { settings.theme = th.dataset.v; applySettings(); syncSettings(); }
     if (q) { settings.quality = +q.dataset.v; applySettings(); syncSettings(); drawNow(); }
+  });
+  $('#setAccentHex').addEventListener('input', e => {
+    settings.accent = 'custom'; settings.accentHex = e.target.value;
+    applySettings(); syncSettings();
   });
   $('#setDice').addEventListener('input', e => {
     settings.dice = +e.target.value;
@@ -1077,7 +1215,7 @@
   };
 
   // ---------- About ----------
-  $('#aboutBtn').onclick = () => { togglePop(false); openModal('#aboutModal'); };
+  $('#aboutBtn').onclick = () => { toggleMenu(false); openModal('#aboutModal'); };
   $('#aboutClose').onclick = closeModal;
 
   // ---------- Charts & diagrams ----------
@@ -1280,6 +1418,7 @@
 
   // ---------- Boot ----------
   applySettings();
+  applyZoom();
   toggleHist(histOn);
   selectTool('exposure', false);
   loadScene('day');

@@ -7,6 +7,7 @@ window.Engine = (() => {
 
   const ASPECTS = { orig: null, '1:1': 1, '4:5': 4 / 5, '3:2': 3 / 2, '16:9': 16 / 9, '9:16': 9 / 16 };
   const hasFilter = 'filter' in CanvasRenderingContext2D.prototype;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   const VS = 'attribute vec2 p;varying vec2 v_uv;void main(){v_uv=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
   const FS = `
@@ -126,10 +127,15 @@ void main(){
     const a = s.straighten * Math.PI / 180, c = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a));
     // Scale so the straightened image always covers the whole crop — no black corners.
     const fill = Math.max((L.cw * c + L.ch * sn) / L.iw, (L.cw * sn + L.ch * c) / L.ih);
+    // Whatever the crop leaves over is slack the frame may slide within: ox/oy are −1…1 of it,
+    // positive meaning the crop window moves right/down, so the picture shifts the other way.
+    const slackX = Math.max(0, (L.iw * fill - L.cw) * k) / 2;
+    const slackY = Math.max(0, (L.ih * fill - L.ch) * k) / 2;
     ctx.save();
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
     ctx.imageSmoothingQuality = 'high';
     ctx.translate(W / 2, H / 2);
+    ctx.translate(-clamp(s.ox || 0, -1, 1) * slackX, -clamp(s.oy || 0, -1, 1) * slackY);
     ctx.scale(s.flipH ? -1 : 1, s.flipV ? -1 : 1);
     ctx.rotate(a + s.rot * Math.PI / 2);
     ctx.scale(k * fill, k * fill);
@@ -141,7 +147,7 @@ void main(){
     const L = layout(img, s), k = Math.min(1, maxDim / Math.max(L.cw, L.ch));
     const W = Math.max(1, Math.round(L.cw * k)), H = Math.max(1, Math.round(L.ch * k));
     const blur = (s.blur || 0) / 100 * Math.max(W, H) / 70;
-    const key = [idOf(img), s.rot, s.flipH, s.flipV, s.straighten, s.aspect, Math.round(blur * 10), maxDim].join('|');
+    const key = [idOf(img), s.rot, s.flipH, s.flipV, s.straighten, s.aspect, s.ox || 0, s.oy || 0, Math.round(blur * 10), maxDim].join('|');
     if (key === geoKey && geo.width === W && geo.height === H) return false;
     geoKey = key;
     geo.width = W; geo.height = H;

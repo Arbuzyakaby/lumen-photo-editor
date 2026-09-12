@@ -95,6 +95,63 @@
     return { cols, bins: BINS, d: out };
   }
 
+  // ---------- Smart crop ----------
+
+  /** Coarse map of «what matters»: local contrast first, with colour and light as tie-breakers. */
+  function energyMap(data, w, h, cols, rows) {
+    cols = Math.max(4, cols || 40); rows = Math.max(4, rows || 40);
+    const cell = new Float32Array(cols * rows), n = new Float32Array(cols * rows);
+    const lum = new Float32Array(w * h);
+    for (let p = 0, i = 0; p < lum.length; p++, i += 4) lum[p] = (data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722) / 255;
+    for (let y = 0; y < h; y++) {
+      const gy = Math.min(rows - 1, Math.floor(y / h * rows)) * cols;
+      for (let x = 0; x < w; x++) {
+        const p = y * w + x, i = p * 4;
+        const dx = x + 1 < w ? Math.abs(lum[p + 1] - lum[p]) : 0;
+        const dy = y + 1 < h ? Math.abs(lum[p + w] - lum[p]) : 0;
+        const mx = Math.max(data[i], data[i + 1], data[i + 2]), mn = Math.min(data[i], data[i + 1], data[i + 2]);
+        const k = gy + Math.min(cols - 1, Math.floor(x / w * cols));
+        cell[k] += (dx + dy) * 3 + (mx ? (mx - mn) / mx : 0) * 0.3 + lum[p] * 0.06;
+        n[k]++;
+      }
+    }
+    for (let i = 0; i < cell.length; i++) cell[i] /= Math.max(1, n[i]);
+    return { cols, rows, d: cell };
+  }
+
+  /** Best placement of a `ratio` crop over that map.
+   *  `ox`/`oy` are −1…1 across whatever slack the crop leaves: 0 is dead centre, +1 flush right/bottom.
+   *  `keep` is the share of the picture's energy the crop holds on to. */
+  function smartCrop(map, ratio, imgRatio, steps) {
+    const { cols, rows, d } = map;
+    const cw = imgRatio > ratio ? ratio / imgRatio : 1;
+    const ch = imgRatio > ratio ? 1 : imgRatio / ratio;
+    const I = new Float64Array((cols + 1) * (rows + 1));
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        I[(y + 1) * (cols + 1) + x + 1] = d[y * cols + x] + I[y * (cols + 1) + x + 1] + I[(y + 1) * (cols + 1) + x] - I[y * (cols + 1) + x];
+      }
+    }
+    const box = (x0, y0, x1, y1) => I[y1 * (cols + 1) + x1] - I[y0 * (cols + 1) + x1] - I[y1 * (cols + 1) + x0] + I[y0 * (cols + 1) + x0];
+    const total = box(0, 0, cols, rows) || 1;
+    const S = Math.max(2, steps || 24);
+    const span = k => (k < 1 ? Array.from({ length: S + 1 }, (_, i) => i / S * 2 - 1) : [0]);
+    let best = { ox: 0, oy: 0, keep: 0, score: -Infinity };
+    for (const ox of span(cw)) {
+      for (const oy of span(ch)) {
+        const x0 = (1 - cw) / 2 * (1 + ox), y0 = (1 - ch) / 2 * (1 + oy);
+        const cx0 = Math.round(x0 * cols), cy0 = Math.round(y0 * rows);
+        const cx1 = Math.min(cols, Math.max(cx0 + 1, Math.round((x0 + cw) * cols)));
+        const cy1 = Math.min(rows, Math.max(cy0 + 1, Math.round((y0 + ch) * rows)));
+        const keep = box(cx0, cy0, cx1, cy1) / total;
+        // A gentle pull back to the middle, so a flat picture is not cropped off to one side at random.
+        const score = keep - (Math.abs(ox) + Math.abs(oy)) * 0.05;
+        if (score > best.score) best = { ox, oy, keep, score };
+      }
+    }
+    return best;
+  }
+
   // ---------- Dice ----------
 
   /** Tasteful random adjustments. Deterministic when handed a seeded `rnd`. */
@@ -278,7 +335,7 @@
 
   root.Analysis = {
     BINS, HUES, ROLL,
-    summarize, cumulative, dominant, waveform, roll,
+    summarize, cumulative, dominant, waveform, roll, energyMap, smartCrop,
     drawHistogram, drawCurve, drawRadar, drawBars, drawDonut, drawWave,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
