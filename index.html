@@ -114,6 +114,15 @@ svg { display: block; }
 @keyframes float { to { transform: translate(7vmax, 5vmax) scale(1.12); } }
 .ambient::after { content: ""; position: absolute; inset: 0; background: var(--amb-veil); }
 
+/* Picking a preset background behind the photo replaces the auto photo-blur and blobs with a flat gradient. */
+.ambient.custom-bg .amb, .ambient.custom-bg .blob { opacity: 0 !important; }
+.ambient.bg-aurora { background: linear-gradient(135deg, #0f2027, #2c5364 55%, #00c6ff); }
+.ambient.bg-sunset { background: linear-gradient(135deg, #ff512f, #dd2476); }
+.ambient.bg-ocean { background: linear-gradient(135deg, #005c97, #363795); }
+.ambient.bg-mint { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.ambient.bg-grape { background: linear-gradient(135deg, #654ea3, #eaafc8); }
+.ambient.bg-slate { background: linear-gradient(135deg, #232526, #414345); }
+
 /* ---------- Liquid glass ---------- */
 .glass { position: relative; isolation: isolate;
   background: var(--glass-sheen), var(--glass-bg);
@@ -509,7 +518,11 @@ svg { display: block; }
 @keyframes fadeUp { from { opacity: 0; } }
 
 /* Settings-driven global switches */
-body.no-anim *, body.no-anim *::before, body.no-anim *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+/* iteration-count must drop to 1 too: shrinking only the duration leaves infinite loops
+   (the ambient blobs, sheen sweep, spinning logo…) cycling hundreds of times a second,
+   which reads as a flickering gradient instead of a stopped animation. */
+body.no-anim *, body.no-anim *::before, body.no-anim *::after {
+  animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 body.no-ambient .blob, body.no-ambient .amb { display: none; }
 
 /* ---------- Drawing ---------- */
@@ -694,6 +707,9 @@ body.no-ambient .blob, body.no-ambient .amb { display: none; }
   opacity: 0; transform: translateY(22px) scale(.94); pointer-events: none; transition: opacity .5s var(--smooth), transform .8s var(--spring); }
 .promo.on { opacity: 1; transform: none; pointer-events: auto; }
 .promo.gone { opacity: 0; transform: translateY(18px) scale(.9); pointer-events: none; }
+/* A popover/menu/modal reaching the bottom-left corner used to bury the card without warning,
+   so it seemed to randomly vanish and reappear — fade it out on the same transition instead. */
+.promo.on.veiled { opacity: 0; transform: translateY(14px) scale(.96); pointer-events: none; }
 .promo .pm-ic { width: 38px; height: 38px; border-radius: 12px; flex: none; display: grid; place-items: center; font-size: 19px;
   background: linear-gradient(150deg, #ff375f, #5e5ce6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 8px 18px -8px rgba(94, 92, 230, .9); }
 .promo .pm-tx { flex: 1; min-width: 0; }
@@ -806,7 +822,7 @@ body { letter-spacing: var(--tracking); }
 </style>
 </head>
 <body>
-<div class="ambient"><div class="amb" id="ambA"></div><div class="amb" id="ambB"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="ambient" id="ambientBox"><div class="amb" id="ambA"></div><div class="amb" id="ambB"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 
 <div class="app">
   <header class="topbar glass">
@@ -1063,6 +1079,9 @@ body { letter-spacing: var(--tracking); }
           <div class="seg seg3" id="setFont"><span class="pill"></span><button data-v="modern">Современный</button><button data-v="compact">Компактный</button><button data-v="creative">Творческий</button></div>
         </div>
         <div class="srow"><div class="tx"><b>Фоновое свечение</b><small>Размытые цветные пятна и отсвет фото за окном</small></div><button class="tgl" data-set="ambient" role="switch" aria-label="Фоновое свечение"></button></div>
+        <div class="srow" style="display:block"><div class="tx" style="margin-bottom:10px"><b>Фон за фото</b><small>Авто берёт цвет из снимка, либо выберите один из шести градиентов</small></div>
+          <div class="accents" id="setAmbient"></div>
+        </div>
         <div class="srow"><div class="tx"><b>Анимации</b><small>Пружины, переходы и плавные появления</small></div><button class="tgl" data-set="anim" role="switch" aria-label="Анимации"></button></div>
         <div class="srow"><div class="tx"><b>Подсказки</b><small>Всплывающие названия кнопок при наведении</small></div><button class="tgl" data-set="tips" role="switch" aria-label="Подсказки"></button></div>
       </div>
@@ -2372,10 +2391,35 @@ window.Scenes = (() => {
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
   };
 
+  // ---------- Slider sound: a synthesized mechanical detent, no audio files ----------
+  const SFX = (() => {
+    let actx, lastPlay = 0;
+    const ctx = () => actx || (actx = new (window.AudioContext || window.webkitAudioContext)());
+    function tick(vel) {
+      const now = performance.now();
+      if (now - lastPlay < 22) return; // a real crank can't click faster than this
+      let ac;
+      try { ac = ctx(); if (ac.state === 'suspended') ac.resume(); } catch { return; }
+      lastPlay = now;
+      const t0 = ac.currentTime, amt = clamp(0.45 + Math.abs(vel || 0.5), 0.45, 1.5);
+      const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.02), ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const noise = ac.createBufferSource(); noise.buffer = buf;
+      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400 + Math.random() * 900; bp.Q.value = 1.4;
+      const ng = ac.createGain(); ng.gain.setValueAtTime(0.15 * amt, t0); ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.045);
+      noise.connect(bp).connect(ng).connect(ac.destination); noise.start(t0); noise.stop(t0 + 0.05);
+      const osc = ac.createOscillator(); osc.type = 'square';
+      osc.frequency.setValueAtTime(520 + Math.random() * 140, t0); osc.frequency.exponentialRampToValueAtTime(180, t0 + 0.03);
+      const og = ac.createGain(); og.gain.setValueAtTime(0.05 * amt, t0); og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.035);
+      osc.connect(og).connect(ac.destination); osc.start(t0); osc.stop(t0 + 0.04);
+    }
+    return { tick };
+  })();
+
   // ---------- Tools ----------
   const I = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
   const ICON = {
-    wand: I('<path d="m15 4 1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="currentColor"/><path d="M19.5 12.5l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z" fill="currentColor"/><path d="M3 21 13 11"/><path d="m11 13 2-2"/>'),
+    wand: I('<path d="M4 20 13.5 10.5" stroke-width="2.1"/><path d="m17.5 2.5 1.5 3.4 3.4 1.5-3.4 1.5-1.5 3.4-1.5-3.4L12.6 7.4l3.4-1.5z" fill="currentColor" stroke="none"/><path d="M6 3.6 6.8 5.4 8.6 6.2 6.8 7 6 8.8 5.2 7 3.4 6.2 5.2 5.4z" fill="currentColor" stroke="none"/><path d="M19.5 14.8 20.1 16.2 21.5 16.8 20.1 17.4 19.5 18.8 18.9 17.4 17.5 16.8 18.9 16.2z" fill="currentColor" stroke="none"/>'),
     plus: I('<path d="M12 5v14M5 12h14"/>'),
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   };
@@ -2442,7 +2486,16 @@ window.Scenes = (() => {
   const FONTS = ['modern', 'compact', 'creative'];
   const THEMES = ['system', 'light', 'dark'];
   const THEME_N = { system: 'системная', light: 'светлая', dark: 'тёмная' };
-  const DEF_SET = { theme: 'system', accent: 'gold', accentHex: '#ffd60a', font: 'modern', ambient: true, anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
+  const AMBIENTS = [
+    { id: 'auto', n: 'Авто (из фото)', c: 'conic-gradient(from 210deg,#5e5ce6,#ff375f,#ff9f0a,#5e5ce6)' },
+    { id: 'aurora', n: 'Сияние', c: 'linear-gradient(135deg,#0f2027,#2c5364 55%,#00c6ff)' },
+    { id: 'sunset', n: 'Закат', c: 'linear-gradient(135deg,#ff512f,#dd2476)' },
+    { id: 'ocean', n: 'Океан', c: 'linear-gradient(135deg,#005c97,#363795)' },
+    { id: 'mint', n: 'Мята', c: 'linear-gradient(135deg,#11998e,#38ef7d)' },
+    { id: 'grape', n: 'Виноград', c: 'linear-gradient(135deg,#654ea3,#eaafc8)' },
+    { id: 'slate', n: 'Графит', c: 'linear-gradient(135deg,#232526,#414345)' },
+  ];
+  const DEF_SET = { theme: 'system', accent: 'gold', accentHex: '#ffd60a', font: 'modern', ambient: true, ambientStyle: 'auto', anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
   let settings = { ...DEF_SET, ...store.get('lumen.settings', {}) };
   // Storage is user-editable, so every field is coerced back into range before it reaches the UI.
   if (!/^#[0-9a-f]{6}$/i.test(String(settings.accentHex))) settings.accentHex = DEF_SET.accentHex;
@@ -2450,6 +2503,7 @@ window.Scenes = (() => {
   if (!FONTS.includes(settings.font)) settings.font = DEF_SET.font;
   if (!THEMES.includes(settings.theme)) settings.theme = DEF_SET.theme;
   if (!QUALITY.includes(settings.quality)) settings.quality = DEF_SET.quality;
+  if (!AMBIENTS.some(a => a.id === settings.ambientStyle)) settings.ambientStyle = DEF_SET.ambientStyle;
   settings.dice = clamp(Math.round(+settings.dice || DEF_SET.dice), 3, 14);
   ['ambient', 'anim', 'tips', 'promo'].forEach(k => (settings[k] = settings[k] !== false));
 
@@ -2557,6 +2611,15 @@ window.Scenes = (() => {
   }
   function updHist() { $('#undo').disabled = hi === 0; $('#redo').disabled = hi === hist.length - 1; }
 
+  // Same detent click as the dial, for plain <input type=range> sliders (brush, export, dice).
+  const rangeLast = new WeakMap();
+  function rangeTick(el) {
+    const lo = +el.min || 0, hi = +el.max || 100, det = Math.max(+el.step || 1, (hi - lo) / 100);
+    const prev = rangeLast.get(el) ?? +el.value, cur = +el.value;
+    if (Math.floor(prev / det) !== Math.floor(cur / det)) SFX.tick(0.6);
+    rangeLast.set(el, cur);
+  }
+
   // ---------- Dial (ruler scrubber with momentum) ----------
   function Dial(el, o) {
     el.innerHTML = '<div class="rail"><div class="ticks"></div><div class="major"></div><div class="fill"></div><div class="zero"></div></div><div class="needle"></div>';
@@ -2573,11 +2636,14 @@ window.Scenes = (() => {
       fill.style.left = a + 'px'; fill.style.width = Math.abs(p - z) + 'px'; fill.style.backgroundPosition = `${-a}px 0`;
       zero.style.left = z + 'px';
     }
+    const detent = () => Math.max(step, (max - min) / 100);
     function setV(nv) {
       nv = q(nv);
       if (nv === v) return;
       const crossedZero = min < 0 && nv === 0 && v !== 0;
+      const det = detent(), crossedDetent = Math.floor(v / det) !== Math.floor(nv / det);
       v = nv; place(false); o.onInput(v);
+      if (crossedDetent) SFX.tick(Math.min(1.3, Math.abs(vel) * 2 || 0.5));
       if (crossedZero) restart(el, 'snap');
     }
     el.addEventListener('pointerdown', e => {
@@ -3089,7 +3155,7 @@ window.Scenes = (() => {
   }
   dp.addEventListener('input', e => {
     const k = e.target.dataset.b;
-    if (k) { brush[k] = +e.target.value; syncBrush(); }
+    if (k) { rangeTick(e.target); brush[k] = +e.target.value; syncBrush(); }
     else if (e.target.id === 'brushHex') { brush = { ...brush, ...Brush.hexToHsv(e.target.value) }; syncBrush(); }
   });
   dp.addEventListener('click', e => {
@@ -3208,6 +3274,7 @@ window.Scenes = (() => {
       hideTip();
     }
     pop.classList.toggle('open', on); brand.classList.toggle('open', on);
+    updatePromoVeil();
   }
   brand.addEventListener('click', e => { e.stopPropagation(); togglePop(); });
   pop.addEventListener('click', e => {
@@ -3232,9 +3299,15 @@ window.Scenes = (() => {
 
   // ---------- Modals ----------
   let activeModal = null;
-  function openModal(sel) { closeModal(); activeModal = $(sel); activeModal.classList.add('open'); hideTip(); }
-  function closeModal() { if (activeModal) activeModal.classList.remove('open'); activeModal = null; }
+  function openModal(sel) { closeModal(); activeModal = $(sel); activeModal.classList.add('open'); hideTip(); updatePromoVeil(); }
+  function closeModal() { if (activeModal) activeModal.classList.remove('open'); activeModal = null; updatePromoVeil(); }
   $$('.modal').forEach(m => m.addEventListener('pointerdown', e => { if (e.target === m) closeModal(); }));
+  // A popover/menu/modal that reaches the bottom-left corner (the samples grid, at eight scenes tall,
+  // does) used to bury the promo card outright — that read as the card randomly vanishing and
+  // reappearing. Veiling it in step with whatever is covering it keeps the same fade both ways.
+  function updatePromoVeil() {
+    $('#promo').classList.toggle('veiled', pop.classList.contains('open') || menu.classList.contains('open') || !!activeModal);
+  }
 
   // ---------- Export ----------
   const ex = { fmt: 'jpeg', q: 92, res: 'orig', frame: 'none', ...store.get('lumen.export', {}) };
@@ -3319,7 +3392,7 @@ window.Scenes = (() => {
   $('#export').onclick = openExport;
   $('#exClose').onclick = closeModal;
   $('#exFmt').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; ex.fmt = b.dataset.v; syncExport(); estimate(exCv); });
-  $('#exQ').addEventListener('input', e => { ex.q = +e.target.value; $('#exQVal').textContent = ex.q + '%'; e.target.style.setProperty('--p', ((ex.q - 50) / 50 * 100) + '%'); estimate(exCv); });
+  $('#exQ').addEventListener('input', e => { rangeTick(e.target); ex.q = +e.target.value; $('#exQVal').textContent = ex.q + '%'; e.target.style.setProperty('--p', ((ex.q - 50) / 50 * 100) + '%'); estimate(exCv); });
   $('#exQ').addEventListener('change', syncExport);
   $('#exRes').addEventListener('click', e => { const b = e.target.closest('.opt'); if (!b) return; ex.res = b.dataset.v === 'orig' ? 'orig' : +b.dataset.v; syncExport(); estimate(exCv); });
   $('#exFrame').addEventListener('click', e => { const b = e.target.closest('.opt'); if (!b || b.dataset.v === ex.frame) return; ex.frame = b.dataset.v; syncExport(); renderExPreview(true); });
@@ -3480,6 +3553,7 @@ window.Scenes = (() => {
     applyTheme();
     document.body.classList.toggle('no-anim', !settings.anim);
     document.body.classList.toggle('no-ambient', !settings.ambient);
+    $('#ambientBox').className = 'ambient' + (settings.ambientStyle !== 'auto' ? ` custom-bg bg-${settings.ambientStyle}` : '');
     PREVIEW = settings.quality;
     store.set('lumen.settings', settings);
   }
@@ -3487,6 +3561,9 @@ window.Scenes = (() => {
     $('#setAccent').innerHTML = ACCENTS.map(a =>
       `<button class="acc${a.id === settings.accent ? ' on' : ''}" data-acc="${a.id}" data-tip="${a.n}" aria-label="${a.n}" style="--c:${a.c}"></button>`).join('');
     $$('#setAccent .acc').forEach(bindTip);
+    $('#setAmbient').innerHTML = AMBIENTS.map(a =>
+      `<button class="acc${a.id === settings.ambientStyle ? ' on' : ''}" data-amb="${a.id}" data-tip="${a.n}" aria-label="${a.n}" style="--c:${a.c}"></button>`).join('');
+    $$('#setAmbient .acc').forEach(bindTip);
     $('#setAccentHex').value = accentHex();
     $('#setAccentWell').style.setProperty('--bc', accentHex());
     $('#setAccentWell').classList.toggle('on', settings.accent === 'custom');
@@ -3531,6 +3608,7 @@ window.Scenes = (() => {
     }
     menu.classList.toggle('open', on);
     menuBtn.classList.toggle('on', on);
+    updatePromoVeil();
   }
   menuBtn.addEventListener('click', e => { e.stopPropagation(); toggleMenu(); });
   menu.addEventListener('click', e => e.stopPropagation());
@@ -3542,7 +3620,7 @@ window.Scenes = (() => {
   $('#settingsModal').addEventListener('click', e => {
     const t = e.target.closest('[data-set]'), a = e.target.closest('[data-acc]');
     const q = e.target.closest('#setQ button'), th = e.target.closest('#setTheme button');
-    const f = e.target.closest('#setFont button');
+    const f = e.target.closest('#setFont button'), amb = e.target.closest('[data-amb]');
     if (f) { settings.font = f.dataset.v; applySettings(); syncSettings(); }
     if (t) {
       const k = t.dataset.set;
@@ -3554,12 +3632,14 @@ window.Scenes = (() => {
     if (a) { settings.accent = a.dataset.acc; applySettings(); syncSettings(); }
     if (th) { settings.theme = th.dataset.v; applySettings(); syncSettings(); }
     if (q) { settings.quality = +q.dataset.v; applySettings(); syncSettings(); drawNow(); }
+    if (amb) { settings.ambientStyle = amb.dataset.amb; applySettings(); syncSettings(); }
   });
   $('#setAccentHex').addEventListener('input', e => {
     settings.accent = 'custom'; settings.accentHex = e.target.value;
     applySettings(); syncSettings();
   });
   $('#setDice').addEventListener('input', e => {
+    rangeTick(e.target);
     settings.dice = +e.target.value;
     e.target.style.setProperty('--p', ((settings.dice - 3) / 11 * 100) + '%');
     $('#setDiceVal').textContent = settings.dice;

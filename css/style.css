@@ -103,6 +103,15 @@ svg { display: block; }
 @keyframes float { to { transform: translate(7vmax, 5vmax) scale(1.12); } }
 .ambient::after { content: ""; position: absolute; inset: 0; background: var(--amb-veil); }
 
+/* Picking a preset background behind the photo replaces the auto photo-blur and blobs with a flat gradient. */
+.ambient.custom-bg .amb, .ambient.custom-bg .blob { opacity: 0 !important; }
+.ambient.bg-aurora { background: linear-gradient(135deg, #0f2027, #2c5364 55%, #00c6ff); }
+.ambient.bg-sunset { background: linear-gradient(135deg, #ff512f, #dd2476); }
+.ambient.bg-ocean { background: linear-gradient(135deg, #005c97, #363795); }
+.ambient.bg-mint { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.ambient.bg-grape { background: linear-gradient(135deg, #654ea3, #eaafc8); }
+.ambient.bg-slate { background: linear-gradient(135deg, #232526, #414345); }
+
 /* ---------- Liquid glass ---------- */
 .glass { position: relative; isolation: isolate;
   background: var(--glass-sheen), var(--glass-bg);
@@ -498,7 +507,11 @@ svg { display: block; }
 @keyframes fadeUp { from { opacity: 0; } }
 
 /* Settings-driven global switches */
-body.no-anim *, body.no-anim *::before, body.no-anim *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+/* iteration-count must drop to 1 too: shrinking only the duration leaves infinite loops
+   (the ambient blobs, sheen sweep, spinning logo…) cycling hundreds of times a second,
+   which reads as a flickering gradient instead of a stopped animation. */
+body.no-anim *, body.no-anim *::before, body.no-anim *::after {
+  animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 body.no-ambient .blob, body.no-ambient .amb { display: none; }
 
 /* ---------- Drawing ---------- */
@@ -683,6 +696,9 @@ body.no-ambient .blob, body.no-ambient .amb { display: none; }
   opacity: 0; transform: translateY(22px) scale(.94); pointer-events: none; transition: opacity .5s var(--smooth), transform .8s var(--spring); }
 .promo.on { opacity: 1; transform: none; pointer-events: auto; }
 .promo.gone { opacity: 0; transform: translateY(18px) scale(.9); pointer-events: none; }
+/* A popover/menu/modal reaching the bottom-left corner used to bury the card without warning,
+   so it seemed to randomly vanish and reappear — fade it out on the same transition instead. */
+.promo.on.veiled { opacity: 0; transform: translateY(14px) scale(.96); pointer-events: none; }
 .promo .pm-ic { width: 38px; height: 38px; border-radius: 12px; flex: none; display: grid; place-items: center; font-size: 19px;
   background: linear-gradient(150deg, #ff375f, #5e5ce6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 8px 18px -8px rgba(94, 92, 230, .9); }
 .promo .pm-tx { flex: 1; min-width: 0; }
