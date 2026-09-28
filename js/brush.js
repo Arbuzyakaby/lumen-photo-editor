@@ -53,11 +53,28 @@
     return true;
   }
 
+  /** An emoji sticker: centre x/y and size are normalised like stroke points, r is radians. */
+  const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+  function makeSticker(e, x, y, size, r) {
+    return { t: 'sticker', e: String(e || '⭐').slice(0, 8), x: +clamp(x, 0, 1).toFixed(4), y: +clamp(y, 0, 1).toFixed(4), s: clamp(size, 0.01, 1), r: r || 0 };
+  }
+  function sticker(ctx, s, w, h, L) {
+    ctx.save();
+    ctx.translate(s.x * w, s.y * h);
+    ctx.rotate(s.r || 0);
+    ctx.font = `${Math.max(4, s.s * L)}px ${EMOJI_FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = s.s * L * 0.08; ctx.shadowOffsetY = s.s * L * 0.03;
+    ctx.fillText(s.e, 0, 0);
+    ctx.restore();
+  }
+
   /** Paint strokes onto ctx sized w×h. Each stroke is one path so its own alpha never stacks. */
   function render(ctx, strokes, w, h) {
     ctx.clearRect(0, 0, w, h);
     const L = Math.max(w, h);
     for (const s of strokes || []) {
+      if (s.t === 'sticker') { sticker(ctx, s, w, h, L); continue; }
       if (!s.p || s.p.length < 2) continue;
       const lw = Math.max(0.5, s.w * L), marker = s.t === 'marker';
       ctx.save();
@@ -83,5 +100,5 @@
     }
   }
 
-  root.Brush = { TOOLS, DEFAULT, MAX_PRESETS, hsvToHex, hexToHsv, sanitize, addPreset, removePreset, loadPresets, makeStroke, addPoint, render };
+  root.Brush = { TOOLS, DEFAULT, MAX_PRESETS, hsvToHex, hexToHsv, sanitize, addPreset, removePreset, loadPresets, makeStroke, addPoint, makeSticker, render };
 })(typeof window !== 'undefined' ? window : globalThis);

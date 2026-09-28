@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>Lumen — фоторедактор</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌅</text></svg>">
+<meta name="description" content="Фоторедактор в одном HTML-файле: кривые, HSL, 18 настроек, фильтры, рисование, стикеры, мемы и нейрокритик. Всё считается на видеокарте, фото не покидают браузер.">
+<meta property="og:title" content="Lumen — фоторедактор в браузере">
+<meta property="og:description" content="Кривые, HSL, фильтры, шакалы и нейрокритик — в одном HTML-файле.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23ffcf5a'/><stop offset='1' stop-color='%23ff6a3d'/></linearGradient></defs><rect width='32' height='32' rx='9' fill='url(%23g)'/><g fill='none' stroke='white' stroke-width='1.8'><circle cx='16' cy='16' r='10'/><path d='M9.8 7.9 19.6 13.6M19.6 6.6v11.3M25.9 14.2 16 19.9M21.1 25.6l-9.9-5.7M12.2 27v-11.3M5.9 17.8l9.9-5.7'/></g></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&family=Roboto+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600&family=Anton&family=VT323&family=Nunito:wght@500;600;700;800&family=Roboto+Condensed:wght@500;600;700&display=swap">
 <style>
 /* Lumen styles.
  * Colour lives in tokens only: the dark set is the default on :root, and [data-theme="light"]
@@ -15,7 +18,7 @@
  * so no rule below ever needs a media query of its own.
  */
 :root {
-  --accent: #ffd60a;
+  --accent: #ffc53d;
   --accent-ink: #1c1500;
   --text: rgba(255, 255, 255, .96);
   --muted: rgba(235, 235, 245, .6);
@@ -36,16 +39,16 @@
   --needle: #fff;
   --arrow: rgba(70, 70, 80, .75);
   --arrow-hover: rgba(95, 95, 105, .9);
-  --page: #050507;
+  --page: #0b0b0e;
   --scrim: rgba(0, 0, 0, .45);
   --spec: rgba(255, 255, 255, .16);
-  --glass-bg: rgba(28, 28, 34, .38);
+  --glass-bg: rgba(26, 26, 31, .44);
   --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .04) 40%, rgba(255, 255, 255, .02));
   --glass-edge: rgba(255, 255, 255, .42);
   --glass-edge-2: rgba(255, 255, 255, .06);
   --glass-ring: rgba(0, 0, 0, .5);
   --glass-rim: linear-gradient(155deg, rgba(255, 255, 255, .62), rgba(255, 255, 255, .06) 28%, rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, .22) 85%, rgba(255, 255, 255, .45));
-  --shadow: 0 30px 80px -24px rgba(0, 0, 0, .75), 0 4px 14px rgba(0, 0, 0, .22);
+  --shadow: 0 30px 80px -24px rgba(4, 4, 12, .78), 0 4px 14px rgba(4, 4, 12, .24);
   --photo-shadow: 0 50px 110px -30px rgba(0, 0, 0, .85);
   --amb-veil: radial-gradient(ellipse at 50% 40%, transparent 20%, rgba(0, 0, 0, .6));
   --amb-filter: blur(80px) saturate(1.8) brightness(.62);
@@ -56,7 +59,8 @@
   --spring: cubic-bezier(.34, 1.56, .64, 1);
   --soft-spring: cubic-bezier(.3, 1.3, .6, 1);
   --smooth: cubic-bezier(.22, 1, .36, 1);
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font: "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --mono: "Geist Mono", "SF Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 :root[data-theme="light"] {
   --text: rgba(0, 0, 0, .92);
@@ -108,9 +112,9 @@ svg { display: block; }
   filter: var(--amb-filter); transform: scale(1.1); transition: opacity 1.4s var(--smooth); }
 .amb.on { opacity: 1; }
 .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: var(--amb-blob); animation: float 26s ease-in-out infinite alternate; }
-.b1 { width: 46vmax; height: 46vmax; left: -14vmax; top: -16vmax; background: #5e5ce6; }
-.b2 { width: 38vmax; height: 38vmax; right: -12vmax; top: 8vmax; background: #ff375f; animation-delay: -9s; }
-.b3 { width: 42vmax; height: 42vmax; left: 28vmax; bottom: -24vmax; background: #ff9f0a; animation-delay: -15s; }
+.b1 { width: 46vmax; height: 46vmax; left: -14vmax; top: -16vmax; background: #3a5a78; }
+.b2 { width: 38vmax; height: 38vmax; right: -12vmax; top: 8vmax; background: #b0583a; animation-delay: -9s; }
+.b3 { width: 42vmax; height: 42vmax; left: 28vmax; bottom: -24vmax; background: #c79a3a; animation-delay: -15s; }
 @keyframes float { to { transform: translate(7vmax, 5vmax) scale(1.12); } }
 .ambient::after { content: ""; position: absolute; inset: 0; background: var(--amb-veil); }
 
@@ -144,7 +148,7 @@ svg { display: block; }
 .glass:hover::after { opacity: 1; }
 
 /* ---------- Layout ---------- */
-.app { position: relative; z-index: 1; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; gap: 12px;
+.app { position: relative; z-index: 1; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); gap: 12px;
   padding: 12px max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
 
 /* ---------- Top bar ----------
@@ -159,10 +163,15 @@ svg { display: block; }
 .brand:hover { background: var(--fill); }
 .brand:active { transform: scale(.95); }
 .logo { width: 30px; height: 30px; border-radius: 10px; flex: none; position: relative; overflow: hidden;
-  background: conic-gradient(from 210deg, #ff375f, #ff9f0a, #ffd60a, #30d158, #64d2ff, #0a84ff, #bf5af2, #ff375f);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35), 0 6px 16px -4px rgba(255, 120, 80, .55);
+  background: radial-gradient(circle at 30% 20%, #ffe08a, transparent 55%), linear-gradient(145deg, #ffc53d, #ff6a3d 70%, #e8434f);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35), 0 6px 16px -4px rgba(255, 110, 60, .55);
+  display: grid; place-items: center;
   transition: transform .8s var(--spring), box-shadow .5s; }
-.logo::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: rgba(255, 255, 255, .92); box-shadow: 0 0 10px rgba(255, 255, 255, .8); }
+.logo svg { width: 78%; height: 78%; fill: none; stroke: rgba(255, 255, 255, .95); stroke-width: 1.9; stroke-linecap: round; filter: drop-shadow(0 1px 1px rgba(120, 30, 0, .35));
+  transition: transform 1.2s var(--spring); }
+.brand:hover .logo svg { transform: rotate(60deg); }
+.logo.egg { animation: egg 1.2s var(--spring); }
+@keyframes egg { 50% { transform: rotate(540deg) scale(1.5); } }
 .brand:hover .logo { transform: rotate(-14deg) scale(1.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), 0 8px 22px -4px rgba(255, 140, 80, .8); }
 .brand-tx { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.15; }
 .brand-name { font-weight: 700; font-size: 15.5px; letter-spacing: -.02em; }
@@ -188,8 +197,8 @@ svg { display: block; }
 .btn.pill { background: var(--fill); padding: 0 15px 0 12px; }
 .btn.pill:hover { background: var(--fill-2); }
 .btn.primary { position: relative; overflow: hidden; background: var(--accent); color: var(--accent-ink); padding: 0 18px;
-  box-shadow: 0 8px 22px -6px rgba(255, 214, 10, .6), inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -1px 0 rgba(0, 0, 0, .12); }
-.btn.primary:hover { background: #ffe03d; }
+  box-shadow: 0 8px 22px -6px color-mix(in srgb, var(--accent) 60%, transparent), inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -1px 0 rgba(0, 0, 0, .12); }
+.btn.primary:hover { background: color-mix(in srgb, var(--accent) 86%, #fff); }
 .btn.ghost { background: var(--fill); padding: 0 16px; }
 .btn.ghost:hover { background: var(--fill-2); }
 .sep { width: 1px; height: 22px; background: var(--line); margin: 0 5px; }
@@ -269,7 +278,7 @@ svg { display: block; }
 .stage.drag .dropzone { opacity: 1; transform: none; }
 
 /* ---------- Dock ---------- */
-.dock { width: min(880px, 100%); margin: 0 auto; border-radius: 38px; padding: 10px 12px 12px; animation: riseIn 1.1s .08s var(--spring) both; }
+.dock { width: min(960px, 100%); margin: 0 auto; border-radius: 38px; padding: 10px 12px 12px; animation: riseIn 1.1s .08s var(--spring) both; }
 @keyframes riseIn { from { transform: translateY(44px) scale(.96); opacity: 0; } }
 .seg { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); width: min(400px, 100%); margin: 0 auto 6px; padding: 3px;
   border-radius: 15px; background: var(--track); box-shadow: inset 0 1px 2px var(--glass-ring), inset 0 -.5px 0 var(--glass-edge-2); }
@@ -280,10 +289,10 @@ svg { display: block; }
 .seg .pill { position: absolute; top: 3px; left: 3px; bottom: 3px; width: calc((100% - 6px) / 3); border-radius: 12px;
   background: var(--pill); box-shadow: inset 0 1px 0 var(--glass-edge), 0 4px 12px rgba(0, 0, 0, .3); transition: transform .6s var(--spring); }
 .seg.press .pill { transform-origin: center; }
-#seg { grid-template-columns: repeat(4, 1fr); width: min(520px, 100%); }
-#seg .pill { width: calc((100% - 6px) / 4); }
+#seg { grid-template-columns: repeat(6, 1fr); width: min(720px, 100%); }
+#seg .pill { width: calc((100% - 6px) / 6); }
 
-.panels { position: relative; height: 190px; }
+.panels { position: relative; height: 206px; }
 .panel { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 6px;
   opacity: 0; transform: translateY(14px) scale(.98); filter: blur(8px); pointer-events: none;
   transition: opacity .45s var(--smooth), transform .65s var(--spring), filter .45s var(--smooth); }
@@ -608,7 +617,7 @@ body.no-ambient .blob, body.no-ambient .amb { display: none; }
 /* ---------- About ---------- */
 .about-hero { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 6px 0 20px; text-align: center; }
 .about-hero .logo { width: 76px; height: 76px; border-radius: 24px; animation: spinLogo 22s linear infinite; }
-.about-hero .logo::after { inset: 19px; }
+.about-hero .logo svg { stroke-width: 1.5; }
 @keyframes spinLogo { to { filter: hue-rotate(360deg); } }
 .about-hero h2 { font-size: 30px; letter-spacing: -.035em; }
 .about-hero p { max-width: 420px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
@@ -777,6 +786,245 @@ body { letter-spacing: var(--tracking); }
 #setAccentWell { width: 30px; height: 30px; box-shadow: inset 0 0 0 3px var(--glass-bg); }
 #setAccentWell.on::after { box-shadow: 0 0 0 1.5px #fff, 0 0 0 3.5px var(--accent); }
 
+/* ---------- v4: texture ----------
+   A fixed film-grain layer breaks the digital flatness of the glass; it never takes pointer events. */
+.grain { position: fixed; inset: -50%; z-index: 90; pointer-events: none; opacity: .045; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grainShift 1.2s steps(6) infinite; }
+@keyframes grainShift { 0% { transform: translate(0, 0); } 33% { transform: translate(-3%, 2%); } 66% { transform: translate(2%, -3%); } 100% { transform: translate(-1%, 1%); } }
+:root[data-theme="light"] .grain { opacity: .06; mix-blend-mode: multiply; }
+.num, .head b, .zoombar b, .status, kbd, .stat b, .fact b, .ex-meta span, .srow .val { font-family: var(--mono); font-feature-settings: "tnum"; }
+.head b { font-size: 14px; letter-spacing: -.02em; }
+.sheet h2, .tour-card h3, .brand-name { text-wrap: balance; }
+
+/* ---------- Top bar additions ---------- */
+.btn.cmdk { background: var(--track); box-shadow: inset 0 1px 2px var(--glass-ring); padding: 0 8px 0 11px; gap: 7px; color: var(--muted); font-weight: 500; }
+.btn.cmdk:hover { color: var(--text); background: var(--fill-2); }
+.btn.cmdk svg { width: 16px; height: 16px; }
+.btn.cmdk kbd { font-size: 11px; padding: 2px 6px; border-radius: 6px; background: var(--fill); color: var(--muted); }
+.snd-ic { position: relative; display: block; width: 19px; height: 19px; }
+.snd-ic svg { width: 19px; height: 19px; }
+.snd-ic .w1, .snd-ic .w2 { transition: opacity .3s, transform .45s var(--spring); transform-origin: 12px 12px; }
+.snd-ic .mute { opacity: 0; transition: opacity .3s; }
+#soundBtn.muted .w1, #soundBtn.muted .w2 { opacity: 0; transform: scale(.6); }
+#soundBtn.muted .mute { opacity: 1; }
+#soundBtn.muted { color: var(--muted); }
+
+/* ---------- Stage additions ---------- */
+.gridov { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; overflow: visible; }
+.gridov line { stroke: rgba(255, 255, 255, .6); stroke-width: 1; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 1px rgba(0, 0, 0, .7)); }
+.gridov .gmain { opacity: 0; transition: opacity .35s var(--smooth); }
+.gridov .gfine { opacity: 0; transition: opacity .25s; }
+.gridov .gfine line { stroke: rgba(255, 255, 255, .28); }
+.photo.grid-on .gmain { opacity: 1; }
+.photo.aligning .gfine { opacity: 1; }
+.photo.sticking { cursor: var(--stk, crosshair); }
+.photo.shake { animation: shake .5s cubic-bezier(.36, .07, .19, .97); }
+@keyframes shake { 15%, 55% { transform: translate(-6px, 2px) rotate(-.6deg); } 30%, 75% { transform: translate(6px, -2px) rotate(.6deg); } 90% { transform: translate(-2px, 0); } }
+
+/* before/after split: the original is clipped to the left of the divider, the ink to the right */
+.split { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .3s; }
+.photo.split-on .split { opacity: 1; }
+.photo.split-on #orig { opacity: 1; clip-path: inset(0 calc(100% - var(--sx, 50%)) 0 0); }
+.photo.split-on #ink { clip-path: inset(0 0 0 var(--sx, 50%)); }
+.split i { position: absolute; top: 0; bottom: 0; left: var(--sx, 50%); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 .5px rgba(0, 0, 0, .35), 0 0 12px rgba(0, 0, 0, .4);
+  pointer-events: auto; cursor: ew-resize; }
+.photo.split-on .split i { pointer-events: auto; }
+.split i::after { content: ""; position: absolute; top: 50%; left: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+  background: rgba(255, 255, 255, .95) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 7-5 5 5 5M15 7l5 5-5 5'/%3E%3C/svg%3E") center / 18px no-repeat;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45); transition: transform .4s var(--spring); }
+.split.drag i::after { transform: scale(1.15); }
+.split span { position: absolute; top: 10px; padding: 4px 9px; border-radius: 8px; background: rgba(0, 0, 0, .5); color: #fff; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.split .sl-l { left: 10px; } .split .sl-r { right: 10px; }
+
+.status { position: absolute; left: 10px; bottom: 10px; z-index: 4; height: 30px; border-radius: 15px; padding: 0 12px; display: flex; align-items: center; gap: 10px;
+  font-size: 11.5px; color: var(--muted); opacity: 0; transform: translateY(6px); transition: opacity .35s var(--smooth), transform .5s var(--spring); pointer-events: none; }
+.stage:hover .status { opacity: 1; transform: none; }
+.status b { color: var(--text); font-weight: 600; }
+.st-sep { width: 1px; height: 12px; background: var(--line); }
+#stPix { display: none; align-items: center; gap: 7px; }
+#stPix.on { display: flex; }
+#stPix.on + .st-sep { display: block; }
+#stPix:not(.on) + .st-sep { display: none; }
+#stSw { width: 12px; height: 12px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
+#stRgb { font-style: normal; opacity: .75; }
+
+/* ---------- Dock: six tabs ---------- */
+#seg button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#seg .tab-fun svg { color: var(--accent); }
+
+/* ---------- Colour panel ---------- */
+.panel.color { justify-content: flex-start; padding-top: 2px; }
+.cgrid { display: grid; grid-template-columns: 190px 1fr; gap: 18px; height: 100%; align-items: stretch; min-width: 0; }
+.curve-box { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.seg.tight { width: 100%; margin: 0; padding: 2px; border-radius: 11px; }
+.seg.tight button { height: 24px; font-size: 11.5px; border-radius: 9px; }
+.seg.tight .pill { top: 2px; left: 2px; bottom: 2px; border-radius: 9px; }
+.seg.seg4 { grid-template-columns: repeat(4, 1fr); }
+.seg.seg4 .pill { width: calc((100% - 4px) / 4); }
+.seg.seg2 { grid-template-columns: repeat(2, 1fr); }
+.seg.seg2 .pill { width: calc((100% - 4px) / 2); }
+.seg .cr.on { color: #ff5a4f; } .seg .cg.on { color: #2fbf5b; } .seg .cb.on { color: #3d8bff; }
+#curveCv { flex: 1; min-height: 0; width: 100%; border-radius: 14px; background: var(--plate); box-shadow: inset 0 0 0 1px var(--hair); cursor: crosshair; touch-action: none; }
+#curveCv.del { cursor: not-allowed; }
+.color-side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cs-top { display: flex; align-items: center; gap: 8px; }
+.cs-top .seg { flex: 1; max-width: 300px; }
+.cpane { display: none; flex-direction: column; gap: 6px; animation: swapIn .45s var(--spring); }
+.cpane.on { display: flex; }
+.bands { display: flex; gap: 8px; padding: 2px 2px 4px; }
+.band { width: 26px; height: 26px; border-radius: 50%; background: var(--c); position: relative; transition: transform .45s var(--spring), box-shadow .3s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 4px 10px -4px var(--c); }
+.band:hover { transform: scale(1.12); }
+.band.on { box-shadow: 0 0 0 2px var(--glass-bg), 0 0 0 4px var(--c), 0 6px 16px -4px var(--c); transform: scale(1.06); }
+.band i { position: absolute; right: -2px; top: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 2px var(--glass-bg);
+  opacity: 0; transform: scale(.3); transition: all .35s var(--spring); }
+.band.has i { opacity: 1; transform: none; }
+.dgrid.three { grid-template-columns: repeat(3, 1fr); }
+.color .sl.hh .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, color-mix(in oklch shorter hue, var(--band) 100%, #0af), var(--band), color-mix(in srgb, var(--band) 60%, #f0f)); }
+.color .sl.hs2 .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, #8e8e93, var(--band)); }
+.color .sl.hl2 .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, #000, var(--band), #fff); }
+.color .sl.huetrack .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+.color .sl.huetrack .range::-moz-range-track { background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+.color .sl.gsat[data-for="shHue"] .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--track-2), var(--shc)); }
+.color .sl.gsat[data-for="hiHue"] .range::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--track-2), var(--hic)); }
+.curve-pre { justify-content: flex-start; margin-top: auto; gap: 5px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.curve-pre .tool.sm { height: 28px; padding: 0 10px; flex: none; }
+.cp-l { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-right: 4px; flex: none; }
+
+/* ---------- Fun panel ---------- */
+.panel.fun { gap: 4px; }
+.fun-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.fun-row .scroller { flex: 1; min-width: 0; }
+.chip.fun .emo { font-size: 23px; line-height: 1; transition: transform .5s var(--spring), opacity .3s; }
+.chip.fun:hover .emo { transform: scale(1.15) rotate(-8deg); }
+.chip.fun.has:not(.on) .ring { background: color-mix(in srgb, var(--accent) 16%, var(--fill)); }
+.fun-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: none; }
+.fact-btn { height: 38px; padding: 0 12px 0 8px; border-radius: 13px; display: flex; align-items: center; gap: 7px; background: var(--fill); box-shadow: inset 0 0 0 1px var(--hair);
+  font-size: 12.5px; font-weight: 600; transition: transform .45s var(--spring), background .25s, box-shadow .3s; }
+.fact-btn em { font-style: normal; font-size: 17px; transition: transform .5s var(--spring); }
+.fact-btn:hover { background: var(--fill-2); }
+.fact-btn:hover em { transform: scale(1.2) rotate(-10deg); }
+.fact-btn:active { transform: scale(.93); }
+.fact-btn.on { background: var(--solid); color: var(--solid-ink); }
+.fact-btn.fry { background: linear-gradient(135deg, rgba(255, 106, 61, .28), rgba(255, 197, 61, .16)); box-shadow: inset 0 0 0 1px rgba(255, 140, 60, .4); }
+.fact-btn.sizzling em { animation: sizzle .6s var(--spring); }
+@keyframes sizzle { 30% { transform: scale(1.7) rotate(-20deg); } 60% { transform: scale(1.2) rotate(14deg); } }
+
+/* ---------- Popovers ---------- */
+.pop-sep { height: 1px; margin: 8px 6px 2px; background: var(--line); }
+.popover.menu .pop-sep + .pop-row { margin-top: 6px; }
+.histpop { width: 280px; padding: 12px 10px 10px; }
+.hlist { max-height: min(420px, 60dvh); overflow-y: auto; display: flex; flex-direction: column; gap: 2px; scrollbar-width: thin; }
+.hrow { display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px; border-radius: 10px; text-align: left; font-size: 13px; font-weight: 500;
+  transition: background .2s, color .2s; }
+.hrow:hover { background: var(--fill-2); }
+.hrow i { font-style: normal; min-width: 22px; font-family: var(--mono); font-size: 11px; color: var(--faint); }
+.hrow span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hrow.on { background: var(--solid); color: var(--solid-ink); font-weight: 650; }
+.hrow.on i { color: inherit; opacity: .6; }
+.hrow.future { opacity: .45; }
+#histList.on { background: var(--fill-2); }
+.stickpop { width: 320px; transform-origin: 50% 100%; translate: 0 -100%; }
+.pop-title small { text-transform: none; letter-spacing: 0; font-weight: 500; margin-left: 6px; }
+.stick-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 10px; }
+.stk { aspect-ratio: 1; border-radius: 10px; font-size: 21px; display: grid; place-items: center; transition: transform .4s var(--spring), background .2s; }
+.stk:hover { background: var(--fill-2); transform: scale(1.18); }
+.stk.on { background: var(--fill-2); box-shadow: inset 0 0 0 2px var(--accent); }
+
+/* ---------- Command palette ---------- */
+.modal.top { place-items: start center; padding-top: min(14vh, 120px); }
+.sheet.palette { width: min(620px, 100%); padding: 0; overflow: hidden; display: flex; flex-direction: column; max-height: min(560px, 76dvh); }
+.pal-inp { display: flex; align-items: center; gap: 12px; padding: 0 18px; height: 60px; box-shadow: inset 0 -1px 0 var(--hair); }
+.pal-inp svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+.pal-inp input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: var(--text); font: 500 17px var(--font); user-select: text; }
+.pal-inp input::placeholder { color: var(--faint); }
+kbd { font-size: 11px; padding: 2px 6px; border-radius: 6px; background: var(--fill-2); color: var(--muted); font-weight: 600; }
+.pal-list { flex: 1; overflow-y: auto; padding: 8px; scrollbar-width: thin; }
+.pal-row { width: 100%; display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 12px; border-radius: 11px; text-align: left; font-size: 14px; font-weight: 500; }
+.pal-row em { font-style: normal; width: 22px; text-align: center; font-size: 16px; }
+.pal-row span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pal-row small { color: var(--faint); font-size: 12px; }
+.pal-row.on { background: var(--fill-2); box-shadow: inset 2px 0 0 var(--accent); }
+.pal-empty { padding: 36px 16px; text-align: center; color: var(--muted); font-size: 13.5px; }
+.pal-foot { display: flex; gap: 18px; padding: 10px 18px; font-size: 11.5px; color: var(--muted); box-shadow: inset 0 1px 0 var(--hair); }
+.pal-foot kbd { margin-right: 3px; }
+
+/* ---------- Meme, critic, keys, achievements ---------- */
+@keyframes fadeRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.meme-ic { font-size: 40px; margin: 2px 0 10px; animation: tcPop .7s var(--spring) both; }
+.sheet.small .inp + .inp { margin-top: 0; }
+.linkbtn { color: var(--accent); font-weight: 600; font-size: 13px; padding: 6px 10px; border-radius: 10px; margin-top: 4px; }
+.linkbtn:hover { background: var(--fill); }
+:root[data-theme="light"] .linkbtn { color: #a06a00; }
+.sheet.critic { width: min(460px, 100%); }
+.cr-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.cr-bot { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; font-size: 30px; background: var(--fill-2); flex: none;
+  box-shadow: inset 0 1px 0 var(--glass-edge); }
+.cr-bot.think { animation: think 1s ease-in-out infinite; }
+@keyframes think { 50% { transform: rotate(-10deg) scale(1.06); } }
+.cr-body { min-height: 190px; }
+.cr-load { display: flex; flex-direction: column; gap: 12px; padding: 18px 4px; }
+.cr-step { display: flex; align-items: center; gap: 10px; color: var(--muted); font-weight: 500; opacity: 0; animation: fadeRise .5s var(--spring) forwards; }
+.cr-step i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--track-2); border-top-color: var(--accent); animation: spin .7s linear infinite; }
+.cr-score { display: flex; align-items: baseline; justify-content: center; gap: 4px; animation: tcPop .7s var(--spring) both; }
+.cr-score b { font: 800 64px/1 var(--font); letter-spacing: -.05em; color: var(--accent); }
+.cr-score span { font-size: 18px; color: var(--muted); font-weight: 600; }
+.cr-stars { display: flex; justify-content: center; gap: 4px; margin: 6px 0 4px; }
+.cr-stars i { font-style: normal; font-size: 22px; color: var(--track-2); opacity: 0; animation: palIn .5s var(--spring) forwards; }
+.cr-stars i.on { color: var(--accent); text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent); }
+.cr-verdict { text-align: center; font-size: 17px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 14px; text-wrap: balance; }
+.cr-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cr-lines li { padding: 10px 13px; border-radius: 13px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--hair); font-size: 13.5px; line-height: 1.4;
+  opacity: 0; animation: fadeRise .55s var(--spring) forwards; }
+:root[data-theme="light"] .cr-score b { color: #b07800; }
+.keys { display: grid; gap: 16px; }
+.kgroup h3 { margin: 0 0 8px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+.krow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 6px 14px; font-size: 13.5px; }
+.krow + .krow { box-shadow: inset 0 1px 0 var(--hair); }
+.kk { display: flex; gap: 4px; flex: none; }
+.kk kbd { min-width: 24px; text-align: center; padding: 3px 7px; font-size: 12px; box-shadow: inset 0 -1px 0 var(--line); }
+.achbar { height: 6px; border-radius: 3px; background: var(--track-2); overflow: hidden; margin: -6px 0 16px; }
+.achbar i { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--accent), #ff6a3d); transition: width 1s var(--smooth); }
+.achs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.achi { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 15px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--hair);
+  opacity: 0; animation: fadeRise .5s var(--spring) forwards; }
+.achi .ae { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; font-size: 19px; background: var(--fill); flex: none; filter: grayscale(1); opacity: .6; }
+.achi.on .ae { filter: none; opacity: 1; background: color-mix(in srgb, var(--accent) 18%, var(--fill)); }
+.achi b { display: block; font-size: 13.5px; font-weight: 650; }
+.achi small { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+.achi:not(.on) b { color: var(--muted); }
+.ach-pop { position: fixed; left: 50%; top: 18px; z-index: 72; display: flex; align-items: center; gap: 12px; padding: 10px 18px 10px 10px; border-radius: 22px;
+  transform: translate(-50%, -140%) scale(.9); opacity: 0; transition: transform .7s var(--spring), opacity .4s; pointer-events: none; }
+.ach-pop.on { transform: translate(-50%, 0); opacity: 1; }
+.ap-e { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; font-size: 24px;
+  background: linear-gradient(145deg, #ffc53d, #ff6a3d); box-shadow: 0 8px 20px -6px rgba(255, 110, 60, .7); }
+.ach-pop.on .ap-e { animation: tcPop .9s .15s var(--spring) both; }
+.ach-pop small { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+:root[data-theme="light"] .ach-pop small { color: #a06a00; }
+.ach-pop b { display: block; font-size: 15px; font-weight: 700; }
+.confetti { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 95; pointer-events: none; }
+
+/* ---------- Sound packs ---------- */
+.packs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.pack { height: 58px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: var(--fill);
+  box-shadow: inset 0 0 0 1px var(--hair); font-size: 12px; font-weight: 600; transition: transform .45s var(--spring), background .25s, box-shadow .3s; }
+.pack em { font-style: normal; font-size: 19px; transition: transform .5s var(--spring); }
+.pack:hover { background: var(--fill-2); }
+.pack:hover em { transform: scale(1.2); }
+.pack:active { transform: scale(.93); }
+.pack.on { background: var(--solid); color: var(--solid-ink); box-shadow: 0 8px 20px -8px rgba(0, 0, 0, .6); }
+
+/* ---------- Party mode (↑↑↓↓←→←→BA) ---------- */
+body.party .ambient { animation: disco 1.2s linear infinite; }
+body.party .dock, body.party .topbar { animation: partyGlow 1.2s linear infinite; }
+/* On the stage, not the photo: the photo's own transform carries zoom and pan. */
+body.party .stage { animation: bounce .6s ease-in-out infinite; }
+@keyframes disco { to { filter: hue-rotate(360deg) saturate(1.6); } }
+@keyframes partyGlow { 0%, 100% { box-shadow: 0 0 0 2px #ff5a4f, 0 0 40px #ff5a4f; } 33% { box-shadow: 0 0 0 2px #3ddc6a, 0 0 40px #3ddc6a; } 66% { box-shadow: 0 0 0 2px #3d9bff, 0 0 40px #3d9bff; } }
+@keyframes bounce { 50% { transform: translateY(-6px) rotate(.4deg); } }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {
   .fname { display: none; }
@@ -785,8 +1033,26 @@ body { letter-spacing: var(--tracking); }
   .tools { gap: 5px; }
   .tgroup .btn { min-width: 32px; padding: 0 6px; }
 }
+@media (max-width: 1100px) {
+  .btn.cmdk span, .btn.cmdk kbd { display: none; }
+  .btn.cmdk { padding: 0 10px; }
+}
+@media (max-width: 900px) {
+  #seg button span { display: none; }
+  .cgrid { grid-template-columns: 150px 1fr; gap: 12px; }
+  .fun-acts { grid-template-columns: 1fr 1fr; }
+  .fact-btn { padding: 0 9px 0 7px; font-size: 12px; }
+  .achs { grid-template-columns: 1fr; }
+}
 @media (max-width: 760px) {
   .hide-sm { display: none; }
+  .panels { height: 250px; }
+  .fun-row { flex-direction: column; align-items: stretch; gap: 6px; }
+  .fun-acts { grid-template-columns: repeat(4, 1fr); }
+  .fact-btn { justify-content: center; flex-direction: column; height: 46px; gap: 1px; font-size: 11px; padding: 0; }
+  .cgrid { grid-template-columns: 1fr; }
+  .curve-box { display: none; }
+  .packs { grid-template-columns: repeat(2, 1fr); }
   .topbar { height: 54px; padding: 0 6px; }
   .brand { padding-right: 8px; }
   .sheet.export { grid-template-columns: 1fr; padding: 18px; }
@@ -799,6 +1065,9 @@ body { letter-spacing: var(--tracking); }
   #seg button { font-size: 12px; }
 }
 @media (max-width: 560px) {
+  .hide-xs, .brand-tx, .brand .chev { display: none; }
+  .brand { padding: 0 4px; }
+  .topbar { gap: 6px; }
   .brand-name { font-size: 14.5px; }
   .tgroup { padding: 2px; border-radius: 18px; }
   .tgroup .btn { height: 30px; min-width: 30px; border-radius: 15px; padding: 0 5px; }
@@ -827,7 +1096,7 @@ body { letter-spacing: var(--tracking); }
 <div class="app">
   <header class="topbar glass">
     <button class="brand" id="samplesBtn" data-tip="Примеры и открытие фото">
-      <i class="logo"></i>
+      <i class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.6"/><path d="M8.06 6.22L20.50 13.40M20.50 4.23L20.50 18.60M28.44 14.02L16.00 21.20M23.94 25.78L11.50 18.60M11.50 27.77L11.50 13.40M3.56 17.98L16.00 10.80"/></svg></i>
       <span class="brand-tx"><span class="brand-name">Lumen</span><span class="fname" id="fname"></span></span>
       <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 4.5 3 3 3-3"/></svg>
     </button>
@@ -836,12 +1105,16 @@ body { letter-spacing: var(--tracking); }
       <div class="tgroup" role="group" aria-label="История">
         <button class="btn" id="undo" data-tip="Отменить" data-key="Ctrl Z" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
         <button class="btn" id="redo" data-tip="Повторить" data-key="Ctrl ⇧ Z" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+        <button class="btn hide-sm" id="histList" data-tip="История правок" data-key="L"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
         <button class="btn hide-sm" id="resetAll" data-tip="Вернуть к оригиналу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
       </div>
 
       <div class="tgroup" role="group" aria-label="Просмотр">
         <button class="btn" id="compare" data-tip="Удерживайте — оригинал" data-key="Пробел"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M12 4v16"/><path d="M12 4h5.5A3.5 3.5 0 0 1 21 7.5v9a3.5 3.5 0 0 1-3.5 3.5H12z" fill="currentColor" opacity=".35" stroke="none"/></svg></button>
-        <button class="btn" id="histBtn" data-tip="Гистограмма" data-key="H"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 20c2-1 2.5-9 5-9s3 5 5 5 2.5-10 6-11v15"/></svg></button>
+        <button class="btn hide-sm" id="splitBtn" data-tip="До и после шторкой" data-key="Y"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M12 2v20"/><path d="m8.5 10-2 2 2 2M15.5 10l2 2-2 2"/></svg></button>
+        <button class="btn hide-sm" id="gridBtn" data-tip="Сетка композиции" data-key="O"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3.5"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18" opacity=".7"/></svg></button>
+        <button class="btn hide-sm" id="clipBtn" data-tip="Пересветы и провалы" data-key="J"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.3" r=".9" fill="currentColor"/></svg></button>
+        <button class="btn hide-xs" id="histBtn" data-tip="Гистограмма" data-key="H"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 20c2-1 2.5-9 5-9s3 5 5 5 2.5-10 6-11v15"/></svg></button>
         <button class="btn" id="statsBtn" data-tip="Графики и диаграммы" data-key="G"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
         <button class="btn hide-sm" id="infoBtn" data-tip="Об изображении" data-key="I"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r=".9" fill="currentColor"/></svg></button>
       </div>
@@ -862,8 +1135,9 @@ body { letter-spacing: var(--tracking); }
             </g>
           </svg>
         </button>
+        <button class="btn hide-sm" id="soundBtn" data-tip="Звук" data-key="M"><span class="snd-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" fill-opacity=".2"/><path class="w1" d="M15.5 9a4 4 0 0 1 0 6"/><path class="w2" d="M18.3 6.5a7.5 7.5 0 0 1 0 11"/><path class="mute" d="m16 9.5 5 5M21 9.5l-5 5"/></svg></span></button>
         <button class="btn" id="menuBtn" data-tip="Меню: настройки и о проекте"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.3"/><circle cx="12" cy="12" r="6.8"/><path d="M18.8 12h2.4M16.81 16.81l1.7 1.7M12 18.8v2.4M7.19 16.81l-1.7 1.7M5.2 12H2.8M7.19 7.19l-1.7-1.7M12 5.2V2.8M16.81 7.19l1.7-1.7"/></svg></button>
-        <button class="btn" id="themeBtn" data-tip="Тема оформления" data-key="T">
+        <button class="btn hide-xs" id="themeBtn" data-tip="Тема оформления" data-key="T">
           <span class="theme-ic">
             <svg data-th="system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>
             <svg data-th="light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
@@ -874,19 +1148,21 @@ body { letter-spacing: var(--tracking); }
     </div>
 
     <div class="actions">
+      <button class="btn cmdk hide-sm" id="paletteBtn" data-tip="Палитра команд" data-key="Ctrl K"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/></svg><span>Найти</span><kbd>⌘K</kbd></button>
       <button class="btn pill hide-sm" id="open" data-tip="Открыть фото" data-key="Ctrl O"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4.5"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Открыть</button>
       <button class="btn primary" id="export" data-tip="Экспорт" data-key="Ctrl S">Экспорт</button>
     </div>
   </header>
 
   <main class="stage" id="stage">
-    <div class="photo nt" id="photo"><canvas id="cv"></canvas><canvas id="fx"></canvas><canvas id="ink"></canvas><canvas id="orig"></canvas></div>
+    <div class="photo nt" id="photo"><canvas id="cv"></canvas><canvas id="fx"></canvas><canvas id="orig"></canvas><canvas id="ink"></canvas><svg class="gridov" id="gridOv" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g class="gmain"></g><g class="gfine"></g></svg><div class="split" id="split"><span class="sl-l">До</span><span class="sl-r">После</span><i></i></div></div>
     <div class="zoombar glass" id="zoomBar">
       <button id="zoomOut" aria-label="Отдалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
       <b id="zoomVal" title="Сбросить до 100%">100%</b>
       <button id="zoomIn" aria-label="Приблизить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
     <div class="badge glass">Оригинал</div>
+    <div class="status glass" id="status"><span id="stDims">—</span><span class="st-sep"></span><span id="stPix"><i id="stSw"></i><b id="stHex">—</b><em id="stRgb"></em></span><span class="st-sep"></span><span id="stEdits">без правок</span></div>
     <div class="hist glass" id="hist"><canvas id="histCv" width="432" height="160"></canvas><div class="hl"><span>Тени</span><span>Средние</span><span>Света</span></div></div>
     <div class="dropzone glass">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v3a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-3"/></svg>
@@ -897,10 +1173,12 @@ body { letter-spacing: var(--tracking); }
   <section class="dock glass">
     <div class="seg" id="seg">
       <span class="pill"></span>
-      <button class="on" data-tab="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Настройки</button>
-      <button data-tab="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="9" r="5.5"/><circle cx="15" cy="9" r="5.5"/><circle cx="12" cy="15" r="5.5"/></svg>Фильтры</button>
-      <button data-tab="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>Кадр</button>
-      <button data-tab="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18.4 2.6 3 3L11 16l-4 1 1-4z"/><path d="M7 17c-2 0-4 1-4 4 2 0 4-1 4-4"/></svg>Рисование</button>
+      <button class="on" data-tab="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Настройки</span></button>
+      <button data-tab="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="9" r="5.5"/><circle cx="15" cy="9" r="5.5"/><circle cx="12" cy="15" r="5.5"/></svg><span>Фильтры</span></button>
+      <button data-tab="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20C8 20 9 4 13 4s4 9 8 9"/><circle cx="7.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="16.5" cy="10.5" r="1.4" fill="currentColor"/></svg><span>Цвет</span></button>
+      <button data-tab="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg><span>Кадр</span></button>
+      <button data-tab="4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18.4 2.6 3 3L11 16l-4 1 1-4z"/><path d="M7 17c-2 0-4 1-4 4 2 0 4-1 4-4"/></svg><span>Рисование</span></button>
+      <button data-tab="5" class="tab-fun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.5s1.5 2.5 4 2.5 4-2.5 4-2.5"/><path d="M9 9.5h.01M15 9.5h.01" stroke-width="3"/></svg><span>Приколы</span></button>
     </div>
     <div class="panels">
       <div class="panel on" data-panel="0">
@@ -915,7 +1193,39 @@ body { letter-spacing: var(--tracking); }
         </div></div>
         <div class="scroller"><button class="arr l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="hs thumbs" id="thumbs"></div><button class="arr r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button></div>
       </div>
-      <div class="panel" data-panel="2">
+      <div class="panel color" data-panel="2">
+        <div class="cgrid">
+          <div class="curve-box">
+            <div class="seg seg4 tight" id="curveCh"><span class="pill"></span><button data-v="m">RGB</button><button data-v="r" class="cr">R</button><button data-v="g" class="cg">G</button><button data-v="b" class="cb">B</button></div>
+            <canvas id="curveCv" aria-label="Тоновая кривая: тяните точки, двойной клик удаляет"></canvas>
+          </div>
+          <div class="color-side">
+            <div class="cs-top">
+              <div class="seg seg2 tight" id="colorMode"><span class="pill"></span><button data-v="hsl">HSL-микшер</button><button data-v="grade">Тонирование</button></div>
+              <button class="mini show" id="colorReset" data-tip="Сбросить цвет и кривые"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+            </div>
+            <div class="cpane on" data-cp="hsl">
+              <div class="bands" id="bands"></div>
+              <div class="dgrid">
+                <label class="sl hh"><span>Тон</span><b></b><input type="range" class="range" data-hsl="0" min="-100" max="100"></label>
+                <label class="sl hs2"><span>Насыщенность</span><b></b><input type="range" class="range" data-hsl="1" min="-100" max="100"></label>
+                <label class="sl hl2"><span>Светлота</span><b></b><input type="range" class="range" data-hsl="2" min="-100" max="100"></label>
+              </div>
+            </div>
+            <div class="cpane" data-cp="grade">
+              <div class="dgrid">
+                <label class="sl huetrack"><span>Тени · тон</span><b></b><input type="range" class="range" data-g="shHue" min="0" max="360"></label>
+                <label class="sl gsat" data-for="shHue"><span>Тени · сила</span><b></b><input type="range" class="range" data-g="shSat" min="0" max="100"></label>
+                <label class="sl"><span>Баланс</span><b></b><input type="range" class="range" data-g="gBal" min="-100" max="100"></label>
+                <label class="sl huetrack"><span>Света · тон</span><b></b><input type="range" class="range" data-g="hiHue" min="0" max="360"></label>
+                <label class="sl gsat" data-for="hiHue"><span>Света · сила</span><b></b><input type="range" class="range" data-g="hiSat" min="0" max="100"></label>
+              </div>
+            </div>
+            <div class="crow curve-pre" id="curvePre"><span class="cp-l">Кривая</span><button class="tool sm" data-cv="linear">Линейная</button><button class="tool sm" data-cv="scurve">S-кривая</button><button class="tool sm" data-cv="matte">Матовая</button><button class="tool sm" data-cv="bright">Светлее</button><button class="tool sm" data-cv="moody">Мрачная</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" data-panel="3">
         <div class="head"><span>Выпрямление</span><b id="sval">0°</b></div>
         <div class="dial" id="dialStr" aria-label="Угол выпрямления"></div>
         <div class="crow" style="margin-top:6px">
@@ -934,7 +1244,7 @@ body { letter-spacing: var(--tracking); }
           </div>
         </div>
       </div>
-      <div class="panel draw" data-panel="3" id="drawPanel">
+      <div class="panel draw" data-panel="4" id="drawPanel">
         <div class="drow">
           <div class="crow" id="drawTools">
             <button class="tool" data-bt="brush"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18.4 2.6 3 3L11 16l-4 1 1-4z"/><path d="M7 17c-2 0-4 1-4 4 2 0 4-1 4-4"/></svg>Кисть</button>
@@ -963,6 +1273,19 @@ body { letter-spacing: var(--tracking); }
           <button class="tool sm" id="bpSave" data-tip="Сохранить кисть как пресет"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Пресет</button>
         </div>
       </div>
+      <div class="panel fun" data-panel="5">
+        <div class="head" id="funHead"><span id="funLbl">Шакалы</span><b id="funVal">0</b><button class="mini" id="funReset" data-tip="Выключить эффект"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button></div>
+        <div class="dial" id="dialFun" aria-label="Сила эффекта"></div>
+        <div class="fun-row">
+          <div class="scroller"><button class="arr l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="hs chips" id="funChips"></div><button class="arr r"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button></div>
+          <div class="fun-acts">
+            <button class="fact-btn fry" id="fryBtn" data-tip="Зажарить — каждый клик сильнее" data-key="F"><em>🔥</em>Зажарить</button>
+            <button class="fact-btn" id="stickerBtn" data-tip="Налепить стикер"><em>😎</em>Стикеры</button>
+            <button class="fact-btn" id="memeBtn" data-tip="Подпись капсом сверху и снизу"><em>💬</em>Мем</button>
+            <button class="fact-btn" id="criticBtn" data-tip="Нейрокритик оценит кадр"><em>🧐</em>Критик</button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </div>
@@ -986,6 +1309,13 @@ body { letter-spacing: var(--tracking); }
 <!-- App menu -->
 <div class="popover glass menu" id="menu">
   <button class="pop-row" id="settingsBtn"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.3"/><circle cx="12" cy="12" r="6.8"/><path d="M18.8 12h2.4M16.81 16.81l1.7 1.7M12 18.8v2.4M7.19 16.81l-1.7 1.7M5.2 12H2.8M7.19 7.19l-1.7-1.7M12 5.2V2.8M16.81 7.19l1.7-1.7"/></svg>Настройки приложения<kbd>,</kbd></button>
+  <button class="pop-row" id="paletteRow"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/></svg>Палитра команд<kbd>Ctrl K</kbd></button>
+  <button class="pop-row" id="keysBtn"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="3"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M8 14h8"/></svg>Горячие клавиши<kbd>?</kbd></button>
+  <button class="pop-row" id="achBtn"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Достижения<kbd id="achCount">0</kbd></button>
+  <div class="pop-sep"></div>
+  <button class="pop-row" id="copySet"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="3"/><path d="M16 8V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h2"/></svg>Скопировать настройки<kbd>Ctrl ⇧ C</kbd></button>
+  <button class="pop-row" id="pasteSet"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6v3H9z"/><path d="M15 5.5h2A2.5 2.5 0 0 1 19.5 8v11a2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 19V8A2.5 2.5 0 0 1 7 5.5h2"/></svg>Вставить настройки<kbd>Ctrl ⇧ V</kbd></button>
+  <div class="pop-sep"></div>
   <button class="pop-row" id="tourBtn"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.3a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.3-2.6 3.8"/><circle cx="12" cy="17.4" r=".9" fill="currentColor"/></svg>Показать обучение</button>
   <button class="pop-row" id="aboutBtn"><svg class="ic18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r=".9" fill="currentColor"/></svg>О проекте</button>
 </div>
@@ -1088,6 +1418,21 @@ body { letter-spacing: var(--tracking); }
     </div>
 
     <div class="group">
+      <h3>Звук</h3>
+      <div class="rows">
+        <div class="srow"><div class="tx"><b>Звуки интерфейса</b><small>Щелчки линейки, затвор при экспорте, кубик и фанфары</small></div><button class="tgl" data-set="sound" role="switch" aria-label="Звуки интерфейса"></button></div>
+        <div class="srow" style="display:block">
+          <div class="tx" style="margin-bottom:6px"><b>Громкость <span class="val" id="setVolVal">70</span></b><small>Отдельно от системной</small></div>
+          <input type="range" class="range" id="setVol" min="0" max="100" step="1">
+        </div>
+        <div class="srow" style="display:block">
+          <div class="tx" style="margin-bottom:10px"><b>Звуковой пакет</b><small id="packDesc">—</small></div>
+          <div class="packs" id="setPack"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
       <h3>Редактор</h3>
       <div class="rows">
         <div class="srow" style="display:block">
@@ -1117,21 +1462,23 @@ body { letter-spacing: var(--tracking); }
   <div class="sheet glass pane" role="dialog" aria-labelledby="aboutTitle">
     <button class="xbtn" id="aboutClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="about-hero">
-      <i class="logo"></i>
+      <i class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.6"/><path d="M8.06 6.22L20.50 13.40M20.50 4.23L20.50 18.60M28.44 14.02L16.00 21.20M23.94 25.78L11.50 18.60M11.50 27.77L11.50 13.40M3.56 17.98L16.00 10.80"/></svg></i>
       <h2 id="aboutTitle">Lumen</h2>
-      <span class="ver">версия 3.0 · «Кубик»</span>
+      <span class="ver">версия 4.0 · «Шакал»</span>
       <p>Фоторедактор, который живёт в одном HTML-файле. Вся цветокоррекция считается на видеокарте одним WebGL-шейдером, интерфейс собран в стиле Apple: жидкое стекло, пружинные анимации и линейка-«крутилка» как в «Фото» на iPhone. Ни сервера, ни сборщика, ни единой зависимости — фотографии никуда не уходят из браузера.</p>
     </div>
     <div class="facts">
       <div class="fact"><b>18</b><span>настроек</span></div>
-      <div class="fact"><b>14</b><span>фильтров</span></div>
-      <div class="fact"><b>6</b><span>тестовых сцен</span></div>
+      <div class="fact"><b>20</b><span>фильтров</span></div>
+      <div class="fact"><b>7</b><span>приколов</span></div>
       <div class="fact"><b>0</b><span>зависимостей</span></div>
     </div>
     <div class="group">
       <h3>Из чего собрано</h3>
       <div class="rows">
         <div class="srow"><div class="tx"><b>WebGL-шейдер</b><small>Экспозиция, тон, цвет, резкость, зерно и виньетка — один проход по кадру</small></div></div>
+        <div class="srow"><div class="tx"><b>Кривые и HSL</b><small>Монотонный сплайн в таблицу 256×1 на видеокарте, восемь цветовых полос в том же шейдере</small></div></div>
+        <div class="srow"><div class="tx"><b>Web Audio</b><small>Каждый щелчок синтезирован: затухающие гармоники, как у настоящей металлической детали</small></div></div>
         <div class="srow"><div class="tx"><b>Canvas 2D</b><small>Геометрия кадра, размытие без тёмных краёв, слой рисования и экспорт</small></div></div>
         <div class="srow"><div class="tx"><b>localStorage</b><small>Свои пресеты, кисти, настройки приложения — только в вашем браузере</small></div></div>
       </div>
@@ -1190,6 +1537,73 @@ body { letter-spacing: var(--tracking); }
   </div>
 </div>
 
+<!-- History list -->
+<div class="popover glass histpop" id="histPop">
+  <div class="pop-title">История правок</div>
+  <div class="hlist" id="hlist"></div>
+</div>
+
+<!-- Sticker picker -->
+<div class="popover glass stickpop" id="stickPop">
+  <div class="pop-title">Стикеры <small>щёлкните по фото, чтобы налепить</small></div>
+  <div class="stick-grid" id="stickGrid"></div>
+  <label class="sl"><span>Размер</span><b id="stickSzVal"></b><input type="range" class="range" id="stickSz" min="4" max="40" step="1"></label>
+</div>
+
+<!-- Command palette -->
+<div class="modal top" id="paletteModal">
+  <div class="sheet glass palette" role="dialog" aria-label="Палитра команд">
+    <div class="pal-inp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/></svg><input id="palQ" placeholder="Команда, настройка, фильтр…" autocomplete="off" spellcheck="false"><kbd>Esc</kbd></div>
+    <div class="pal-list" id="palList" role="listbox"></div>
+    <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> выбрать</span><span><kbd>Enter</kbd> выполнить</span></div>
+  </div>
+</div>
+
+<!-- Meme text -->
+<div class="modal" id="memeModal">
+  <div class="sheet glass small" role="dialog" aria-labelledby="memeTitle">
+    <div class="meme-ic">💬</div>
+    <h2 id="memeTitle">Мем-текст</h2>
+    <p class="sub">Классика жанра: белый капс с чёрной обводкой. Меняется прямо на фото.</p>
+    <div class="inp"><input id="memeTop" maxlength="60" autocomplete="off" spellcheck="false" placeholder="Текст сверху"></div>
+    <div class="inp"><input id="memeBot" maxlength="60" autocomplete="off" spellcheck="false" placeholder="Текст снизу"></div>
+    <button class="linkbtn" id="memeRand">🎲 Случайная подпись</button>
+    <div class="row-btns">
+      <button class="btn ghost" id="memeClear">Убрать</button>
+      <button class="btn primary" id="memeOk">Готово</button>
+    </div>
+  </div>
+</div>
+
+<!-- Neural critic -->
+<div class="modal" id="criticModal">
+  <div class="sheet glass pane critic" role="dialog" aria-labelledby="crTitle">
+    <button class="xbtn" id="crClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="cr-head"><div class="cr-bot" id="crBot">🧐</div><div><h2 id="crTitle">Нейрокритик</h2><p class="sub">Настоящий анализ кадра, ненастоящая экспертиза</p></div></div>
+    <div class="cr-body" id="crBody"></div>
+    <div class="row-btns"><button class="btn ghost" id="crAgain">Спросить ещё раз</button><button class="btn primary" id="crOk">Спасибо, учту</button></div>
+  </div>
+</div>
+
+<!-- Shortcuts -->
+<div class="modal" id="keysModal">
+  <div class="sheet glass pane" role="dialog" aria-labelledby="keysTitle">
+    <button class="xbtn" id="keysClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="sheet-head"><div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="3"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M8 14h8"/></svg></div><div><h2 id="keysTitle">Горячие клавиши</h2><p class="sub">Всё, что делается мышкой, делается и с клавиатуры</p></div></div>
+    <div class="keys" id="keysList"></div>
+  </div>
+</div>
+
+<!-- Achievements -->
+<div class="modal" id="achModal">
+  <div class="sheet glass pane" role="dialog" aria-labelledby="achTitle">
+    <button class="xbtn" id="achClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="sheet-head"><div class="si">🏆</div><div><h2 id="achTitle">Достижения</h2><p class="sub" id="achSub">—</p></div></div>
+    <div class="achbar"><i id="achBar"></i></div>
+    <div class="achs" id="achList"></div>
+  </div>
+</div>
+
 <!-- Onboarding tour -->
 <div class="tour" id="tour">
   <div class="tour-dim"></div>
@@ -1217,6 +1631,9 @@ body { letter-spacing: var(--tracking); }
   <span class="ad-tag">реклама</span>
 </aside>
 
+<div class="ach-pop glass" id="achPop"><span class="ap-e" id="apE">🏆</span><div><small>Достижение получено</small><b id="apN">—</b></div></div>
+<canvas class="confetti" id="confetti"></canvas>
+<div class="grain" aria-hidden="true"></div>
 <div class="toast glass" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastTxt"></span><button id="toastAct"></button></div>
 <div class="tip glass" id="tip"></div>
 <input type="file" id="file" accept="image/*" hidden>
@@ -1237,20 +1654,58 @@ window.Engine = (() => {
   const FS = `
 precision highp float;
 varying vec2 v_uv;
-uniform sampler2D u_tex;
+uniform sampler2D u_tex, u_lut;
 uniform vec2 u_px, u_res;
 uniform float u_exp,u_bri,u_hi,u_sh,u_con,u_brt,u_blk,u_sat,u_vib,u_warm,u_tint,u_hue,u_sharp,u_clar,u_fade,u_vig,u_grain,u_sepia,u_gray,u_gs;
+uniform float u_curve,u_hslOn,u_clip,u_bal;
+uniform vec3 u_hsl[8];
+uniform float u_bh[8];
+uniform vec3 u_shT,u_hiT;
+uniform float u_jpeg,u_thermal,u_gb,u_vhs,u_acid,u_pixel,u_nv;
+vec2 uv;
 float luma(vec3 c){return dot(c,vec3(.2126,.7152,.0722));}
-vec3 tx(vec2 o){return texture2D(u_tex,v_uv+o*u_px).rgb;}
+vec3 tx(vec2 o){return texture2D(u_tex,uv+o*u_px).rgb;}
+vec3 txa(vec2 p){return texture2D(u_tex,p).rgb;}
 float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+vec3 rot(vec3 c,float a){vec3 k=vec3(.57735);float ca=cos(a);return c*ca+cross(k,c)*sin(a)+k*dot(k,c)*(1.-ca);}
+float hueOf(vec3 c){
+  float mx=max(c.r,max(c.g,c.b)),d=mx-min(c.r,min(c.g,c.b));
+  if(d<1e-5)return 0.;
+  float h=mx==c.r?mod((c.g-c.b)/d,6.):mx==c.g?(c.b-c.r)/d+2.:(c.r-c.g)/d+4.;
+  return h*60.;
+}
+vec4 lutAt(float x){return texture2D(u_lut,vec2(clamp(x,0.,1.)*.99609375+.001953125,.5));}
+vec3 thermal(float t){
+  t=clamp(t,0.,1.)*4.;
+  vec3 a=vec3(.02,0.,.12),b=vec3(.35,0.,.62),c=vec3(.93,.05,.32),d=vec3(1.,.58,0.),e=vec3(1.,1.,.7);
+  return t<1.?mix(a,b,t):t<2.?mix(b,c,t-1.):t<3.?mix(c,d,t-2.):mix(d,e,t-3.);
+}
+float bayer2(vec2 a){a=floor(a);return fract(dot(a,vec2(.5,a.y*.75)));}
+float bayer4(vec2 a){return bayer2(.5*a)*.25+bayer2(a);}
 void main(){
+  uv=v_uv;
+  float big=max(u_res.x,u_res.y),blk=0.;
+  if(u_pixel>0.)blk=mix(2.,big/38.,u_pixel*u_pixel);
+  if(u_gb>0.)blk=max(blk,big/mix(900.,200.,u_gb));
+  if(blk>1.){vec2 cell=u_res/blk;uv=(floor(v_uv*cell)+.5)/cell;}
+  if(u_vhs>0.){float ln=floor(v_uv.y*u_res.y/(3.*u_gs));uv.x+=(hash(vec2(ln,7.))-.5)*u_vhs*.005+sin(v_uv.y*38.)*.0018*u_vhs;}
   vec3 c=tx(vec2(0.));
+  if(u_vhs>0.){vec2 o=vec2(u_vhs*.0055,0.);c.r=txa(uv+o).r;c.b=txa(uv-o).b;}
+  if(u_jpeg>0.){
+    float bs=mix(4.,18.,u_jpeg)*max(1.,big/1400.);
+    vec2 cell=u_res/bs,buv=(floor(uv*cell)+.5)/cell;
+    vec3 cb=(txa(buv)+txa(buv+vec2(.3,.3)/cell)+txa(buv-vec2(.3,.3)/cell)+txa(buv+vec2(.3,-.3)/cell))*.25;
+    float lv=mix(40.,4.,u_jpeg),l0=luma(c),lb=luma(cb);
+    float lq=floor(mix(l0,lb,u_jpeg*.55)*lv+.5)/lv;
+    float rn=(hash(floor(uv*u_res/(2.*u_gs))+floor(uv*cell)*3.1)-.5)*.14*u_jpeg;
+    c=mix(c,vec3(lq+rn)+(cb-lb)*(1.+u_jpeg),clamp(u_jpeg*1.5,0.,1.));
+  }
   if(u_sharp>0.){
     vec3 b=(tx(vec2(1.,0.))+tx(vec2(-1.,0.))+tx(vec2(0.,1.))+tx(vec2(0.,-1.)))*.25;
     c+=(c-b)*u_sharp*2.2;
   }
   if(u_clar!=0.){
-    float r=max(u_res.x,u_res.y)/160.;
+    float r=big/160.;
     vec3 b=vec3(0.);
     for(int i=0;i<12;i++){float a=float(i)*.5236;vec2 d=vec2(cos(a),sin(a));b+=tx(d*r)+tx(d*r*.45);}
     b/=24.;
@@ -1262,36 +1717,83 @@ void main(){
   float l=luma(c);
   c*=1.+u_bri*(.55*(1.-l)*(1.-l)-.25*l*l);
   l=luma(c);
-  float hw=smoothstep(.45,1.,l), sw=1.-smoothstep(0.,.55,l);
+  float hw=smoothstep(.45,1.,l),sw=1.-smoothstep(0.,.55,l);
   c+=(u_sh*sw*.42+u_hi*hw*.38)*clamp((c+.05)/(l+.05),0.,2.);
   c=u_brt>=0.?c+(1.-c)*u_brt*.3:c*(1.+u_brt*.3);
-  float bp=u_blk*.12; c=(c-bp)/(1.-bp);
+  float bp=u_blk*.12;c=(c-bp)/(1.-bp);
   c=(c-.5)*(1.+u_con*.85)+.5;
   c*=vec3(1.+u_warm*.16+u_tint*.05,1.-u_tint*.12,1.-u_warm*.16+u_tint*.05);
-  if(u_hue!=0.){vec3 k=vec3(.57735);float ca=cos(u_hue);c=c*ca+cross(k,c)*sin(u_hue)+k*dot(k,c)*(1.-ca);}
+  if(u_hue!=0.)c=rot(c,u_hue);
+  if(u_hslOn>0.){
+    vec3 q=clamp(c,0.,1.);
+    float h=hueOf(q),ch=max(q.r,max(q.g,q.b))-min(q.r,min(q.g,q.b));
+    vec3 acc=vec3(0.);float ws=0.;
+    for(int i=0;i<8;i++){float d=abs(h-u_bh[i]);d=min(d,360.-d);float w=1.-smoothstep(0.,48.,d);acc+=w*u_hsl[i];ws+=w;}
+    acc/=max(ws,1.);
+    float wt=smoothstep(0.,.14,ch);
+    c=rot(c,acc.x*wt);
+    c=mix(vec3(luma(c)),c,1.+acc.y*wt);
+    c*=1.+acc.z*wt*.55;
+  }
   l=luma(c);
   c=mix(vec3(l),c,1.+u_sat);
   float mx=max(c.r,max(c.g,c.b)),mn=min(c.r,min(c.g,c.b));
   c=mix(vec3(l),c,1.+u_vib*(1.-clamp(mx-mn,0.,1.))*1.3);
+  if(u_curve>0.){c=clamp(c,0.,1.);c=vec3(lutAt(c.r).r,lutAt(c.g).g,lutAt(c.b).b);}
+  if(u_shT!=vec3(0.)||u_hiT!=vec3(0.)){
+    float lg=clamp(luma(c),0.,1.);
+    c+=u_shT*(1.-smoothstep(0.,.62+u_bal*.3,lg))+u_hiT*smoothstep(.38+u_bal*.3,1.,lg);
+  }
   vec3 sp=vec3(dot(c,vec3(.393,.769,.189)),dot(c,vec3(.349,.686,.168)),dot(c,vec3(.272,.534,.131)));
   c=mix(c,sp,u_sepia);
   c=mix(c,vec3(luma(c)),u_gray);
   c=mix(c,c*.8+.11,u_fade);
+  if(u_acid>0.){float la=luma(c);c=rot(c,u_acid*(la*9.4+v_uv.x*3.1+v_uv.y*2.3));c=mix(vec3(luma(c)),c,1.+u_acid*1.3);}
+  if(u_thermal>0.)c=mix(c,thermal(luma(clamp(c,0.,1.))),u_thermal);
+  if(u_gb>0.){
+    vec2 cp=floor(gl_FragCoord.xy/max(1.,blk));
+    float t=clamp(luma(clamp(c,0.,1.))+(bayer4(mod(cp,4.))-.5)*.28,0.,1.);
+    float s=floor(t*3.999);
+    vec3 g=s<1.?vec3(.06,.22,.06):s<2.?vec3(.19,.38,.19):s<3.?vec3(.55,.67,.06):vec3(.61,.74,.06);
+    c=mix(c,g,u_gb);
+  }
   vec2 asp=vec2(u_res.x/u_res.y,1.);
+  if(u_nv>0.){
+    float ln=pow(clamp(luma(clamp(c,0.,1.))*1.7+.04,0.,1.),.8);
+    vec3 g=vec3(.12,1.,.22)*(ln+(hash(gl_FragCoord.xy*.7)-.5)*.3)*(.86+.14*sin(gl_FragCoord.y*1.6/u_gs));
+    vec2 e=(v_uv-.5)*asp;
+    float rr=min(length(e-vec2(asp.x*.2,0.)),length(e+vec2(asp.x*.2,0.)));
+    g*=smoothstep(.5,.42,rr);
+    c=mix(c,g,u_nv);
+  }
+  if(u_vhs>0.){
+    c=mix(c,vec3(luma(c))*vec3(1.07,1.,.86)+c*.25,u_vhs*.3);
+    c*=1.-u_vhs*.14*step(.5,fract(gl_FragCoord.y/(2.*u_gs)));
+    float tr=smoothstep(.025,0.,abs(v_uv.y-.1));
+    c+=tr*u_vhs*(hash(vec2(floor(gl_FragCoord.x/(3.*u_gs)),floor(gl_FragCoord.y/u_gs)))*.6);
+  }
   float vd=length((v_uv-.5)*asp)/length(asp*.5);
   float m=smoothstep(.3,1.05,vd);
-  if(u_vig>0.) c*=1.-m*u_vig*.85; else c=mix(c,vec3(1.),m*-u_vig*.6);
+  if(u_vig>0.)c*=1.-m*u_vig*.85;else c=mix(c,vec3(1.),m*-u_vig*.6);
   c=clamp(c,0.,1.);
+  if(u_clip>0.){
+    float cx=max(c.r,max(c.g,c.b));
+    if(cx>=.996&&luma(c)>.8)c=mix(c,vec3(1.,.12,.1),.85);else if(cx<=.02)c=mix(c,vec3(.08,.38,1.),.85);
+  }
   float n=hash(floor(gl_FragCoord.xy/u_gs))-.5;
   c+=n*u_grain*.3*(1.-abs(luma(c)*2.-1.)*.6);
   c+=(hash(gl_FragCoord.xy+17.)-.5)/255.;
   gl_FragColor=vec4(clamp(c,0.,1.),1.);
 }`;
 
-  const UNI = ['exp', 'bri', 'hi', 'sh', 'con', 'brt', 'blk', 'sat', 'vib', 'warm', 'tint', 'hue', 'sharp', 'clar', 'fade', 'vig', 'grain', 'sepia', 'gray', 'gs', 'px', 'res'];
+  const UNI = ['exp', 'bri', 'hi', 'sh', 'con', 'brt', 'blk', 'sat', 'vib', 'warm', 'tint', 'hue', 'sharp', 'clar', 'fade', 'vig', 'grain', 'sepia', 'gray', 'gs', 'px', 'res',
+    'curve', 'hslOn', 'clip', 'bal', 'hsl', 'bh', 'shT', 'hiT', 'jpeg', 'thermal', 'gb', 'vhs', 'acid', 'pixel', 'nv'];
+  // Fun effects are plain 0–100 settings like sepia: presets blend them by intensity for free.
+  const FUN = { jpeg: 'jpeg', thermal: 'thermal', gameboy: 'gb', vhs: 'vhs', acid: 'acid', pixel: 'pixel', nightvision: 'nv' };
+  const BAND_H = [0, 30, 58, 115, 180, 225, 272, 318];
   const glc = document.createElement('canvas');
   const loc = {};
-  let gl = null, maxTex = 4096;
+  let gl = null, maxTex = 4096, lutKey = '';
 
   try {
     gl = glc.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false, antialias: false });
@@ -1299,6 +1801,12 @@ void main(){
   } catch (e) {
     console.warn('WebGL недоступен, работаю без цветокоррекции:', e);
     gl = null;
+  }
+
+  function identityLut() {
+    const a = new Uint8Array(1024);
+    for (let i = 0; i < 256; i++) { a[i * 4] = a[i * 4 + 1] = a[i * 4 + 2] = i; a[i * 4 + 3] = 255; }
+    return a;
   }
 
   function setup() {
@@ -1320,13 +1828,23 @@ void main(){
     gl.enableVertexAttribArray(ap);
     gl.vertexAttribPointer(ap, 2, gl.FLOAT, false, 0, 0);
     UNI.forEach(u => (loc[u] = gl.getUniformLocation(pr, 'u_' + u)));
-    gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    const mkTex = () => {
+      gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    };
+    // Unit 1 holds the 256×1 curve table; unit 0 stays bound to the frame for every upload.
+    gl.activeTexture(gl.TEXTURE1);
+    mkTex();
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, identityLut());
+    gl.activeTexture(gl.TEXTURE0);
+    mkTex();
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.uniform1i(gl.getUniformLocation(pr, 'u_tex'), 0);
+    gl.uniform1i(gl.getUniformLocation(pr, 'u_lut'), 1);
+    gl.uniform1fv(loc.bh, new Float32Array(BAND_H));
     maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);
   }
 
@@ -1434,6 +1952,22 @@ void main(){
     u('fade', s.fade / 100); u('vig', s.vignette / 100); u('grain', s.grain / 100);
     u('sepia', s.sepia / 100); u('gray', s.gray / 100);
     u('gs', Math.max(1, Math.max(W, H) / 1800));
+    for (const k in FUN) u(FUN[k], (s[k] || 0) / 100);
+    u('clip', s.clip ? 1 : 0);
+    // Curves: the table only goes up to the GPU when the curve itself changed.
+    u('curve', s.lut ? 1 : 0);
+    if (s.lut && s.lutKey !== lutKey) {
+      gl.activeTexture(gl.TEXTURE1);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, s.lut);
+      gl.activeTexture(gl.TEXTURE0);
+      lutKey = s.lutKey;
+    }
+    u('hslOn', s.hslU ? 1 : 0);
+    if (s.hslU) gl.uniform3fv(loc.hsl, s.hslU);
+    const sh = s.shT || [0, 0, 0], hi = s.hiT || [0, 0, 0];
+    gl.uniform3f(loc.shT, sh[0], sh[1], sh[2]);
+    gl.uniform3f(loc.hiT, hi[0], hi[1], hi[2]);
+    u('bal', (s.gBal || 0) / 100);
     gl.uniform2f(loc.px, 1 / W, 1 / H);
     gl.uniform2f(loc.res, W, H);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -1441,7 +1975,7 @@ void main(){
     return target;
   }
 
-  return { render, layout, maxSize, ASPECTS, webgl: !!gl };
+  return { render, layout, maxSize, ASPECTS, FUN, webgl: !!gl };
 })();
 </script>
 <script>
@@ -2001,11 +2535,28 @@ window.Scenes = (() => {
     return true;
   }
 
+  /** An emoji sticker: centre x/y and size are normalised like stroke points, r is radians. */
+  const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+  function makeSticker(e, x, y, size, r) {
+    return { t: 'sticker', e: String(e || '⭐').slice(0, 8), x: +clamp(x, 0, 1).toFixed(4), y: +clamp(y, 0, 1).toFixed(4), s: clamp(size, 0.01, 1), r: r || 0 };
+  }
+  function sticker(ctx, s, w, h, L) {
+    ctx.save();
+    ctx.translate(s.x * w, s.y * h);
+    ctx.rotate(s.r || 0);
+    ctx.font = `${Math.max(4, s.s * L)}px ${EMOJI_FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = s.s * L * 0.08; ctx.shadowOffsetY = s.s * L * 0.03;
+    ctx.fillText(s.e, 0, 0);
+    ctx.restore();
+  }
+
   /** Paint strokes onto ctx sized w×h. Each stroke is one path so its own alpha never stacks. */
   function render(ctx, strokes, w, h) {
     ctx.clearRect(0, 0, w, h);
     const L = Math.max(w, h);
     for (const s of strokes || []) {
+      if (s.t === 'sticker') { sticker(ctx, s, w, h, L); continue; }
       if (!s.p || s.p.length < 2) continue;
       const lw = Math.max(0.5, s.w * L), marker = s.t === 'marker';
       ctx.save();
@@ -2031,7 +2582,7 @@ window.Scenes = (() => {
     }
   }
 
-  root.Brush = { TOOLS, DEFAULT, MAX_PRESETS, hsvToHex, hexToHsv, sanitize, addPreset, removePreset, loadPresets, makeStroke, addPoint, render };
+  root.Brush = { TOOLS, DEFAULT, MAX_PRESETS, hsvToHex, hexToHsv, sanitize, addPreset, removePreset, loadPresets, makeStroke, addPoint, makeSticker, render };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 <script>
@@ -2378,10 +2929,630 @@ window.Scenes = (() => {
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 <script>
+/* Lumen tone math: point curves, the HSL mixer bands and split-toning tints. No DOM access —
+ * app.js turns a state into plain arrays here and the engine only uploads them. */
+(function (root) {
+  'use strict';
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const CHANNELS = ['m', 'r', 'g', 'b'];
+  const IDENT = [[0, 0], [1, 1]];
+  const MAX_POINTS = 12;
+
+  /** Eight bands, like Lightroom's mixer. `h` is the band centre in degrees. */
+  const BANDS = [
+    { k: 'red', n: 'Красные', h: 0, c: '#ff453a' },
+    { k: 'orange', n: 'Оранжевые', h: 30, c: '#ff9f0a' },
+    { k: 'yellow', n: 'Жёлтые', h: 58, c: '#ffd60a' },
+    { k: 'green', n: 'Зелёные', h: 115, c: '#30d158' },
+    { k: 'aqua', n: 'Бирюзовые', h: 180, c: '#40c8e0' },
+    { k: 'blue', n: 'Синие', h: 225, c: '#0a84ff' },
+    { k: 'purple', n: 'Фиолетовые', h: 272, c: '#bf5af2' },
+    { k: 'magenta', n: 'Пурпурные', h: 318, c: '#ff2d9b' },
+  ];
+
+  const freshCurve = () => ({ m: IDENT, r: IDENT, g: IDENT, b: IDENT });
+  const freshHsl = () => BANDS.map(() => [0, 0, 0]);
+
+  /** Coerce any stored/untrusted point list into a sorted one with fixed ends inside 0–1. */
+  function cleanPoints(p) {
+    if (!Array.isArray(p)) return IDENT;
+    const pts = p.filter(q => Array.isArray(q) && Number.isFinite(+q[0]) && Number.isFinite(+q[1]))
+      .map(q => [clamp(+q[0], 0, 1), clamp(+q[1], 0, 1)])
+      .sort((a, b) => a[0] - b[0]);
+    const out = [];
+    for (const q of pts) if (!out.length || q[0] - out[out.length - 1][0] > 0.01) out.push(q);
+    if (out.length < 2) return IDENT;
+    return out.slice(0, MAX_POINTS);
+  }
+  function cleanCurve(c) {
+    const o = {};
+    CHANNELS.forEach(k => (o[k] = cleanPoints(c && c[k])));
+    return o;
+  }
+  const isIdentity = p => p.length === 2 && p[0][0] === 0 && p[0][1] === 0 && p[1][0] === 1 && p[1][1] === 1;
+  const curveIsIdentity = c => CHANNELS.every(k => isIdentity(c[k]));
+
+  /**
+   * Monotone cubic (Fritsch–Carlson) through the points, sampled at n steps.
+   * Monotone so a curve never folds back and posterises the picture into bands.
+   */
+  function sample(points, n) {
+    n = n || 256;
+    const p = cleanPoints(points), k = p.length, out = new Float32Array(n);
+    const dx = [], m = [], d = [];
+    for (let i = 0; i < k - 1; i++) { dx[i] = p[i + 1][0] - p[i][0]; d[i] = (p[i + 1][1] - p[i][1]) / dx[i]; }
+    m[0] = d[0]; m[k - 1] = d[k - 2];
+    for (let i = 1; i < k - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+    for (let i = 0; i < k - 1; i++) {
+      if (d[i] === 0) { m[i] = m[i + 1] = 0; continue; }
+      const a = m[i] / d[i], b = m[i + 1] / d[i], s = a * a + b * b;
+      if (s > 9) { const t = 3 / Math.sqrt(s); m[i] = t * a * d[i]; m[i + 1] = t * b * d[i]; }
+    }
+    let seg = 0;
+    for (let j = 0; j < n; j++) {
+      const x = j / (n - 1);
+      if (x <= p[0][0]) { out[j] = p[0][1]; continue; }
+      if (x >= p[k - 1][0]) { out[j] = p[k - 1][1]; continue; }
+      while (seg < k - 2 && x > p[seg + 1][0]) seg++;
+      const h = dx[seg], t = (x - p[seg][0]) / h, t2 = t * t, t3 = t2 * t;
+      out[j] = clamp((2 * t3 - 3 * t2 + 1) * p[seg][1] + (t3 - 2 * t2 + t) * h * m[seg] +
+        (-2 * t3 + 3 * t2) * p[seg + 1][1] + (t3 - t2) * h * m[seg + 1], 0, 1);
+    }
+    return out;
+  }
+
+  /** 256×1 RGBA table: each colour channel runs through the master curve, then its own. */
+  function lut(curve) {
+    const c = cleanCurve(curve), m = sample(c.m), ch = [sample(c.r), sample(c.g), sample(c.b)];
+    const out = new Uint8Array(256 * 4);
+    const at = (a, x) => { const f = x * 255, i = Math.floor(f), t = f - i; return i >= 255 ? a[255] : a[i] + (a[i + 1] - a[i]) * t; };
+    for (let i = 0; i < 256; i++) {
+      for (let j = 0; j < 3; j++) out[i * 4 + j] = Math.round(at(ch[j], m[i]) * 255);
+      out[i * 4 + 3] = 255;
+    }
+    return out;
+  }
+
+  /** Add a point, or move the nearest one if the new x is right on top of it. Ends stay pinned at x 0 and 1. */
+  function addPoint(points, x, y) {
+    const p = cleanPoints(points).map(q => q.slice());
+    const near = p.findIndex(q => Math.abs(q[0] - x) < 0.03);
+    if (near >= 0) { p[near][1] = clamp(y, 0, 1); return { points: p, index: near }; }
+    if (p.length >= MAX_POINTS) return { points: p, index: -1 };
+    p.push([clamp(x, 0.01, 0.99), clamp(y, 0, 1)]);
+    p.sort((a, b) => a[0] - b[0]);
+    return { points: p, index: p.findIndex(q => q[0] === clamp(x, 0.01, 0.99)) };
+  }
+  /** Move point i; inner points cannot cross their neighbours, the end points only move vertically. */
+  function movePoint(points, i, x, y) {
+    const p = points.map(q => q.slice());
+    if (i < 0 || i >= p.length) return p;
+    const last = p.length - 1;
+    const lo = i === 0 ? 0 : p[i - 1][0] + 0.012, hi = i === last ? 1 : p[i + 1][0] - 0.012;
+    p[i] = [i === 0 ? p[0][0] : i === last ? p[last][0] : clamp(x, lo, hi), clamp(y, 0, 1)];
+    return p;
+  }
+  function removePoint(points, i) {
+    if (i <= 0 || i >= points.length - 1) return points;
+    return points.filter((_, j) => j !== i);
+  }
+
+  const CURVE_PRESETS = {
+    linear: IDENT,
+    scurve: [[0, 0], [0.25, 0.19], [0.75, 0.82], [1, 1]],
+    matte: [[0, 0.08], [0.3, 0.3], [0.75, 0.78], [1, 0.95]],
+    bright: [[0, 0], [0.4, 0.52], [1, 1]],
+    moody: [[0, 0], [0.45, 0.36], [0.85, 0.82], [1, 0.94]],
+  };
+
+  function cleanHsl(h) {
+    return BANDS.map((_, i) => {
+      const r = Array.isArray(h) && Array.isArray(h[i]) ? h[i] : [];
+      return [0, 1, 2].map(j => (Number.isFinite(+r[j]) ? clamp(Math.round(+r[j]), -100, 100) : 0));
+    });
+  }
+  const hslIsZero = h => h.every(b => b.every(v => v === 0));
+  /** Flat [hue, sat, lum] × 8 in shader units: hue in radians (±40°), sat and lum in ±1. */
+  function hslUniform(h) {
+    const out = new Float32Array(24);
+    cleanHsl(h).forEach((b, i) => { out[i * 3] = b[0] / 100 * 40 * Math.PI / 180; out[i * 3 + 1] = b[1] / 100; out[i * 3 + 2] = b[2] / 100; });
+    return out;
+  }
+
+  /** Split-toning tint: a hue (0–360) and strength (0–100) → a signed RGB push around neutral. */
+  function tint(hue, sat) {
+    const h = ((hue % 360) + 360) % 360 / 60, s = clamp(sat, 0, 100) / 100;
+    const f = n => { const k = (n + h) % 6; return 1 - Math.max(0, Math.min(k, 4 - k, 1)); };
+    const rgb = [f(5), f(3), f(1)], avg = (rgb[0] + rgb[1] + rgb[2]) / 3;
+    return rgb.map(v => (v - avg) * s * 0.32);
+  }
+
+  root.Tone = { CHANNELS, BANDS, IDENT, MAX_POINTS, CURVE_PRESETS, freshCurve, freshHsl, cleanPoints, cleanCurve, curveIsIdentity, isIdentity,
+    sample, lut, addPoint, movePoint, removePoint, cleanHsl, hslIsZero, hslUniform, tint };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+/* Lumen sound: every UI sound is synthesised once into a buffer and replayed, no audio files.
+ * Mechanical clicks use modal synthesis — a handful of exponentially decaying sines at the
+ * inharmonic ratios a small metal or plastic part rings at — plus a sub-millisecond noise
+ * transient. That reads as a real detent instead of the buzzy square-wave blip it replaced.
+ * `synth()` is pure (no Web Audio), so the whole bank is unit-tested in node.
+ */
+(function (root) {
+  'use strict';
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const TAU = Math.PI * 2;
+
+  const PACKS = [
+    { id: 'mech', n: 'Механика', e: '⚙️', d: 'Сухие щелчки, как колёсико камеры' },
+    { id: 'soft', n: 'Мягкая', e: '☁️', d: 'Приглушённые, будто через фетр' },
+    { id: 'retro', n: '8-бит', e: '👾', d: 'Чиптюн из девяностых' },
+    { id: 'duck', n: 'Утка', e: '🦆', d: 'Кря. Просто кря.' },
+  ];
+  const EVENTS = ['tick', 'zero', 'select', 'on', 'off', 'open', 'close', 'shutter', 'die', 'success', 'error', 'undo', 'redo', 'pop', 'achieve', 'sizzle'];
+  const LEN = { sizzle: 0.75, achieve: 0.62, shutter: 0.24, success: 0.42, error: 0.34, open: 0.26, close: 0.24 };
+
+  function rng(seed) {
+    let a = seed >>> 0 || 1;
+    return () => { a = (a + 0x6d2b79f5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+
+  // ---------- primitives: each adds into `o` starting at t0 seconds ----------
+  /** Damped partials [freq, amp, decay seconds] with a 0.3 ms attack so nothing pops. */
+  function modes(o, sr, t0, list) {
+    const s0 = Math.floor(t0 * sr), atk = sr * 0.0003;
+    for (const [f, a, d] of list) {
+      const n = Math.min(o.length - s0, Math.ceil(d * sr * 7));
+      const w = TAU * f / sr, k = Math.exp(-1 / (d * sr));
+      let env = a;
+      for (let i = 0; i < n; i++) { o[s0 + i] += Math.sin(w * i) * env * Math.min(1, i / atk); env *= k; }
+    }
+  }
+  /** A noise burst through a one-pole high-pass (hp) and low-pass (lp), both 0–1. */
+  function noise(o, sr, t0, dur, amp, hp, lp, rnd) {
+    const s0 = Math.floor(t0 * sr), n = Math.min(o.length - s0, Math.ceil(dur * sr * 5)), k = Math.exp(-1 / (dur * sr));
+    let env = amp, lo = 0, prev = 0, hpo = 0;
+    for (let i = 0; i < n; i++) {
+      const x = rnd() * 2 - 1;
+      hpo = hp * (hpo + x - prev); prev = x;
+      lo += lp * (hpo - lo);
+      o[s0 + i] += lo * env; env *= k;
+    }
+  }
+  /** Whoosh: noise whose low-pass opens (or closes) over `dur`, under a rounded envelope. */
+  function whoosh(o, sr, t0, dur, amp, lp0, lp1, rnd) {
+    const s0 = Math.floor(t0 * sr), n = Math.min(o.length - s0, Math.floor(dur * sr));
+    let a = 0, b = 0;
+    for (let i = 0; i < n; i++) {
+      const t = i / n, lp = lp0 + (lp1 - lp0) * t, env = Math.sin(Math.PI * t) ** 2 * amp;
+      a += lp * ((rnd() * 2 - 1) - a); b += lp * (a - b);
+      o[s0 + i] += b * env;
+    }
+  }
+  /** Pitch sweep with an exponential decay; shape 'sine' | 'square'. */
+  function sweep(o, sr, t0, dur, f0, f1, amp, shape, decay) {
+    const s0 = Math.floor(t0 * sr), n = Math.min(o.length - s0, Math.floor(dur * sr)), atk = sr * 0.0015;
+    let ph = 0;
+    for (let i = 0; i < n; i++) {
+      const t = i / n, f = f0 * Math.pow(f1 / f0, t);
+      ph += f / sr;
+      const v = shape === 'square' ? (ph % 1 < 0.5 ? 1 : -1) * 0.5 : Math.sin(TAU * ph);
+      const env = amp * Math.min(1, i / atk) * (decay ? Math.exp(-i / (decay * sr)) : 1 - t);
+      o[s0 + i] += v * env;
+    }
+  }
+  /** Chiptune note: a square with a flat body and a short release. */
+  function chip(o, sr, t0, dur, f, amp, duty) {
+    const s0 = Math.floor(t0 * sr), n = Math.min(o.length - s0, Math.floor(dur * sr));
+    duty = duty || 0.5;
+    for (let i = 0; i < n; i++) {
+      const env = i > n - sr * 0.006 ? (n - i) / (sr * 0.006) : 1;
+      o[s0 + i] += ((i * f / sr) % 1 < duty ? 0.5 : -0.5) * amp * env;
+    }
+  }
+  /** Old consoles' noise channel: a 15-bit LFSR clocked at `rate`. */
+  function lfsr(o, sr, t0, dur, rate, amp) {
+    const s0 = Math.floor(t0 * sr), n = Math.min(o.length - s0, Math.floor(dur * sr));
+    let reg = 0x7fff, acc = 0, v = 1;
+    for (let i = 0; i < n; i++) {
+      acc += rate / sr;
+      while (acc >= 1) { acc--; const bit = (reg ^ (reg >> 1)) & 1; reg = (reg >> 1) | (bit << 14); v = reg & 1 ? 0.5 : -0.5; }
+      o[s0 + i] += v * amp * (1 - i / n);
+    }
+  }
+  /** RBJ band-pass, in place — used to shape a sawtooth into a duck's formants. */
+  function bandpass(x, sr, f, q) {
+    const w = TAU * f / sr, al = Math.sin(w) / (2 * q), a0 = 1 + al;
+    const b0 = al / a0, b2 = -al / a0, a1 = -2 * Math.cos(w) / a0, a2 = (1 - al) / a0;
+    const y = new Float32Array(x.length);
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    for (let i = 0; i < x.length; i++) { const v = b0 * x[i] + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x[i]; y2 = y1; y1 = v; y[i] = v; }
+    return y;
+  }
+  function quack(o, sr, t0, dur, f0, amp, rise) {
+    const s0 = Math.floor(t0 * sr), n = Math.min(o.length - s0, Math.floor(dur * sr));
+    const raw = new Float32Array(n);
+    let ph = 0;
+    for (let i = 0; i < n; i++) {
+      const t = i / n, f = f0 * (rise ? 0.8 + 0.35 * t : 1.08 - 0.3 * t) * (1 + 0.03 * Math.sin(TAU * 28 * i / sr));
+      ph = (ph + f / sr) % 1;
+      raw[i] = (ph * 2 - 1) * Math.min(1, i / (sr * 0.006)) * Math.pow(1 - t, 1.4);
+    }
+    const a = bandpass(raw, sr, 1150, 3.2), b = bandpass(raw, sr, 2650, 4.5), c = bandpass(raw, sr, 520, 2.5);
+    for (let i = 0; i < n; i++) o[s0 + i] += (a[i] * 1.4 + b[i] * 0.9 + c[i] * 0.6) * amp;
+  }
+  /** Fat crackle: sparse random impulses ringing a little, like oil in a hot pan. */
+  function crackle(o, sr, t0, dur, amp, rnd) {
+    const s0 = Math.floor(t0 * sr), n = Math.min(o.length - s0, Math.floor(dur * sr));
+    let lo = 0;
+    for (let i = 0; i < n; i++) {
+      const t = i / n, env = Math.min(1, t * 12) * (1 - t) ** 0.7;
+      lo += 0.35 * ((rnd() * 2 - 1) - lo);
+      o[s0 + i] += lo * 0.18 * amp * env;
+      if (rnd() < 0.0022) modes(o, sr, t0 + i / sr, [[1800 + rnd() * 5200, amp * (0.3 + rnd() * 0.7) * env, 0.0012 + rnd() * 0.002]]);
+    }
+  }
+  const marimba = f => [[f, 1, 0.16], [f * 3.93, 0.22, 0.035], [f * 9.2, 0.06, 0.012]];
+
+  // ---------- mechanical / soft ----------
+  function mech(o, sr, kind, P, rnd) {
+    const M = (t, list) => modes(o, sr, t, list.map(([f, a, d]) => [f * P.fm, a, d * P.dm]));
+    const click = (t, amp) => noise(o, sr, t, 0.0011 * P.dm, amp, 0.8, P.soft ? 0.35 : 0.9, rnd);
+    switch (kind) {
+      case 'tick': M(0, [[3150, 1, 0.006], [4920, 0.5, 0.004], [7300, 0.22, 0.0025], [1180, 0.35, 0.01]]); click(0, 0.35); break;
+      case 'zero': M(0, [[1850, 1, 0.012], [2950, 0.55, 0.008], [640, 0.55, 0.028]]); click(0, 0.4); break;
+      case 'select':
+        M(0, [[2350, 1, 0.012], [3900, 0.5, 0.007], [820, 0.6, 0.022], [5600, 0.2, 0.003]]); click(0, 0.5);
+        M(0.016, [[1650, 0.55, 0.01], [2700, 0.3, 0.007], [600, 0.3, 0.02]]); click(0.016, 0.25); break;
+      case 'on': M(0, [[2100, 0.8, 0.01], [3400, 0.4, 0.006]]); M(0.028, [[3000, 1, 0.009], [4700, 0.45, 0.006], [980, 0.4, 0.018]]); click(0.028, 0.4); break;
+      case 'off': M(0, [[3000, 0.8, 0.009], [4700, 0.35, 0.006]]); M(0.028, [[1900, 1, 0.012], [3000, 0.45, 0.007], [700, 0.45, 0.022]]); click(0.028, 0.35); break;
+      case 'open': whoosh(o, sr, 0, 0.2, 0.9, 0.02, P.soft ? 0.12 : 0.3, rnd); M(0.17, [[2600, 0.25, 0.006], [900, 0.2, 0.015]]); break;
+      case 'close': whoosh(o, sr, 0, 0.18, 0.8, P.soft ? 0.12 : 0.28, 0.02, rnd); M(0.16, [[1500, 0.3, 0.008], [560, 0.3, 0.02]]); break;
+      case 'shutter':
+        M(0, [[1300, 1, 0.02], [2150, 0.7, 0.014], [3500, 0.4, 0.008], [420, 0.6, 0.04]]); click(0, 0.9);
+        whoosh(o, sr, 0.012, 0.065, 0.35, 0.08, 0.22, rnd);
+        M(0.078, [[1150, 0.75, 0.018], [1900, 0.5, 0.012], [3100, 0.25, 0.007], [380, 0.5, 0.035]]); click(0.078, 0.6); break;
+      case 'die': M(0, [[1900, 1, 0.018], [3100, 0.6, 0.01], [5200, 0.3, 0.005], [700, 0.45, 0.03]]); click(0, 0.6); break;
+      case 'success': M(0, marimba(1318.5)); M(0.09, marimba(1975.5)); break;
+      case 'error': M(0, [[330, 1, 0.06], [990, 0.28, 0.02], [1650, 0.1, 0.01]]); M(0.12, [[262, 1, 0.07], [786, 0.28, 0.02]]); break;
+      case 'undo': sweep(o, sr, 0, 0.075, 980 * P.fm, 520 * P.fm, 0.45, 'sine', 0.03); click(0, 0.25); break;
+      case 'redo': sweep(o, sr, 0, 0.075, 520 * P.fm, 980 * P.fm, 0.45, 'sine', 0.03); click(0, 0.25); break;
+      case 'pop': sweep(o, sr, 0, 0.05, 380 * P.fm, 1150 * P.fm, 0.8, 'sine', 0.018); click(0.002, 0.2); break;
+      case 'achieve':
+        [1046.5, 1318.5, 1568, 2093].forEach((f, i) => M(i * 0.075, marimba(f)));
+        M(0.3, [[5274, 0.16, 0.05], [6272, 0.12, 0.04], [7040, 0.1, 0.035]]); break;
+      case 'sizzle': crackle(o, sr, 0, 0.72, 0.9, rnd); break;
+    }
+  }
+
+  // ---------- 8-bit ----------
+  function retro(o, sr, kind, rnd) {
+    const C = (t, d, f, a, duty) => chip(o, sr, t, d, f, a, duty);
+    switch (kind) {
+      case 'tick': C(0, 0.014, 1760, 0.35, 0.25); break;
+      case 'zero': C(0, 0.028, 880, 0.45, 0.5); break;
+      case 'select': C(0, 0.028, 659, 0.45); C(0.03, 0.04, 988, 0.45); break;
+      case 'on': C(0, 0.035, 523, 0.4); C(0.04, 0.05, 784, 0.4); break;
+      case 'off': C(0, 0.035, 784, 0.4); C(0.04, 0.05, 523, 0.4); break;
+      case 'open': [523, 659, 784].forEach((f, i) => C(i * 0.035, 0.035, f, 0.28, 0.25)); break;
+      case 'close': [784, 659, 523].forEach((f, i) => C(i * 0.035, 0.035, f, 0.28, 0.25)); break;
+      case 'shutter': lfsr(o, sr, 0, 0.12, 9000, 0.7); C(0.12, 0.05, 1046, 0.35, 0.125); break;
+      case 'die': C(0, 0.025, 300 + Math.floor(rnd() * 6) * 110, 0.4, 0.25); lfsr(o, sr, 0, 0.02, 20000, 0.3); break;
+      case 'success': [523, 659, 784, 1046].forEach((f, i) => C(i * 0.06, i === 3 ? 0.16 : 0.06, f, 0.35)); break;
+      case 'error': C(0, 0.1, 196, 0.45); C(0.12, 0.18, 147, 0.45); break;
+      case 'undo': sweep(o, sr, 0, 0.08, 1200, 400, 0.5, 'square'); break;
+      case 'redo': sweep(o, sr, 0, 0.08, 400, 1200, 0.5, 'square'); break;
+      case 'pop': sweep(o, sr, 0, 0.06, 300, 1400, 0.5, 'square'); break;
+      case 'achieve': [523, 659, 784, 1046, 784, 1046].forEach((f, i) => C(i * 0.08, i === 5 ? 0.2 : 0.075, f, 0.32, i % 2 ? 0.25 : 0.5)); break;
+      case 'sizzle': lfsr(o, sr, 0, 0.7, 14000, 0.55); break;
+    }
+  }
+
+  // ---------- duck ----------
+  function duck(o, sr, kind, rnd) {
+    const Q = (t, d, f, a, rise) => quack(o, sr, t, d, f, a, rise);
+    switch (kind) {
+      case 'tick': Q(0, 0.05, 560 + rnd() * 80, 0.35); break;
+      case 'zero': Q(0, 0.08, 470, 0.55); break;
+      case 'select': Q(0, 0.12, 390, 0.7); break;
+      case 'on': Q(0, 0.1, 380, 0.6, true); break;
+      case 'off': Q(0, 0.1, 420, 0.6); break;
+      case 'open': case 'close': mech(o, sr, kind, { fm: 1, dm: 1 }, rnd); break;
+      case 'shutter': Q(0, 0.1, 400, 0.8); Q(0.12, 0.12, 360, 0.8); break;
+      case 'die': Q(0, 0.06, 420 + rnd() * 200, 0.5); break;
+      case 'success': Q(0, 0.09, 380, 0.6, true); Q(0.1, 0.09, 450, 0.6, true); Q(0.2, 0.16, 540, 0.7, true); break;
+      case 'error': Q(0, 0.3, 250, 0.8); break;
+      case 'undo': Q(0, 0.09, 460, 0.5); break;
+      case 'redo': Q(0, 0.09, 400, 0.5, true); break;
+      case 'pop': Q(0, 0.05, 700, 0.5, true); break;
+      case 'achieve': [360, 420, 500, 600].forEach((f, i) => Q(i * 0.1, 0.12, f, 0.6, true)); break;
+      case 'sizzle': Q(0, 0.12, 420, 0.7); crackle(o, sr, 0.1, 0.6, 0.8, rnd); break;
+    }
+  }
+
+  /** Render one sound to a Float32Array (mono). Variants detune the partials slightly so repeats never sound machine-gunned. */
+  function synth(kind, pack, sr, variant) {
+    sr = sr || 48000; variant = variant || 0;
+    const rnd = rng(EVENTS.indexOf(kind) * 97 + variant * 13 + 5);
+    const o = new Float32Array(Math.ceil(sr * (LEN[kind] || 0.16)));
+    const jit = variant ? 1 + (rnd() - 0.5) * 0.06 : 1;
+    if (pack === 'retro') retro(o, sr, kind, rnd);
+    else if (pack === 'duck') duck(o, sr, kind, rnd);
+    else if (pack === 'soft') mech(o, sr, kind, { fm: 0.56 * jit, dm: 1.9, soft: true }, rnd);
+    else mech(o, sr, kind, { fm: jit, dm: 1 }, rnd);
+    // Partials can still ring when the buffer ends; a 10 ms fade keeps that cut from clicking.
+    const fade = Math.min(o.length, Math.floor(sr * 0.01));
+    for (let i = 0; i < fade; i++) o[o.length - 1 - i] *= i / fade;
+    if (pack === 'soft') { let lo = 0; for (let i = 0; i < o.length; i++) { lo += 0.22 * (o[i] - lo); o[i] = lo * 1.6; } }
+    // Gentle saturation, then normalise so every sound in every pack sits at the same loudness.
+    let peak = 0;
+    for (let i = 0; i < o.length; i++) { o[i] = Math.tanh(o[i] * 1.2); peak = Math.max(peak, Math.abs(o[i])); }
+    const k = peak > 0 ? 0.9 / peak : 0;
+    for (let i = 0; i < o.length; i++) o[i] *= k;
+    return o;
+  }
+
+  // Loudness per event: the dial detent must stay far below a shutter or a fanfare.
+  const LEVEL = { tick: 0.16, zero: 0.3, select: 0.36, on: 0.34, off: 0.3, open: 0.2, close: 0.18, shutter: 0.6, die: 0.34, success: 0.34, error: 0.4, undo: 0.26, redo: 0.26, pop: 0.4, achieve: 0.42, sizzle: 0.4 };
+  const VARIANTS = { tick: 4, die: 5, select: 2 };
+
+  // ---------- Web Audio runtime ----------
+  let actx = null, master = null, enabled = true, volume = 0.7, pack = 'mech', lastTick = 0;
+  const cache = new Map();
+
+  function ctx() {
+    if (actx) return actx;
+    const AC = root.AudioContext || root.webkitAudioContext;
+    if (!AC) return null;
+    actx = new AC({ latencyHint: 'interactive' });
+    const comp = actx.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.ratio.value = 3.5; comp.attack.value = 0.002; comp.release.value = 0.12;
+    master = actx.createGain();
+    master.gain.value = volume * volume;
+    master.connect(comp).connect(actx.destination);
+    return actx;
+  }
+  function buffer(kind, variant) {
+    const key = pack + '|' + kind + '|' + variant;
+    let b = cache.get(key);
+    if (!b) {
+      const data = synth(kind, pack, actx.sampleRate, variant);
+      b = actx.createBuffer(1, data.length, actx.sampleRate);
+      b.getChannelData(0).set(data);
+      cache.set(key, b);
+    }
+    return b;
+  }
+
+  /** Play `kind`. opts: rate (pitch), gain (0–1+), pan (−1…1), delay (s). */
+  function play(kind, opts) {
+    if (!enabled || !LEVEL[kind]) return;
+    opts = opts || {};
+    const now = root.performance ? performance.now() : Date.now();
+    if (kind === 'tick') { if (now - lastTick < 16) return; lastTick = now; }
+    let ac;
+    try { ac = ctx(); if (!ac) return; if (ac.state === 'suspended') ac.resume(); } catch { return; }
+    const v = VARIANTS[kind] ? Math.floor(Math.random() * VARIANTS[kind]) : 0;
+    const src = ac.createBufferSource();
+    src.buffer = buffer(kind, v);
+    src.playbackRate.value = clamp(opts.rate || 1, 0.25, 4);
+    const g = ac.createGain();
+    g.gain.value = LEVEL[kind] * clamp(opts.gain == null ? 1 : opts.gain, 0, 2);
+    let node = src.connect(g);
+    if (opts.pan && ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = clamp(opts.pan, -1, 1); node = node.connect(p); }
+    node.connect(master);
+    src.start(ac.currentTime + (opts.delay || 0));
+  }
+  /** A die tumbling across a table: impacts bunch up and soften as it settles. */
+  function rattle(ms, pan) {
+    let t = 0, i = 0;
+    while (t < ms / 1000 && i < 14) {
+      play('die', { delay: t, gain: 1 - i * 0.05, rate: 0.9 + Math.random() * 0.25, pan });
+      t += 0.035 + Math.random() * 0.06 + i * 0.006; i++;
+    }
+  }
+  function setPack(p) { if (PACKS.some(x => x.id === p)) pack = p; }
+  function setVolume(v) { volume = clamp(v, 0, 1); if (master) master.gain.value = volume * volume; }
+  function setEnabled(on) { enabled = !!on; }
+
+  root.Sound = { PACKS, EVENTS, LEVEL, synth, play, rattle, setPack, setVolume, setEnabled, get pack() { return pack; } };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+/* Lumen fun: the neural critic, achievements, meme captions and the VHS date stamp.
+ * Nothing here touches the DOM except through a canvas context it is handed, so the
+ * critic's verdicts and the achievement rules are unit-tested in node. */
+(function (root) {
+  'use strict';
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const pick = (a, rnd) => a[Math.floor(rnd() * a.length) % a.length];
+
+  // ---------- Achievements ----------
+  const ACHIEVEMENTS = [
+    { id: 'export', e: '📸', n: 'Первый кадр', d: 'Сохранить фото' },
+    { id: 'export10', e: '🖨️', n: 'Фотостудия', d: 'Сохранить 10 фото' },
+    { id: 'dice', e: '🎲', n: 'Азартный', d: 'Бросить кубик 10 раз' },
+    { id: 'jackpot', e: '🍀', n: 'Джекпот', d: 'Выбросить счастливую шестёрку' },
+    { id: 'critfail', e: '💀', n: 'Критический провал', d: 'Выбросить роковую единицу' },
+    { id: 'shakal', e: '🦊', n: 'Повелитель шакалов', d: 'Выкрутить «Шакалов» на максимум' },
+    { id: 'fry', e: '🔥', n: 'Прожарка well done', d: 'Зажарить фото 5 раз подряд' },
+    { id: 'eyes', e: '🌈', n: 'Вырвиглаз', d: 'Насыщенность +100' },
+    { id: 'noir', e: '🕵️', n: 'Нуарный детектив', d: 'Применить фильтр «Нуар»' },
+    { id: 'time', e: '🕰️', n: 'Путешественник во времени', d: 'Отменить 30 действий' },
+    { id: 'owl', e: '🦉', n: 'Сова', d: 'Редактировать между полуночью и пятью утра' },
+    { id: 'konami', e: '🎮', n: 'Читер', d: '↑ ↑ ↓ ↓ ← → ← → B A' },
+    { id: 'egg', e: '🥚', n: 'Пасхальный кролик', d: 'Семь раз ткнуть в логотип' },
+    { id: 'critic', e: '🧐', n: 'Под прицелом критики', d: 'Показать кадр нейрокритику' },
+    { id: 'masterpiece', e: '🏆', n: 'Шедевр', d: 'Получить 10 из 10 от нейрокритика' },
+    { id: 'meme', e: '💬', n: 'Мемолог', d: 'Подписать кадр мем-текстом' },
+    { id: 'stickers', e: '😎', n: 'Стикерпак', d: 'Налепить 10 стикеров' },
+    { id: 'curves', e: '📈', n: 'Кривые руки', d: 'Поработать с кривыми' },
+    { id: 'duck', e: '🦆', n: 'Кря', d: 'Включить звуковой пакет «Утка»' },
+    { id: 'hacker', e: '⌨️', n: 'Хакер', d: 'Открыть палитру команд' },
+    { id: 'pixel', e: '👾', n: 'Олдфаг', d: 'Включить Game Boy или пиксели' },
+    { id: 'all', e: '👑', n: 'Коллекционер', d: 'Собрать все остальные достижения' },
+  ];
+  /** Sanitise a stored list: only known ids, no duplicates. */
+  const cleanUnlocked = raw => (Array.isArray(raw) ? [...new Set(raw.filter(id => ACHIEVEMENTS.some(a => a.id === id)))] : []);
+  /** Returns the ids newly unlocked by adding `id` — the collector badge rides along with the last one. */
+  function unlock(list, id) {
+    if (!ACHIEVEMENTS.some(a => a.id === id) || list.includes(id)) return [];
+    list.push(id);
+    const out = [id];
+    const rest = ACHIEVEMENTS.filter(a => a.id !== 'all');
+    if (!list.includes('all') && rest.every(a => list.includes(a.id))) { list.push('all'); out.push('all'); }
+    return out;
+  }
+
+  // ---------- Neural critic ----------
+  // It really does read the frame: brightness, clipping, saturation and contrast come from
+  // Analysis.summarize; only the wording is random.
+  const LINES = {
+    clipLight: ['Пересвет {p}% — солнце просит вернуть ему яркость.', 'Света выбиты, как окна в заброшке.', 'Белое пятно на {p}% кадра. Это облако или вспышка сверхновой?'],
+    clipDark: ['В тенях можно спрятать слона. Или налоговую.', 'Провалы в тень такие, что там живёт Горлум.', 'Чёрного {p}%. Кажется, там кто-то есть.'],
+    dark: ['Темновато. Вы снимали в чёрной дыре?', 'Атмосферно. Правда, ничего не видно.', 'Идеальный кадр для фильма ужасов. Страшно — значит работает.'],
+    bright: ['Светло, как в кабинете стоматолога.', 'Я ослеп, но мне понравилось.', 'Экспозиция уровня «забыл закрыть диафрагму».'],
+    loud: ['Цвета кричат. Соседи жалуются.', 'Вырвиглаз уровня «обои на рабочем столе 2007».', 'Насыщенно, как бабушкин борщ.'],
+    gray: ['Пятьдесят оттенков серого. Буквально.', 'Ч/Б — значит искусство. Так и запишем.', 'Цвет ушёл за хлебом и не вернулся.'],
+    punchy: ['Контраст бодрый — как кофе в понедельник.', 'Чёткие тени, ясные света. Уважаю.'],
+    flat: ['Контраст ушёл в отпуск.', 'Плоско, как шутки в лифте.', 'Не хватает драмы. Добавьте конфликт или контраст.'],
+    shakal: ['Шакалы одобряют. Все сорок восемь.', 'Качество как у мема, пересланного в пятый раз. Узнаю почерк.', 'Сжатие JPEG — не баг, а жанр.'],
+    thermal: ['Тепловизор засёк… ваш вкус. Горячо.', 'Предатор бы оценил.'],
+    gameboy: ['Game Boy одобряет, батарейки — нет.', 'Четыре оттенка зелёного — больше и не нужно.'],
+    vhs: ['Пахнет видеосалоном и чипсами.', 'Кто-нибудь, перемотайте кассету карандашом.'],
+    acid: ['Я это видел. Мне это не понравилось. Мне понравилось.', 'Художник так видит. Художник, отдохните.'],
+    nightvision: ['Режим «спецоперация по поиску холодильника».', 'Зелёный — цвет разведки и хорошего настроения.'],
+    pixel: ['Пиксели размером с кирпич — очень честно.', 'Майнкрафт-версия вашей жизни.'],
+    stickers: ['Стикеры спасают любой кадр. Почти любой.', 'Стикеров больше, чем смысла. Одобряю.'],
+    meme: ['Мем засчитан. Смешно ли — решат потомки.', 'Подпись капсом — это классика.'],
+    busy: ['Вы подкрутили {n} ползунков. Внутренний фотограф плачет от гордости.', '{n} изменённых настроек — это уже не обработка, это характер.'],
+    untouched: ['Вы ничего не трогали. Смело. Минимализм.', 'Оригинал? Уважаю честность.'],
+    balanced: ['Баланс света как у бариста латте-арт.', 'Гистограмма ровная, душа спокойная.', 'Тона лежат аккуратно, как носки у отличника.'],
+    filler: ['Моя бабушка поставила бы это в рамочку.', 'Кот посмотрел и одобрительно моргнул.', 'Уже вижу это в сторис с подписью «вайб».', 'Если прищуриться — Ван Гог.', 'Лайк от меня, но я робот, так что не считается.', 'Показал бы маме. Мама сказала «красиво».'],
+  };
+  const VERDICTS = [
+    [10, 'Шедевр. Лувр уже звонил'],
+    [8.5, 'Крепко! В рамочку и на стену'],
+    [7, 'Хорошо. Лайк обеспечен'],
+    [5.5, 'Норм. Бабушка оценит'],
+    [4, 'Ну такое…'],
+    [2.5, 'Удаляй, пока никто не видел'],
+    [0, 'Это преступление против пикселей'],
+  ];
+  const FUN_KEYS = ['thermal', 'gameboy', 'vhs', 'acid', 'nightvision', 'pixel'];
+
+  /**
+   * stats: Analysis.summarize output; eff: effective adjustments; extra: { changed, stickers, meme }.
+   * Returns { score (1–10, or the fox for fully crushed JPEG), verdict, lines[3], rating (0–5 stars) }.
+   */
+  function critic(stats, eff, extra, rnd) {
+    rnd = rnd || Math.random;
+    eff = eff || {}; extra = extra || {};
+    const lines = [], add = (k, vars) => {
+      let t = pick(LINES[k], rnd);
+      for (const v in vars || {}) t = t.replace('{' + v + '}', vars[v]);
+      if (!lines.includes(t)) lines.push(t);
+    };
+    let score = 7.4;
+    const pct = v => String(Math.round(v * 100));
+    if (stats.clipLight > 0.03) { score -= Math.min(3, stats.clipLight * 55); add('clipLight', { p: pct(stats.clipLight) }); }
+    if (stats.clipDark > 0.05) { score -= Math.min(2, stats.clipDark * 25); add('clipDark', { p: pct(stats.clipDark) }); }
+    if (stats.luma < 0.2) { score -= 1.2; add('dark'); } else if (stats.luma > 0.74) { score -= 1.2; add('bright'); }
+    if (stats.saturation > 0.55) { score -= 1.1; add('loud'); } else if (stats.saturation < 0.06) add('gray');
+    if (stats.contrast >= 0.16 && stats.contrast <= 0.34) { score += 0.9; if (lines.length < 2) add('punchy'); } else if (stats.contrast < 0.1) { score -= 0.8; add('flat'); }
+    if (!lines.length) { score += 1.2; add('balanced'); }
+    const fun = FUN_KEYS.filter(k => (eff[k] || 0) > 25).sort((a, b) => eff[b] - eff[a]);
+    if (fun.length) { add(fun[0]); score += 0.5; }
+    if ((eff.jpeg || 0) > 25) add('shakal');
+    if (extra.stickers) { add('stickers'); score += 0.4; }
+    if (extra.meme) { add('meme'); score += 0.6; }
+    if (extra.changed > 9) add('busy', { n: extra.changed });
+    else if (extra.changed === 0 && !fun.length && !extra.stickers) add('untouched');
+    while (lines.length < 3) add('filler');
+    score = clamp(Math.round((score + (rnd() - 0.5) * 1.2) * 2) / 2, 1, 10);
+    const shakal = (eff.jpeg || 0) >= 70;
+    const verdict = shakal ? 'Официально признано шакальным' : VERDICTS.find(v => score >= v[0])[1];
+    return { score: shakal ? '🦊' : score, verdict, lines: lines.slice(0, 3), rating: shakal ? 5 : Math.round(score / 2) };
+  }
+
+  // ---------- Overlays painted over the photo (and into the export) ----------
+  const MEME_FONT = 'Impact, Anton, "Arial Black", "Helvetica Neue", sans-serif';
+  const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+  /** Split text into at most `max` lines that fit `width` at the current ctx font. */
+  function wrap(ctx, text, width, max) {
+    const words = text.split(/\s+/).filter(Boolean), out = [];
+    let line = '';
+    for (const w of words) {
+      const t = line ? line + ' ' + w : w;
+      if (ctx.measureText(t).width > width && line) { out.push(line); line = w; } else line = t;
+    }
+    if (line) out.push(line);
+    return out.slice(0, max);
+  }
+  function memeBlock(ctx, text, w, h, top) {
+    text = String(text || '').trim().toUpperCase();
+    if (!text) return;
+    let size = h * 0.12, lines;
+    for (let i = 0; i < 12; i++) {
+      ctx.font = `${size}px ${MEME_FONT}`;
+      lines = wrap(ctx, text, w * 0.92, 3);
+      const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+      if (widest <= w * 0.92 && lines.join(' ').length >= text.length - 1) break;
+      size *= 0.88;
+    }
+    ctx.textAlign = 'center';
+    ctx.textBaseline = top ? 'top' : 'bottom';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(2, size * 0.13);
+    ctx.strokeStyle = '#000'; ctx.fillStyle = '#fff';
+    const lh = size * 1.02;
+    lines.forEach((l, i) => {
+      const y = top ? h * 0.03 + i * lh : h * 0.97 - (lines.length - 1 - i) * lh;
+      ctx.strokeText(l, w / 2, y); ctx.fillText(l, w / 2, y);
+    });
+  }
+  function vhsStamp(ctx, w, h, amount, date) {
+    const a = clamp((amount - 20) / 40, 0, 1);
+    if (!a) return;
+    const d = date || new Date(), size = Math.max(10, h * 0.062);
+    const hh = d.getHours(), mm = String(d.getMinutes()).padStart(2, '0');
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.font = `${size}px VT323, "Courier New", monospace`;
+    ctx.fillStyle = '#ffb347'; ctx.shadowColor = 'rgba(255,140,40,.9)'; ctx.shadowBlur = size * 0.35;
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillText('▶ PLAY', w * 0.05, h * 0.06);
+    ctx.textAlign = 'right';
+    ctx.fillText('SP', w * 0.95, h * 0.06);
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`${hh < 12 ? 'AM' : 'PM'} ${String(hh % 12 || 12).padStart(2, ' ')}:${mm}`, w * 0.95, h * 0.94 - size);
+    ctx.fillText(`${MONTHS[d.getMonth()]}. ${String(d.getDate()).padStart(2, '0')} 1997`, w * 0.95, h * 0.94);
+    ctx.restore();
+  }
+  /** Everything that lives above the ink: meme captions and, with enough VHS, the camcorder stamp. */
+  function overlay(ctx, w, h, o) {
+    if (!o) return;
+    if ((o.vhs || 0) > 20) vhsStamp(ctx, w, h, o.vhs, o.date);
+    if (o.meme && (o.meme.top || o.meme.bottom)) {
+      ctx.save();
+      memeBlock(ctx, o.meme.top, w, h, true);
+      memeBlock(ctx, o.meme.bottom, w, h, false);
+      ctx.restore();
+    }
+  }
+
+  const STICKERS = ['😎', '😂', '🔥', '💯', '👌', '🗿', '🤡', '👀', '💀', '🥴', '🤌', '🐸', '🦆', '🍕', '✨', '💩', '🫠', '🙈', '🦊', '👑', '❤️', '⭐', '🌈', '🎉'];
+  const FRY = ['😂', '👌', '💯', '🔥', '😳', '🅱️', '😩', '💦'];
+
+  root.Fun = { ACHIEVEMENTS, cleanUnlocked, unlock, critic, VERDICTS, overlay, wrap, STICKERS, FRY, MEME_FONT };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
 /* Lumen — UI layer. Depends on Engine (engine.js) and Scenes (scenes.js). */
 (() => {
   'use strict';
-  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const $ = (s, r) => (r || document).querySelector(s), $$ = s => [...document.querySelectorAll(s)];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const reflow = el => void el.offsetWidth;
@@ -2391,51 +3562,12 @@ window.Scenes = (() => {
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
   };
 
-  // ---------- UI sound: synthesized mechanical clicks, no audio files ----------
-  const SFX = (() => {
-    let actx, lastTick = 0, lastSelect = 0;
-    const ctx = () => actx || (actx = new (window.AudioContext || window.webkitAudioContext)());
-    const live = ac => { if (ac.state === 'suspended') ac.resume(); };
-    // Slider detent: a quiet ratchet click as a dial/range crosses each notch.
-    function tick(vel) {
-      const now = performance.now();
-      if (now - lastTick < 22) return; // a real crank can't click faster than this
-      let ac;
-      try { ac = ctx(); live(ac); } catch { return; }
-      lastTick = now;
-      const t0 = ac.currentTime, amt = clamp(0.45 + Math.abs(vel || 0.5), 0.45, 1.5);
-      const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.02), ac.sampleRate), d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-      const noise = ac.createBufferSource(); noise.buffer = buf;
-      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400 + Math.random() * 900; bp.Q.value = 1.4;
-      const ng = ac.createGain(); ng.gain.setValueAtTime(0.07 * amt, t0); ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.045);
-      noise.connect(bp).connect(ng).connect(ac.destination); noise.start(t0); noise.stop(t0 + 0.05);
-      const osc = ac.createOscillator(); osc.type = 'square';
-      osc.frequency.setValueAtTime(520 + Math.random() * 140, t0); osc.frequency.exponentialRampToValueAtTime(180, t0 + 0.03);
-      const og = ac.createGain(); og.gain.setValueAtTime(0.022 * amt, t0); og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.035);
-      osc.connect(og).connect(ac.destination); osc.start(t0); osc.stop(t0 + 0.04);
-    }
-    // Discrete pick: a firmer camera-dial "clack" for choosing a filter, tool or aspect ratio.
-    function select() {
-      const now = performance.now();
-      if (now - lastSelect < 60) return;
-      let ac;
-      try { ac = ctx(); live(ac); } catch { return; }
-      lastSelect = now;
-      const t0 = ac.currentTime;
-      const osc = ac.createOscillator(); osc.type = 'triangle';
-      osc.frequency.setValueAtTime(260, t0); osc.frequency.exponentialRampToValueAtTime(85, t0 + 0.055);
-      const og = ac.createGain(); og.gain.setValueAtTime(0.08, t0); og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.07);
-      osc.connect(og).connect(ac.destination); osc.start(t0); osc.stop(t0 + 0.08);
-      const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.012), ac.sampleRate), d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-      const noise = ac.createBufferSource(); noise.buffer = buf;
-      const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2200;
-      const ng = ac.createGain(); ng.gain.setValueAtTime(0.07, t0); ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.03);
-      noise.connect(hp).connect(ng).connect(ac.destination); noise.start(t0); noise.stop(t0 + 0.035);
-    }
-    return { tick, select };
-  })();
+  // ---------- UI sound: sound.js synthesises, this only aims it ----------
+  // Each sound is panned a touch toward the pointer, so a click seems to come from the control itself.
+  let lastPX = innerWidth / 2;
+  addEventListener('pointerdown', e => (lastPX = e.clientX), { capture: true, passive: true });
+  addEventListener('pointermove', e => (lastPX = e.clientX), { passive: true });
+  const sfx = (k, o) => Sound.play(k, { pan: (lastPX / Math.max(1, innerWidth) * 2 - 1) * 0.35, ...o });
 
   // ---------- Tools ----------
   const I = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -2465,8 +3597,18 @@ window.Scenes = (() => {
     { k: 'blur', n: 'Размытие', min: 0, g: 4, i: I('<circle cx="12" cy="12" r="8.5" stroke-dasharray="2 3"/><circle cx="12" cy="12" r="3.5"/>') },
   ].map(t => ({ min: -100, max: 100, ...t }));
   const TOOL = Object.fromEntries(TOOLS.map(t => [t.k, t]));
-  const ADJ = [...TOOLS.map(t => t.k), 'sepia', 'gray'];
-  const LIM = Object.fromEntries(ADJ.map(k => [k, TOOL[k] ? [TOOL[k].min, TOOL[k].max] : [0, 100]]));
+  // Fun effects are 0–100 settings without a dial of their own in «Настройки» — like sepia and gray.
+  const FUNS = [
+    { k: 'jpeg', n: 'Шакалы', e: '🦊' }, { k: 'thermal', n: 'Тепловизор', e: '🌡️' }, { k: 'gameboy', n: 'Game Boy', e: '👾' },
+    { k: 'vhs', n: 'VHS 1997', e: '📼' }, { k: 'acid', n: 'Кислота', e: '🍄' }, { k: 'pixel', n: 'Пиксели', e: '🧱' },
+    { k: 'nightvision', n: 'ПНВ', e: '🥽' },
+  ];
+  const GRADE = { shHue: [0, 360], shSat: [0, 100], hiHue: [0, 360], hiSat: [0, 100], gBal: [-100, 100] };
+  const ADJ = [...TOOLS.map(t => t.k), 'sepia', 'gray', ...FUNS.map(f => f.k), ...Object.keys(GRADE)];
+  const LIM = Object.fromEntries(ADJ.map(k => [k, TOOL[k] ? [TOOL[k].min, TOOL[k].max] : GRADE[k] || [0, 100]]));
+  const NAME = { ...Object.fromEntries(TOOLS.map(t => [t.k, t.n])), ...Object.fromEntries(FUNS.map(f => [f.k, f.n])), sepia: 'Сепия', gray: 'Ч/Б',
+    shHue: 'Тон теней', shSat: 'Тонирование теней', hiHue: 'Тон светов', hiSat: 'Тонирование светов', gBal: 'Баланс тонирования' };
+  const TAB = { adj: 0, filters: 1, color: 2, crop: 3, draw: 4, fun: 5 };
 
   const PRESETS = [
     { id: 'none', n: 'Оригинал', v: {} },
@@ -2483,11 +3625,18 @@ window.Scenes = (() => {
     { id: 'vintage', n: 'Винтаж', v: { sepia: 42, fade: 34, grain: 34, vignette: 30, contrast: -8 } },
     { id: 'film', n: 'Плёнка', v: { grain: 45, fade: 18, contrast: 14, warmth: 12, saturation: -12, highlights: -20 } },
     { id: 'dream', n: 'Мечта', v: { blur: 10, fade: 20, exposure: 12, tint: 15, saturation: 12, highlights: -15 } },
+    { id: 'fried', n: 'Зажарка', fun: true, v: { jpeg: 55, saturation: 70, contrast: 50, sharpness: 70, warmth: 18 } },
+    { id: 'tape', n: 'Кассета', fun: true, v: { vhs: 85, fade: 12, saturation: -10 } },
+    { id: 'thermo', n: 'Хищник', fun: true, v: { thermal: 100, contrast: 10 } },
+    { id: 'gb', n: 'Game Boy', fun: true, v: { gameboy: 100, contrast: 12 } },
+    { id: 'trip', n: 'Трип', fun: true, v: { acid: 70, saturation: 20, vignette: 20 } },
+    { id: 'spy', n: 'Шпион', fun: true, v: { nightvision: 100 } },
   ];
 
   const zeroAdj = () => Object.fromEntries(ADJ.map(k => [k, 0]));
   // ox/oy slide the crop window within whatever slack the aspect leaves — see Engine.paintGeo.
-  const fresh = () => ({ ...zeroAdj(), rot: 0, flipH: false, flipV: false, straighten: 0, aspect: 'orig', ox: 0, oy: 0, preset: 'none', amt: 100, ink: [] });
+  const fresh = () => ({ ...zeroAdj(), rot: 0, flipH: false, flipV: false, straighten: 0, aspect: 'orig', ox: 0, oy: 0, preset: 'none', amt: 100, ink: [],
+    curve: Tone.freshCurve(), hsl: Tone.freshHsl(), meme: { top: '', bottom: '' } });
   const GEOM = ['rot', 'flipH', 'flipV', 'straighten', 'aspect', 'ox', 'oy'];
   const geomSame = (a, b) => GEOM.every(k => a[k] === b[k]);
 
@@ -2516,7 +3665,8 @@ window.Scenes = (() => {
     { id: 'grape', n: 'Виноград', c: 'linear-gradient(135deg,#654ea3,#eaafc8)' },
     { id: 'slate', n: 'Графит', c: 'linear-gradient(135deg,#232526,#414345)' },
   ];
-  const DEF_SET = { theme: 'system', accent: 'gold', accentHex: '#ffd60a', font: 'modern', ambient: true, ambientStyle: 'auto', anim: true, tips: true, quality: 1800, promo: true, dice: 7 };
+  const DEF_SET = { theme: 'system', accent: 'gold', accentHex: '#ffc53d', font: 'modern', ambient: true, ambientStyle: 'auto', anim: true, tips: true, quality: 1800, promo: true, dice: 7,
+    sound: true, volume: 70, pack: 'mech' };
   let settings = { ...DEF_SET, ...store.get('lumen.settings', {}) };
   // Storage is user-editable, so every field is coerced back into range before it reaches the UI.
   if (!/^#[0-9a-f]{6}$/i.test(String(settings.accentHex))) settings.accentHex = DEF_SET.accentHex;
@@ -2526,41 +3676,67 @@ window.Scenes = (() => {
   if (!QUALITY.includes(settings.quality)) settings.quality = DEF_SET.quality;
   if (!AMBIENTS.some(a => a.id === settings.ambientStyle)) settings.ambientStyle = DEF_SET.ambientStyle;
   settings.dice = clamp(Math.round(+settings.dice || DEF_SET.dice), 3, 14);
-  ['ambient', 'anim', 'tips', 'promo'].forEach(k => (settings[k] = settings[k] !== false));
+  ['ambient', 'anim', 'tips', 'promo', 'sound'].forEach(k => (settings[k] = settings[k] !== false));
+  settings.volume = clamp(Math.round(Number.isFinite(+settings.volume) ? +settings.volume : DEF_SET.volume), 0, 100);
+  if (!Sound.PACKS.some(x => x.id === settings.pack)) settings.pack = DEF_SET.pack;
 
   const allPresets = () => [...PRESETS, ...userPresets];
   const presetById = id => allPresets().find(p => p.id === id) || PRESETS[0];
   function effective(s) {
     const p = presetById(s.preset).v, a = s.amt / 100, o = {};
     GEOM.forEach(k => (o[k] = s[k]));
-    for (const k of ADJ) o[k] = clamp(s[k] + (p[k] || 0) * a, LIM[k][0], LIM[k][1]);
+    for (const k of ADJ) o[k] = clamp((s[k] || 0) + (p[k] || 0) * a, LIM[k][0], LIM[k][1]);
+    // Curves, HSL and toning leave as engine-ready arrays; the curve table is rebuilt only when it changes.
+    const c = s.curve || Tone.freshCurve();
+    if (!Tone.curveIsIdentity(c)) { o.lutKey = JSON.stringify(c); o.lut = lutFor(o.lutKey, c); }
+    if (s.hsl && !Tone.hslIsZero(s.hsl)) o.hslU = Tone.hslUniform(s.hsl);
+    o.shT = Tone.tint(o.shHue, o.shSat); o.hiT = Tone.tint(o.hiHue, o.hiSat);
     return o;
   }
+  let lutMemo = ['', null];
+  const lutFor = (k, c) => (lutMemo[0] === k ? lutMemo[1] : (lutMemo = [k, Tone.lut(c)])[1]);
 
   // ---------- Preview rendering ----------
   let PREVIEW = settings.quality;
   const cv = $('#cv'), fx = $('#fx'), orig = $('#orig'), photo = $('#photo'), stage = $('#stage'), ink = $('#ink');
-  let raf = 0, liveStroke = null;
+  let raf = 0, liveStroke = null, clipOn = false, scopeDirty = true;
+  const scopeCv = document.createElement('canvas');
+  /** The preview as pixels for histograms and the colour picker — without the clipping overlay painted in. */
+  function frameCv() {
+    if (!clipOn) return cv;
+    if (scopeDirty) { Engine.render(scopeCv, src, effective(state), PREVIEW); scopeDirty = false; }
+    return scopeCv;
+  }
+  const split = { on: false, x: 0.5, key: '' };
   const draw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(drawNow); };
   function drawNow() {
     if (!src) return;
     const w = cv.width, h = cv.height;
-    Engine.render(cv, src, effective(state), PREVIEW);
+    Engine.render(cv, src, { ...effective(state), clip: clipOn }, PREVIEW);
+    scopeDirty = true;
     if (cv.width !== w || cv.height !== h) fit();
     paintInk();
     schedHist();
+    if (split.on) renderSplit();
+    if (tab === TAB.color) schedCurve();
   }
   function paintInk() {
     if (ink.width !== cv.width || ink.height !== cv.height) { ink.width = cv.width; ink.height = cv.height; }
-    Brush.render(ink.getContext('2d'), liveStroke ? [...state.ink, liveStroke] : state.ink, ink.width, ink.height);
+    paintLayer(ink.getContext('2d'), ink.width, ink.height, liveStroke ? [...state.ink, liveStroke] : state.ink);
   }
+  /** Strokes and stickers, then meme captions and the VHS stamp — the same for preview and export. */
+  function paintLayer(x, w, h, strokes) {
+    Brush.render(x, strokes, w, h);
+    Fun.overlay(x, w, h, { meme: state.meme, vhs: effective(state).vhs });
+  }
+  const hasLayer = () => state.ink.length > 0 || !!(state.meme.top || state.meme.bottom) || effective(state).vhs > 20;
   /** Engine render + drawing layer, used by export. */
   function renderFull(out, img, size) {
     Engine.render(out, img, effective(state), size);
-    if (!state.ink.length) return out;
+    if (!hasLayer()) return out;
     const l = document.createElement('canvas');
     l.width = out.width; l.height = out.height;
-    Brush.render(l.getContext('2d'), state.ink, l.width, l.height);
+    paintLayer(l.getContext('2d'), l.width, l.height, state.ink);
     out.getContext('2d').drawImage(l, 0, 0);
     return out;
   }
@@ -2612,32 +3788,68 @@ window.Scenes = (() => {
 
   // ---------- History ----------
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-  function commit() {
+  // Every history entry carries a readable label for the history panel, kept in a parallel array
+  // so the entries themselves stay plain states that `same()` can compare.
+  let labels = ['Открыто'];
+  function commit(label) {
     if (same(state, hist[hi])) return;
-    hist = hist.slice(0, hi + 1);
+    hist = hist.slice(0, hi + 1); labels = labels.slice(0, hi + 1);
+    labels.push(label || describe(hist[hi], state));
     hist.push({ ...state });
-    if (hist.length > 100) hist.shift();
+    if (hist.length > 100) { hist.shift(); labels.shift(); }
     hi = hist.length - 1;
     updHist();
+    checkState();
   }
   function go(d) {
+    cancelAnimationFrame(tw); // a dice/auto/fry tween still running would write its values back over the jump
     commit(); // flush an edit still waiting on a debounced commit (wheel / arrow keys)
-    const n = hi + d;
-    if (n < 0 || n >= hist.length) return;
-    const prev = state;
+    goTo(hi + d);
+  }
+  function goTo(n) {
+    if (n < 0 || n >= hist.length || n === hi) return;
+    cancelAnimationFrame(tw);
+    const prev = state, back = n < hi;
     hi = n;
     if (geomSame(prev, hist[n])) crossfade(() => (state = { ...hist[n] }));
     else { state = { ...hist[n] }; drawNow(); bump(); }
     syncUI(); updHist();
+    sfx(back ? 'undo' : 'redo');
+    if (back && bumpStat('undos') >= 30) award('time');
   }
-  function updHist() { $('#undo').disabled = hi === 0; $('#redo').disabled = hi === hist.length - 1; }
+  function updHist() {
+    $('#undo').disabled = hi === 0; $('#redo').disabled = hi === hist.length - 1;
+    if (histPop.classList.contains('open')) renderHistList();
+    updStatus();
+  }
+  const fmtDeg = v => String(+(+v).toFixed(1)).replace('-', '−') + '°';
+  /** What changed between two states, in words — used when a commit brings no label of its own. */
+  function describe(a, b) {
+    if (!a) return 'Правка';
+    if (b.preset !== a.preset) return `Фильтр: ${presetById(b.preset).n}`;
+    if (b.amt !== a.amt) return `Интенсивность ${Math.round(b.amt)}`;
+    if (b.ink.length > a.ink.length) { const k = b.ink[b.ink.length - 1]; return k.t === 'sticker' ? `Стикер ${k.e}` : k.t === 'eraser' ? 'Ластик' : k.t === 'marker' ? 'Фломастер' : 'Штрих кистью'; }
+    if (b.ink.length < a.ink.length) return b.ink.length ? 'Убран штрих' : 'Рисунок очищен';
+    if (b.rot !== a.rot) return 'Поворот на 90°';
+    if (b.flipH !== a.flipH || b.flipV !== a.flipV) return 'Отражение';
+    if (b.aspect !== a.aspect) return `Пропорции: ${b.aspect === 'orig' ? 'исходные' : b.aspect}`;
+    if (b.straighten !== a.straighten) return `Выпрямление ${fmtDeg(b.straighten)}`;
+    if (b.ox !== a.ox || b.oy !== a.oy) return 'Сдвиг кадра';
+    if (!same(a.curve, b.curve)) return 'Кривые';
+    if (!same(a.hsl, b.hsl)) return 'HSL-микшер';
+    if (!same(a.meme, b.meme)) return 'Мем-текст';
+    const ch = ADJ.filter(k => Math.round(a[k]) !== Math.round(b[k]));
+    if (ch.length === 1) return `${NAME[ch[0]]} ${GRADE[ch[0]] ? Math.round(b[ch[0]]) : fmt(b[ch[0]])}`;
+    if (ch.length) return `${ch.length} ${plural(ch.length, 'настройка', 'настройки', 'настроек')}`;
+    return 'Правка';
+  }
 
   // Same detent click as the dial, for plain <input type=range> sliders (brush, export, dice).
   const rangeLast = new WeakMap();
   function rangeTick(el) {
     const lo = +el.min || 0, hi = +el.max || 100, det = Math.max(+el.step || 1, (hi - lo) / 100);
     const prev = rangeLast.get(el) ?? +el.value, cur = +el.value;
-    if (Math.floor(prev / det) !== Math.floor(cur / det)) SFX.tick(0.6);
+    if (Math.floor(prev / det) !== Math.floor(cur / det)) sfx('tick', { rate: 0.9 + 0.22 * (cur - lo) / (hi - lo || 1), gain: 0.7 });
     rangeLast.set(el, cur);
   }
 
@@ -2664,8 +3876,8 @@ window.Scenes = (() => {
       const crossedZero = min < 0 && nv === 0 && v !== 0;
       const det = detent(), crossedDetent = Math.floor(v / det) !== Math.floor(nv / det);
       v = nv; place(false); o.onInput(v);
-      if (crossedDetent) SFX.tick(Math.min(1.3, Math.abs(vel) * 2 || 0.5));
-      if (crossedZero) restart(el, 'snap');
+      if (crossedZero) { restart(el, 'snap'); sfx('zero'); }
+      else if (crossedDetent) sfx('tick', { rate: 0.9 + 0.22 * (v - min) / (max - min), gain: Math.min(1.3, Math.abs(vel) * 2 || 0.6) });
     }
     el.addEventListener('pointerdown', e => {
       cancelAnimationFrame(mom); wacc = null;
@@ -2785,10 +3997,13 @@ window.Scenes = (() => {
     $$('#seg button').forEach(b => b.classList.toggle('on', +b.dataset.tab === t));
     seg.querySelector('.pill').style.transform = `translateX(${t * 100}%)`;
     $$('.panel').forEach(p => p.classList.toggle('on', +p.dataset.panel === t));
-    photo.classList.toggle('drawing', t === 3);
-    if (t === 1) setTimeout(() => centerIn($('.thumb.on')), 60);
+    photo.classList.toggle('drawing', t === TAB.draw);
+    if (t !== TAB.fun) stickerMode(null);
+    if (t === TAB.filters) setTimeout(() => centerIn($('.thumb.on')), 60);
+    if (t === TAB.color) requestAnimationFrame(() => drawCurve(true));
+    if (t === TAB.fun) setTimeout(() => centerIn($('.chip.on', funChips)), 60);
   }
-  seg.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTab(+b.dataset.tab); });
+  seg.addEventListener('click', e => { const b = e.target.closest('button'); if (b && +b.dataset.tab !== tab) { sfx('select'); setTab(+b.dataset.tab); } });
 
   // ---------- Adjust panel ----------
   const chips = $('#chips'), val = $('#val'), lbl = $('#lbl');
@@ -2812,7 +4027,7 @@ window.Scenes = (() => {
     const c = e.target.closest('.chip');
     if (!c) return;
     if (c.id === 'autoChip') return autoEnhance();
-    if (c.dataset.k !== cur) SFX.select();
+    if (c.dataset.k !== cur) sfx('select');
     selectTool(c.dataset.k, true);
   });
   chips.addEventListener('dblclick', e => {
@@ -2872,7 +4087,7 @@ window.Scenes = (() => {
   function autoEnhance() {
     const a = autoValues(), c = $('#autoChip');
     restart(c, 'spark');
-    tweenTo(a, 700, () => { commit(); toast('Автоулучшение применено'); });
+    tweenTo(a, 700, () => { commit('Автоулучшение'); sfx('success'); toast('Автоулучшение применено'); });
   }
 
   // ---------- Filters panel ----------
@@ -2906,7 +4121,10 @@ window.Scenes = (() => {
     add.addEventListener('click', openPresetModal);
     bindTip(add);
     thumbs.append(add);
-    PRESETS.forEach(p => thumbs.append(thumbEl(p)));
+    PRESETS.forEach(p => {
+      if (p.fun && !thumbs.querySelector('.tsep.fun')) { const s = document.createElement('span'); s.className = 'tsep fun'; thumbs.append(s); }
+      thumbs.append(thumbEl(p));
+    });
     if (userPresets.length) {
       const s = document.createElement('span'); s.className = 'tsep'; thumbs.append(s);
       userPresets.forEach(p => thumbs.append(thumbEl(p, true)));
@@ -2921,9 +4139,10 @@ window.Scenes = (() => {
   thumbs.addEventListener('click', e => {
     const b = e.target.closest('.thumb[data-id]');
     if (!b || b.dataset.id === state.preset) return;
-    SFX.select();
+    sfx('select');
     crossfade(() => { state.preset = b.dataset.id; state.amt = 100; });
     syncUI(); commit();
+    if (b.dataset.id === 'noir') award('noir');
   });
 
   // ---------- Custom presets ----------
@@ -2994,7 +4213,7 @@ window.Scenes = (() => {
   $('#aspects').addEventListener('click', e => {
     const b = e.target.closest('[data-aspect]');
     if (!b || b.dataset.aspect === state.aspect) return;
-    SFX.select();
+    sfx('select');
     state.aspect = b.dataset.aspect;
     state.ox = 0; state.oy = 0; // a new ratio starts centred; «Умная обрезка» moves it from there
     syncUI(); drawNow(); commit();
@@ -3031,7 +4250,7 @@ window.Scenes = (() => {
     if (aspect !== state.aspect) crossfade(() => { state.aspect = aspect; state.ox = from.ox; state.oy = from.oy; });
     syncUI();
     tweenTo({ ox: best.ox, oy: best.oy }, 520, () => {
-      commit();
+      commit('Умная обрезка');
       toast(`Кадр ${aspect === 'orig' ? 'подобран' : aspect} · сохранено ${Math.round(best.keep * 100)}% деталей`, 'Отменить', () => go(-1));
     });
   };
@@ -3072,9 +4291,9 @@ window.Scenes = (() => {
   $('#zoomIn').onclick = () => setZoom(zoom * 1.5);
   $('#zoomOut').onclick = () => setZoom(zoom / 1.5);
   $('#zoomVal').onclick = resetZoom;
-  photo.addEventListener('dblclick', () => { if (tab !== 3) (zoom > 1 ? resetZoom() : setZoom(2)); });
+  photo.addEventListener('dblclick', () => { if (tab !== TAB.draw && !sticker) (zoom > 1 ? resetZoom() : setZoom(2)); });
   photo.addEventListener('pointerdown', e => {
-    if (tab === 3 || zoom === 1 || e.button !== 0 || !src) return;
+    if (tab === TAB.draw || sticker || zoom === 1 || e.button !== 0 || !src) return;
     panning = { x: e.clientX, y: e.clientY, px: panX, py: panY };
     photo.setPointerCapture(e.pointerId);
   });
@@ -3093,6 +4312,7 @@ window.Scenes = (() => {
     dialAmt.set(state.amt); $('#amtVal').textContent = Math.round(state.amt);
     $$('[data-aspect]').forEach(b => b.classList.toggle('on', b.dataset.aspect === state.aspect));
     dialStr.set(state.straighten); $('#sval').textContent = String(state.straighten).replace('-', '−') + '°';
+    syncFun(); syncColor(); updStatus();
   }
 
   // ---------- Histogram ----------
@@ -3104,7 +4324,7 @@ window.Scenes = (() => {
     const w = 180, h = Math.max(1, Math.round(w * cv.height / cv.width));
     hs.width = w; hs.height = h;
     const x = hs.getContext('2d', { willReadFrequently: true });
-    x.drawImage(cv, 0, 0, w, h);
+    x.drawImage(frameCv(), 0, 0, w, h);
     const d = x.getImageData(0, 0, w, h).data;
     const R = new Float32Array(64), G = new Float32Array(64), B = new Float32Array(64), L = new Float32Array(64);
     for (let i = 0; i < d.length; i += 4) {
@@ -3144,7 +4364,7 @@ window.Scenes = (() => {
   const cmp = $('#compare');
   cmp.addEventListener('pointerdown', () => compare(true));
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => cmp.addEventListener(ev, () => compare(false)));
-  photo.addEventListener('pointerdown', e => { if (e.button === 0 && tab !== 3 && zoom === 1) compare(true); });
+  photo.addEventListener('pointerdown', e => { if (e.button === 0 && tab !== TAB.draw && !sticker && !split.on && zoom === 1 && !e.target.closest('.split')) compare(true); });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => photo.addEventListener(ev, () => compare(false)));
 
   // ---------- Drawing: brush / marker / eraser ----------
@@ -3184,7 +4404,7 @@ window.Scenes = (() => {
   });
   dp.addEventListener('click', e => {
     const t = e.target.closest('[data-bt]'), d = e.target.closest('.sw-dot');
-    if (t && t.dataset.bt !== brush.tool) { SFX.select(); brush.tool = t.dataset.bt; if (brush.tool === 'marker' && brush.soft > 0) brush.soft = 0; syncBrush(); }
+    if (t && t.dataset.bt !== brush.tool) { sfx('select'); brush.tool = t.dataset.bt; if (brush.tool === 'marker' && brush.soft > 0) brush.soft = 0; syncBrush(); }
     if (d) { brush = { ...brush, ...Brush.hexToHsv(d.dataset.c) }; if (brush.tool === 'eraser') brush.tool = 'brush'; syncBrush(); }
   });
   $('#inkUndo').onclick = () => {
@@ -3232,7 +4452,7 @@ window.Scenes = (() => {
   const inkPos = e => { const r = photo.getBoundingClientRect(); return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)]; };
   let inkRaf = 0;
   photo.addEventListener('pointerdown', e => {
-    if (tab !== 3 || e.button !== 0 || !src) return;
+    if (tab !== TAB.draw || e.button !== 0 || !src) return;
     photo.setPointerCapture(e.pointerId);
     const r = photo.getBoundingClientRect();
     liveStroke = Brush.makeStroke(brush, brush.size / Math.max(r.width, r.height));
@@ -3264,7 +4484,8 @@ window.Scenes = (() => {
       const x = src.getContext('2d'); x.imageSmoothingQuality = 'high';
       x.drawImage(img, 0, 0, src.width, src.height);
     } else src = img;
-    state = fresh(); hist = [fresh()]; hi = 0; updHist();
+    cancelAnimationFrame(tw); split.key = '';
+    state = fresh(); hist = [fresh()]; labels = ['Открыто']; hi = 0; updHist();
     $('#fname').textContent = name;
     cancelAnimationFrame(raf); drawNow();
     resetZoom();
@@ -3297,10 +4518,19 @@ window.Scenes = (() => {
       }
       hideTip();
     }
+    if (on) { toggleMenu(false); toggleHistPop(false); }
     pop.classList.toggle('open', on); brand.classList.toggle('open', on);
     updatePromoVeil();
   }
-  brand.addEventListener('click', e => { e.stopPropagation(); togglePop(); });
+  let eggN = 0, eggT = 0;
+  brand.addEventListener('click', e => {
+    e.stopPropagation();
+    if (e.target.closest('.logo')) {
+      clearTimeout(eggT); eggT = setTimeout(() => (eggN = 0), 2500);
+      if (++eggN >= 7) { eggN = 0; restart(brand.querySelector('.logo'), 'egg'); award('egg'); const r = brand.getBoundingClientRect(); confetti(r.left + 20, r.bottom, 80); return; }
+    }
+    togglePop();
+  });
   pop.addEventListener('click', e => {
     e.stopPropagation();
     const s = e.target.closest('.sample');
@@ -3313,24 +4543,38 @@ window.Scenes = (() => {
   $('#undo').onclick = () => go(-1);
   $('#redo').onclick = () => go(1);
   $('#resetAll').onclick = () => {
+    cancelAnimationFrame(tw);
     if (same(state, fresh())) return;
     if (geomSame(state, fresh())) crossfade(() => (state = fresh()));
     else { state = fresh(); drawNow(); bump(); }
-    syncUI(); commit(); toast('Все правки сброшены');
+    syncUI(); commit('Сброс'); toast('Все правки сброшены');
   };
   $('#open').onclick = () => $('#file').click();
   $('#file').onchange = e => { openFile(e.target.files[0]); e.target.value = ''; };
 
   // ---------- Modals ----------
   let activeModal = null;
-  function openModal(sel) { closeModal(); activeModal = $(sel); activeModal.classList.add('open'); hideTip(); updatePromoVeil(); }
-  function closeModal() { if (activeModal) activeModal.classList.remove('open'); activeModal = null; updatePromoVeil(); }
+  function openModal(sel) {
+    closeModal(true); activeModal = $(sel); activeModal.classList.add('open'); hideTip(); updatePromoVeil();
+    togglePop(false); toggleMenu(false); toggleHistPop(false); stickerMode(null);
+    sfx('open');
+  }
+  function closeModal(silent) {
+    if (activeModal) {
+      activeModal.classList.remove('open');
+      if (silent !== true) sfx('close');
+      // The meme caption edits live; however the sheet is closed, what is on the photo becomes one history step.
+      if (activeModal.id === 'memeModal') commit('Мем-текст');
+      if (activeModal.id === 'criticModal') clearTimeout(crT);
+    }
+    activeModal = null; updatePromoVeil();
+  }
   $$('.modal').forEach(m => m.addEventListener('pointerdown', e => { if (e.target === m) closeModal(); }));
   // A popover/menu/modal that reaches the bottom-left corner (the samples grid, at eight scenes tall,
   // does) used to bury the promo card outright — that read as the card randomly vanishing and
   // reappearing. Veiling it in step with whatever is covering it keeps the same fade both ways.
   function updatePromoVeil() {
-    $('#promo').classList.toggle('veiled', pop.classList.contains('open') || menu.classList.contains('open') || !!activeModal);
+    $('#promo').classList.toggle('veiled', pop.classList.contains('open') || menu.classList.contains('open') || histPop.classList.contains('open') || !!activeModal);
   }
 
   // ---------- Export ----------
@@ -3444,6 +4688,12 @@ window.Scenes = (() => {
         await navigator.share({ files: [new File([blob], name, { type })], title: name });
       }
       btn.classList.remove('busy'); btn.classList.add('done');
+      sfx(kind === 'save' ? 'shutter' : 'success');
+      if (kind === 'save') {
+        const n = bumpStat('exports');
+        award('export'); if (n >= 10) award('export10');
+        const r = btn.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top, 90);
+      }
       const msg = kind === 'copy' ? 'Скопировано в буфер обмена' : kind === 'save' ? `Сохранено · ${fin.width}×${fin.height} · ${fmtBytes(blob.size)}` : 'Отправлено';
       setTimeout(() => { closeModal(); toast(msg); }, 950);
     } catch (err) {
@@ -3466,6 +4716,7 @@ window.Scenes = (() => {
     const t = $('#toast'), b = $('#toastAct');
     $('#toastTxt').textContent = msg;
     t.querySelector('svg').style.color = err ? '#ff453a' : '';
+    if (err) sfx('error');
     b.textContent = actLabel || '';
     t.classList.toggle('act', !!actLabel);
     b.onclick = () => { t.classList.remove('on'); act && act(); };
@@ -3501,8 +4752,13 @@ window.Scenes = (() => {
   addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey, code = e.code;
     const typing = e.target.matches('input:not([type=range]), textarea');
-    if (e.key === 'Escape') { closeModal(); togglePop(false); toggleMenu(false); if ($('#tour').classList.contains('on')) endTour(); return; }
+    if (typing && e.key !== 'Escape' && !(mod && code === 'KeyK')) return;
+    konami(e);
+    if (e.key === 'Escape') { if (activeModal) closeModal(); togglePop(false); toggleMenu(false); toggleHistPop(false); stickerMode(null); if ($('#tour').classList.contains('on')) endTour(); return; }
+    if (mod && code === 'KeyK') { e.preventDefault(); activeModal === $('#paletteModal') ? closeModal() : openPalette(); return; }
     if (activeModal) return;
+    if (mod && e.shiftKey && code === 'KeyC' && !typing) { e.preventDefault(); copySettings(); return; }
+    if (mod && e.shiftKey && code === 'KeyV' && !typing) { e.preventDefault(); pasteSettings(); return; }
     if (mod && code === 'KeyZ') { e.preventDefault(); go(e.shiftKey ? 1 : -1); }
     else if (mod && code === 'KeyY') { e.preventDefault(); go(1); }
     else if (mod && code === 'KeyO') { e.preventDefault(); $('#file').click(); }
@@ -3519,7 +4775,14 @@ window.Scenes = (() => {
     else if (code === 'Minus' || e.key === '-') setZoom(zoom / 1.5);
     else if (code === 'Digit0') resetZoom();
     else if (e.key === ',') openSettings();
-    else if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3' || code === 'Digit4') setTab(+code.slice(-1) - 1);
+    else if (e.key === '?') openKeys();
+    else if (code === 'KeyJ') toggleClip();
+    else if (code === 'KeyY') toggleSplit();
+    else if (code === 'KeyO') cycleGrid();
+    else if (code === 'KeyM') toggleSound();
+    else if (code === 'KeyL') toggleHistPop();
+    else if (code === 'KeyF') fry();
+    else if (/^Digit[1-6]$/.test(code)) { const t = +code.slice(-1) - 1; if (t !== tab) { sfx('select'); setTab(t); } }
   });
   addEventListener('keyup', e => { if (e.code === 'Space') compare(false); });
 
@@ -3579,6 +4842,9 @@ window.Scenes = (() => {
     document.body.classList.toggle('no-ambient', !settings.ambient);
     $('#ambientBox').className = 'ambient' + (settings.ambientStyle !== 'auto' ? ` custom-bg bg-${settings.ambientStyle}` : '');
     PREVIEW = settings.quality;
+    Sound.setEnabled(settings.sound); Sound.setVolume(settings.volume / 100); Sound.setPack(settings.pack);
+    $('#soundBtn').classList.toggle('muted', !settings.sound);
+    $('#soundBtn').dataset.tip = settings.sound ? 'Звук включён' : 'Звук выключен';
     store.set('lumen.settings', settings);
   }
   function syncSettings() {
@@ -3610,6 +4876,11 @@ window.Scenes = (() => {
       b.classList.toggle('on', on);
       if (on) $('#setQ .pill').style.transform = `translateX(${i * 100}%)`;
     });
+    $('#setVol').value = settings.volume;
+    $('#setVol').style.setProperty('--p', settings.volume + '%');
+    $('#setVolVal').textContent = settings.volume;
+    $('#setPack').innerHTML = Sound.PACKS.map(p => `<button class="pack${p.id === settings.pack ? ' on' : ''}" data-pack="${p.id}"><em>${p.e}</em>${p.n}</button>`).join('');
+    $('#packDesc').textContent = Sound.PACKS.find(p => p.id === settings.pack).d;
     const d = $('#setDice');
     d.value = settings.dice;
     d.style.setProperty('--p', ((settings.dice - 3) / 11 * 100) + '%');
@@ -3628,7 +4899,8 @@ window.Scenes = (() => {
       const r = menuBtn.getBoundingClientRect();
       menu.style.left = clamp(r.right - 268, 12, Math.max(12, innerWidth - 280)) + 'px';
       menu.style.top = (r.bottom + 12) + 'px';
-      togglePop(false); hideTip();
+      togglePop(false); toggleHistPop(false); hideTip();
+      updAchCount();
     }
     menu.classList.toggle('open', on);
     menuBtn.classList.toggle('on', on);
@@ -3640,6 +4912,11 @@ window.Scenes = (() => {
 
   $('#settingsBtn').onclick = () => { toggleMenu(false); openSettings(); };
   $('#tourBtn').onclick = () => { toggleMenu(false); setTimeout(startTour, 200); };
+  $('#paletteRow').onclick = () => { toggleMenu(false); openPalette(); };
+  $('#keysBtn').onclick = () => { toggleMenu(false); openKeys(); };
+  $('#achBtn').onclick = () => { toggleMenu(false); openAch(); };
+  $('#copySet').onclick = () => { toggleMenu(false); copySettings(); };
+  $('#pasteSet').onclick = () => { toggleMenu(false); pasteSettings(); };
   $('#setClose').onclick = closeModal;
   $('#settingsModal').addEventListener('click', e => {
     const t = e.target.closest('[data-set]'), a = e.target.closest('[data-acc]');
@@ -3650,6 +4927,7 @@ window.Scenes = (() => {
       const k = t.dataset.set;
       settings[k] = !settings[k];
       applySettings(); syncSettings();
+      sfx(settings[k] ? 'on' : 'off');
       if (k === 'ambient' && settings.ambient) ambient();
       if (k === 'promo') { store.set('lumen.promoHidden', false); showPromo(settings.promo); }
     }
@@ -3657,6 +4935,12 @@ window.Scenes = (() => {
     if (th) { settings.theme = th.dataset.v; applySettings(); syncSettings(); }
     if (q) { settings.quality = +q.dataset.v; applySettings(); syncSettings(); drawNow(); }
     if (amb) { settings.ambientStyle = amb.dataset.amb; applySettings(); syncSettings(); }
+    const pk = e.target.closest('[data-pack]');
+    if (pk && pk.dataset.pack !== settings.pack) {
+      settings.pack = pk.dataset.pack; applySettings(); syncSettings();
+      sfx('select'); setTimeout(() => sfx('success'), 180);
+      if (settings.pack === 'duck') award('duck');
+    }
   });
   $('#setAccentHex').addEventListener('input', e => {
     settings.accent = 'custom'; settings.accentHex = e.target.value;
@@ -3669,11 +4953,17 @@ window.Scenes = (() => {
     $('#setDiceVal').textContent = settings.dice;
     applySettings();
   });
+  $('#setVol').addEventListener('input', e => {
+    settings.volume = +e.target.value; applySettings();
+    e.target.style.setProperty('--p', settings.volume + '%');
+    $('#setVolVal').textContent = settings.volume;
+    rangeTick(e.target);
+  });
   $('#btnTour').onclick = () => { closeModal(); setTimeout(startTour, 280); };
   $('#btnWipe').onclick = () => {
-    ['lumen.presets', 'lumen.brushes', 'lumen.export', 'lumen.hist', 'lumen.settings', 'lumen.tour', 'lumen.promoHidden', 'lumen.brush']
+    ['lumen.presets', 'lumen.brushes', 'lumen.export', 'lumen.hist', 'lumen.settings', 'lumen.tour', 'lumen.promoHidden', 'lumen.brush', 'lumen.ach', 'lumen.stats', 'lumen.clip']
       .forEach(k => { try { localStorage.removeItem(k); } catch { /* storage unavailable */ } });
-    userPresets = []; brushPresets = [];
+    userPresets = []; brushPresets = []; unlocked = []; stats = {}; updAchCount();
     settings = { ...DEF_SET };
     applySettings(); buildThumbs(); renderBrushPresets(); syncSettings(); syncUI();
     toast('Сохранённые данные очищены');
@@ -3795,14 +5085,26 @@ window.Scenes = (() => {
   const pips = $$('#die .pip');
   const setFace = n => pips.forEach(p => p.classList.toggle('on', PIPS[n].includes(p.dataset.p)));
   let rollT = 0;
+  const spinMs = () => (settings.anim ? 780 : 0);
   setFace(5);
   $('#dice').onclick = () => {
     if (!src) return;
     const btn = $('#dice');
     const face = 1 + Math.floor(Math.random() * 6);
-    const target = Analysis.roll(Math.random, settings.dice);
+    let target = Analysis.roll(Math.random, settings.dice), crit = null;
+    // Fun keys ride along at zero so a previous critical failure washes out on the next roll.
+    FUNS.forEach(f => (target[f.k] = 0));
+    if (face === 6 && Math.random() < 0.22) {
+      crit = 'jackpot';
+      target = { ...target, ...Object.fromEntries(TOOLS.map(t => [t.k, 0])), exposure: 8, contrast: 18, vibrance: 30, clarity: 20, highlights: -28, shadows: 22, warmth: 10, vignette: 18 };
+    } else if (face === 1 && Math.random() < 0.22) {
+      crit = 'critfail';
+      target = { ...target, acid: 55, jpeg: 45, saturation: 80, contrast: 45 };
+    }
     const n = Object.values(target).filter(v => v !== 0).length;
-    const spin = settings.anim ? 780 : 0;
+    Sound.rattle(Math.max(320, spinMs()), (lastPX / innerWidth * 2 - 1) * 0.35);
+    if (bumpStat('dice') >= 10) award('dice');
+    const spin = spinMs();
     if (spin) {
       btn.classList.add('rolling');
       clearInterval(rollT);
@@ -3815,8 +5117,10 @@ window.Scenes = (() => {
       restart(btn, 'lucky');
       if (tab !== 0) setTab(0);
       tweenTo(target, 820, () => {
-        commit();
-        toast(`Выпало ${face} · перемешано ${n} ${plural(n, 'настройка', 'настройки', 'настроек')}`, 'Отменить', () => go(-1));
+        commit(`Кубик: ${face}`);
+        if (crit === 'jackpot') { award('jackpot'); sfx('achieve'); const r = btn.getBoundingClientRect(); confetti(r.left + r.width / 2, r.bottom, 120); toast('🍀 Джекпот! Кубик подобрал красивый вид', 'Отменить', () => go(-1)); }
+        else if (crit === 'critfail') { award('critfail'); sfx('error'); restart(photo, 'shake'); toast('💀 Критический провал. Кубик в ярости', 'Отменить', () => go(-1)); }
+        else toast(`Выпало ${face} · перемешано ${n} ${plural(n, 'настройка', 'настройки', 'настроек')}`, 'Отменить', () => go(-1));
       });
     }, spin);
   };
@@ -3825,7 +5129,10 @@ window.Scenes = (() => {
   const TOUR = [
     { e: '🌅', t: 'Добро пожаловать в Lumen', d: 'Фоторедактор целиком живёт в браузере: снимки никуда не загружаются, а весь цвет считает видеокарта. Полминуты — и вы знаете, где что лежит.', sel: '.topbar', pad: 8 },
     { e: '🖼️', t: 'Ваше фото', d: 'Перетащите файл в окно, вставьте из буфера или выберите тестовую сцену в меню слева. Удерживайте снимок мышью — покажем оригинал до правок.', sel: '#photo', pad: 10 },
-    { e: '🎛️', t: 'Крутите линейку', d: 'Внизу четыре вкладки: настройки, фильтры, кадр и рисование. Линейка работает как в «Фото» на iPhone — тяните, крутите колесо, двойной клик сбрасывает.', sel: '.dock', pad: 10 },
+    { e: '🎛️', t: 'Крутите линейку', d: 'Внизу шесть вкладок: настройки, фильтры, цвет, кадр, рисование и приколы. Линейка работает как в «Фото» на iPhone — тяните, крутите колесо, двойной клик сбрасывает.', sel: '.dock', pad: 10 },
+    { e: '📈', t: 'Кривые и цвет', d: 'Во вкладке «Цвет» — тоновые кривые по каналам, HSL-микшер на восемь цветов и тонирование теней и светов. Как во взрослых редакторах.', sel: '#seg [data-tab="2"]', pad: 6 },
+    { e: '🦊', t: 'А тут приколы', d: 'Шакалы, VHS 1997, тепловизор, Game Boy, стикеры, мем-текст и нейрокритик, который честно (почти) оценит ваш кадр.', sel: '#seg [data-tab="5"]', pad: 6 },
+    { e: '⌘', t: 'Палитра команд', d: 'Ctrl K — и можно найти любую настройку, фильтр или действие по названию. Все горячие клавиши — по «?».', sel: '#paletteBtn', pad: 6 },
     { e: '🎲', t: 'Бросьте кубик', d: 'Кубик случайно перемешивает характеристики кадра — быстрый способ наткнуться на неожиданный вид. Размах броска настраивается.', sel: '#dice', pad: 6 },
     { e: '📊', t: 'Смотрите на графики', d: 'Гистограмма, тоновая кривая, круг оттенков, профиль настроек и волновая форма — чтобы видеть, что именно вы сделали с кадром.', sel: '#statsBtn', pad: 6 },
     { e: '⬇️', t: 'Сохраните результат', d: 'Экспорт в JPEG, PNG или WebP: размер, качество, рамка и примерный вес файла. Всё считается локально, прямо здесь.', sel: '#export', pad: 6 },
@@ -3881,6 +5188,709 @@ window.Scenes = (() => {
     toast('Уголок скрыт — вернуть можно в настройках');
   };
 
+  // ---------- Stats & achievements ----------
+  let unlocked = Fun.cleanUnlocked(store.get('lumen.ach', []));
+  let stats = store.get('lumen.stats', {});
+  if (!stats || typeof stats !== 'object' || Array.isArray(stats)) stats = {};
+  function bumpStat(k) {
+    stats[k] = (Number.isFinite(+stats[k]) ? +stats[k] : 0) + 1;
+    store.set('lumen.stats', stats);
+    return stats[k];
+  }
+  const achQueue = [];
+  let achBusy = false;
+  function award(id) {
+    const got = Fun.unlock(unlocked, id);
+    if (!got.length) return;
+    store.set('lumen.ach', unlocked);
+    achQueue.push(...got); updAchCount();
+    if (!achBusy) nextAch();
+  }
+  function nextAch() {
+    const id = achQueue.shift();
+    if (!id) { achBusy = false; return; }
+    achBusy = true;
+    const a = Fun.ACHIEVEMENTS.find(x => x.id === id), el = $('#achPop');
+    $('#apE').textContent = a.e; $('#apN').textContent = a.n;
+    restart(el, 'on');
+    sfx('achieve');
+    setTimeout(() => confetti(innerWidth / 2, 64, 60), 160);
+    setTimeout(() => { el.classList.remove('on'); setTimeout(nextAch, 450); }, 3200);
+  }
+  function updAchCount() { $('#achCount').textContent = `${unlocked.length}/${Fun.ACHIEVEMENTS.length}`; }
+  function openAch() {
+    const n = unlocked.length, t = Fun.ACHIEVEMENTS.length;
+    $('#achSub').textContent = `Открыто ${n} из ${t}${n === t ? ' — вы легенда' : ''}`;
+    $('#achList').innerHTML = Fun.ACHIEVEMENTS.map((a, i) => {
+      const on = unlocked.includes(a.id);
+      return `<div class="achi${on ? ' on' : ''}" style="animation-delay:${i * 22}ms"><span class="ae">${on ? a.e : '🔒'}</span><div><b>${esc(a.n)}</b><small>${esc(a.d)}</small></div></div>`;
+    }).join('');
+    $('#achBar').style.width = '0';
+    openModal('#achModal');
+    requestAnimationFrame(() => requestAnimationFrame(() => ($('#achBar').style.width = (n / t * 100) + '%')));
+  }
+  $('#achClose').onclick = closeModal;
+  /** Awards that depend on the picture itself, checked on every commit. */
+  function checkState() {
+    const e = effective(state);
+    if (e.saturation >= 100) award('eyes');
+    if (e.jpeg >= 100) award('shakal');
+    if (e.gameboy > 0 || e.pixel > 0) award('pixel');
+    if (state.ink.filter(s => s.t === 'sticker').length >= 10) award('stickers');
+    if (state.meme.top || state.meme.bottom) award('meme');
+    if (!Tone.curveIsIdentity(state.curve)) award('curves');
+  }
+
+  // ---------- Confetti ----------
+  const cfCv = $('#confetti');
+  let cf = [], cfRaf = 0;
+  function confetti(x, y, n) {
+    if (!settings.anim) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (cfCv.width !== Math.round(innerWidth * dpr) || cfCv.height !== Math.round(innerHeight * dpr)) {
+      cfCv.width = Math.round(innerWidth * dpr); cfCv.height = Math.round(innerHeight * dpr);
+    }
+    const cols = [accentHex(), '#ff5a4f', '#3ddc6a', '#3d9bff', '#ffa726', '#c77dff', '#ffffff'];
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.95, v = 6 + Math.random() * 10;
+      cf.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, r: Math.random() * 6.3, vr: (Math.random() - 0.5) * 0.4,
+        w: 5 + Math.random() * 6, h: 3 + Math.random() * 5, c: cols[i % cols.length], life: 0, round: Math.random() < 0.25 });
+    }
+    if (!cfRaf) cfRaf = requestAnimationFrame(cfStep);
+  }
+  function cfStep() {
+    const x = cfCv.getContext('2d'), dpr = cfCv.width / innerWidth;
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, innerWidth, innerHeight);
+    cf = cf.filter(p => p.y < innerHeight + 40 && p.life < 240);
+    for (const p of cf) {
+      p.life++; p.vx *= 0.985; p.vy = p.vy * 0.985 + 0.32; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      x.save();
+      x.translate(p.x, p.y); x.rotate(p.r); x.scale(1, Math.cos(p.life * 0.15 + p.r));
+      x.globalAlpha = Math.min(1, (240 - p.life) / 40);
+      x.fillStyle = p.c;
+      if (p.round) { x.beginPath(); x.arc(0, 0, p.w / 2, 0, 7); x.fill(); } else x.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      x.restore();
+    }
+    cfRaf = cf.length ? requestAnimationFrame(cfStep) : 0;
+  }
+
+  // ---------- Before / after split ----------
+  const splitEl = $('#split');
+  function renderSplit() {
+    const key = [cv.width, cv.height, ...GEOM.map(k => state[k])].join('|');
+    if (key === split.key) return;
+    Engine.render(orig, src, { ...effective(state), ...zeroAdj() }, PREVIEW, true);
+    split.key = key;
+  }
+  function setSplitX(x) { split.x = clamp(x, 0.02, 0.98); photo.style.setProperty('--sx', (split.x * 100).toFixed(2) + '%'); }
+  function toggleSplit(on) {
+    if (!src) return;
+    split.on = on ?? !split.on;
+    split.key = '';
+    if (split.on) renderSplit();
+    photo.classList.toggle('split-on', split.on);
+    $('#splitBtn').classList.toggle('on', split.on);
+    setSplitX(split.x);
+    sfx(split.on ? 'on' : 'off');
+  }
+  const splitDrag = e => { const r = photo.getBoundingClientRect(); setSplitX((e.clientX - r.left) / r.width); };
+  photo.addEventListener('pointerdown', e => {
+    if (!split.on || e.button !== 0 || tab === TAB.draw || sticker || zoom !== 1) return;
+    splitEl.setPointerCapture(e.pointerId); splitEl.classList.add('drag'); splitDrag(e);
+  });
+  splitEl.addEventListener('pointerdown', e => { e.stopPropagation(); splitEl.setPointerCapture(e.pointerId); splitEl.classList.add('drag'); });
+  splitEl.addEventListener('pointermove', e => { if (splitEl.hasPointerCapture(e.pointerId)) splitDrag(e); });
+  ['pointerup', 'pointercancel'].forEach(ev => splitEl.addEventListener(ev, () => splitEl.classList.remove('drag')));
+  $('#splitBtn').onclick = () => toggleSplit();
+  // The compare path renders the same neutral frame into #orig, so the split must repaint after it.
+  cmp.addEventListener('pointerup', () => (split.key = ''));
+
+  // ---------- Composition grids ----------
+  const GRIDS = ['off', 'thirds', 'golden', 'grid', 'diag'];
+  const GRID_N = { off: 'выключена', thirds: 'правило третей', golden: 'золотое сечение', grid: 'сетка 6×6', diag: 'диагонали' };
+  let gridMode = 'off';
+  const gl = (a, b, c, d) => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;
+  function gridSvg(m) {
+    const cross = vs => vs.map(v => gl(v, 0, v, 100) + gl(0, v, 100, v)).join('');
+    if (m === 'thirds') return cross([100 / 3, 200 / 3]);
+    if (m === 'golden') return cross([38.2, 61.8]);
+    if (m === 'grid') return cross([1, 2, 3, 4, 5].map(i => i * 100 / 6));
+    if (m === 'diag') return gl(0, 0, 100, 100) + gl(100, 0, 0, 100) + gl(0, 50, 50, 0) + gl(50, 100, 100, 50);
+    return '';
+  }
+  $('#gridOv .gfine').innerHTML = Array.from({ length: 11 }, (_, i) => (i + 1) * 100 / 12).map(v => gl(v, 0, v, 100) + gl(0, v, 100, v)).join('');
+  function setGrid(m) {
+    gridMode = m;
+    $('#gridOv .gmain').innerHTML = gridSvg(m);
+    photo.classList.toggle('grid-on', m !== 'off');
+    $('#gridBtn').classList.toggle('on', m !== 'off');
+  }
+  function cycleGrid() {
+    setGrid(GRIDS[(GRIDS.indexOf(gridMode) + 1) % GRIDS.length]);
+    sfx(gridMode === 'off' ? 'off' : 'select');
+    toast(`Сетка: ${GRID_N[gridMode]}`);
+  }
+  $('#gridBtn').onclick = cycleGrid;
+  // While the straighten dial is held a fine grid appears, so horizons have something to line up to.
+  $('#dialStr').addEventListener('pointerdown', () => photo.classList.add('aligning'));
+  addEventListener('pointerup', () => photo.classList.remove('aligning'));
+
+  // ---------- Clipping warning & sound toggle ----------
+  function toggleClip() {
+    if (!src) return;
+    clipOn = !clipOn;
+    $('#clipBtn').classList.toggle('on', clipOn);
+    drawNow(); sfx(clipOn ? 'on' : 'off');
+    toast(clipOn ? 'Пересветы — красным, провалы — синим' : 'Подсветка пересветов выключена');
+  }
+  $('#clipBtn').onclick = toggleClip;
+  function toggleSound() {
+    settings.sound = !settings.sound;
+    applySettings();
+    if (settings.sound) sfx('on');
+    toast(settings.sound ? 'Звук включён' : 'Звук выключен');
+  }
+  $('#soundBtn').onclick = toggleSound;
+
+  // ---------- Status bar: size, edits and the colour under the cursor ----------
+  const stPix = $('#stPix');
+  function updStatus() {
+    if (!src || !fullImg) return;
+    const L = exportDims('orig');
+    $('#stDims').textContent = `${L.w} × ${L.h}`;
+    $('#stEdits').textContent = hi ? `${hi} ${plural(hi, 'правка', 'правки', 'правок')}` : 'без правок';
+  }
+  let pixRaf = 0;
+  photo.addEventListener('pointermove', e => {
+    if (!src || !cv.width) return;
+    cancelAnimationFrame(pixRaf);
+    pixRaf = requestAnimationFrame(() => {
+      const r = photo.getBoundingClientRect();
+      const x = Math.floor((e.clientX - r.left) / r.width * cv.width), y = Math.floor((e.clientY - r.top) / r.height * cv.height);
+      if (x < 0 || y < 0 || x >= cv.width || y >= cv.height) return;
+      const d = frameCv().getContext('2d').getImageData(x, y, 1, 1).data;
+      const hex = '#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join('');
+      $('#stSw').style.background = hex;
+      $('#stHex').textContent = hex.toUpperCase();
+      $('#stRgb').textContent = `${d[0]} · ${d[1]} · ${d[2]}`;
+      stPix.classList.add('on');
+    });
+  });
+  photo.addEventListener('pointerleave', () => { cancelAnimationFrame(pixRaf); stPix.classList.remove('on'); });
+
+  // ---------- History panel ----------
+  const histPop = $('#histPop');
+  function renderHistList() {
+    $('#hlist').innerHTML = labels.map((l, i) =>
+      `<button class="hrow${i === hi ? ' on' : ''}${i > hi ? ' future' : ''}" data-i="${i}"><i>${i || '•'}</i><span>${esc(l)}</span></button>`).reverse().join('');
+  }
+  function toggleHistPop(on) {
+    on = on ?? !histPop.classList.contains('open');
+    if (on) {
+      const r = $('#histList').getBoundingClientRect();
+      histPop.style.left = clamp(r.left - 20, 12, Math.max(12, innerWidth - 292)) + 'px';
+      histPop.style.top = (r.bottom + 12) + 'px';
+      togglePop(false); toggleMenu(false); hideTip();
+      renderHistList();
+    }
+    histPop.classList.toggle('open', on);
+    $('#histList').classList.toggle('on', on);
+    updatePromoVeil();
+  }
+  $('#histList').addEventListener('click', e => { e.stopPropagation(); toggleHistPop(); });
+  histPop.addEventListener('click', e => {
+    e.stopPropagation();
+    const b = e.target.closest('.hrow');
+    if (!b) return;
+    // A pending debounced edit commits first and drops the redo branch — a clicked future row is then gone.
+    const i = +b.dataset.i, was = hi;
+    commit();
+    if (hi !== was && i > was) return renderHistList();
+    goTo(i);
+  });
+  document.addEventListener('click', () => toggleHistPop(false));
+
+  // ---------- Copy / paste the look ----------
+  function copySettings() {
+    if (!src) return;
+    const c = { curve: state.curve, hsl: state.hsl, preset: state.preset, amt: state.amt };
+    ADJ.forEach(k => (c[k] = state[k]));
+    store.set('lumen.clip', c);
+    sfx('select');
+    toast('Настройки скопированы — вставьте в другой кадр через Ctrl ⇧ V');
+  }
+  function pasteSettings() {
+    const c = store.get('lumen.clip', null);
+    if (!src || !c || typeof c !== 'object') return toast('Сначала скопируйте настройки', null, null, true);
+    cancelAnimationFrame(tw);
+    const next = { ...state };
+    ADJ.forEach(k => { if (Number.isFinite(+c[k])) next[k] = clamp(+c[k], LIM[k][0], LIM[k][1]); });
+    if (allPresets().some(p => p.id === c.preset)) next.preset = c.preset;
+    if (Number.isFinite(+c.amt)) next.amt = clamp(+c.amt, 0, 100);
+    next.curve = Tone.cleanCurve(c.curve); next.hsl = Tone.cleanHsl(c.hsl);
+    crossfade(() => (state = next));
+    syncUI(); commit('Вставка настроек'); sfx('success');
+    toast('Настройки вставлены', 'Отменить', () => go(-1));
+  }
+  function applyPreset(id) {
+    if (!src || id === state.preset) return;
+    crossfade(() => { state.preset = id; state.amt = 100; });
+    syncUI(); commit();
+    if (id === 'noir') award('noir');
+  }
+
+  // ---------- Colour: curves, HSL mixer, split toning ----------
+  const colorPanel = $('.panel.color'), curveCv = $('#curveCv');
+  const CH_COL = { m: '#f2f2f7', r: '#ff5a4f', g: '#3ddc6a', b: '#3d9bff' };
+  let curveCh = 'm', band = 0, colorMode = 'hsl', curveDrag = -1, curveOut = false, curveTickY = 0, curveLum = null, curveT = 0;
+  function schedCurve() { clearTimeout(curveT); curveT = setTimeout(() => drawCurve(true), 140); }
+  function curveHist() {
+    if (!cv.width) return null;
+    const w = 160, h = Math.max(1, Math.round(w * cv.height / cv.width)), t = document.createElement('canvas');
+    t.width = w; t.height = h;
+    const x = t.getContext('2d', { willReadFrequently: true });
+    x.drawImage(frameCv(), 0, 0, w, h);
+    const d = x.getImageData(0, 0, w, h).data, H = new Float32Array(64);
+    for (let i = 0; i < d.length; i += 4) H[(d[i] * 0.2126 + d[i + 1] * 0.7152 + d[i + 2] * 0.0722) >> 2]++;
+    const mx = Math.max(1, ...H.slice(1, 63));
+    return H.map(v => Math.min(1, Math.sqrt(v / mx)));
+  }
+  const CP = 9;
+  function drawCurve(withHist) {
+    if (tab !== TAB.color) return;
+    if (withHist || !curveLum) curveLum = curveHist();
+    const dpr = Math.min(2, window.devicePixelRatio || 1), W = curveCv.clientWidth || 170, H = curveCv.clientHeight || 170;
+    if (curveCv.width !== Math.round(W * dpr) || curveCv.height !== Math.round(H * dpr)) { curveCv.width = Math.round(W * dpr); curveCv.height = Math.round(H * dpr); }
+    const x = curveCv.getContext('2d');
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, W, H);
+    const w = W - CP * 2, h = H - CP * 2, X = v => CP + v * w, Y = v => CP + (1 - v) * h;
+    if (curveLum) {
+      x.beginPath(); x.moveTo(X(0), Y(0));
+      curveLum.forEach((v, i) => x.lineTo(X(i / 63), Y(v * 0.92)));
+      x.lineTo(X(1), Y(0)); x.closePath();
+      x.fillStyle = 'rgba(255,255,255,.1)'; x.fill();
+    }
+    x.strokeStyle = 'rgba(255,255,255,.08)'; x.lineWidth = 1; x.beginPath();
+    for (let i = 1; i < 4; i++) { x.moveTo(X(i / 4), Y(0)); x.lineTo(X(i / 4), Y(1)); x.moveTo(X(0), Y(i / 4)); x.lineTo(X(1), Y(i / 4)); }
+    x.stroke();
+    x.setLineDash([3, 4]); x.strokeStyle = 'rgba(255,255,255,.2)';
+    x.beginPath(); x.moveTo(X(0), Y(0)); x.lineTo(X(1), Y(1)); x.stroke(); x.setLineDash([]);
+    const line = (k, alpha, lw) => {
+      const s = Tone.sample(state.curve[k], 128);
+      x.beginPath();
+      s.forEach((v, i) => (i ? x.lineTo(X(i / 127), Y(v)) : x.moveTo(X(0), Y(v))));
+      x.strokeStyle = CH_COL[k]; x.globalAlpha = alpha; x.lineWidth = lw; x.stroke(); x.globalAlpha = 1;
+    };
+    Tone.CHANNELS.forEach(k => { if (k !== curveCh && !Tone.isIdentity(state.curve[k])) line(k, 0.35, 1.2); });
+    line(curveCh, 1, 2);
+    state.curve[curveCh].forEach(([px, py], i) => {
+      x.beginPath(); x.arc(X(px), Y(py), i === curveDrag ? 6 : 4.5, 0, 7);
+      x.fillStyle = i === curveDrag ? CH_COL[curveCh] : '#141418'; x.fill();
+      x.lineWidth = 2; x.strokeStyle = CH_COL[curveCh]; x.stroke();
+    });
+  }
+  const curvePt = e => {
+    const r = curveCv.getBoundingClientRect();
+    return [clamp((e.clientX - r.left - CP) / (r.width - 2 * CP), 0, 1), clamp(1 - (e.clientY - r.top - CP) / (r.height - 2 * CP), -0.25, 1.25)];
+  };
+  const nearPoint = (e, pts) => {
+    const [px, py] = curvePt(e), r = curveCv.getBoundingClientRect();
+    return pts.findIndex(([qx, qy]) => Math.hypot((qx - px) * (r.width - 2 * CP), (qy - py) * (r.height - 2 * CP)) < 12);
+  };
+  function setCurve(pts) { state.curve = { ...state.curve, [curveCh]: pts }; draw(); drawCurve(false); }
+  curveCv.addEventListener('pointerdown', e => {
+    if (!src || e.button !== 0) return;
+    const [px, py] = curvePt(e), pts = state.curve[curveCh], near = nearPoint(e, pts);
+    if (near >= 0) curveDrag = near;
+    else {
+      const res = Tone.addPoint(pts, px, clamp(py, 0, 1));
+      if (res.index < 0) return toast(`Не больше ${Tone.MAX_POINTS} точек на кривой`, null, null, true);
+      curveDrag = res.index; setCurve(res.points); sfx('pop', { gain: 0.5 });
+    }
+    curveCv.setPointerCapture(e.pointerId);
+    curveOut = false; curveTickY = Math.round(clamp(py, 0, 1) * 24);
+    drawCurve(false);
+  });
+  curveCv.addEventListener('pointermove', e => {
+    if (curveDrag < 0) return;
+    const [px, py] = curvePt(e), pts = state.curve[curveCh];
+    // Drag an inner point off the top or bottom to delete it, like in Photoshop.
+    curveOut = curveDrag > 0 && curveDrag < pts.length - 1 && (py < -0.12 || py > 1.12);
+    curveCv.classList.toggle('del', curveOut);
+    setCurve(Tone.movePoint(pts, curveDrag, px, py));
+    const ty = Math.round(clamp(py, 0, 1) * 24);
+    if (ty !== curveTickY) { curveTickY = ty; sfx('tick', { rate: 0.9 + clamp(py, 0, 1) * 0.22, gain: 0.6 }); }
+  });
+  const curveUp = () => {
+    if (curveDrag < 0) return;
+    if (curveOut) { setCurve(Tone.removePoint(state.curve[curveCh], curveDrag)); sfx('close'); }
+    curveDrag = -1; curveOut = false; curveCv.classList.remove('del');
+    drawCurve(false); commit('Кривые');
+  };
+  curveCv.addEventListener('pointerup', curveUp);
+  curveCv.addEventListener('pointercancel', curveUp);
+  curveCv.addEventListener('dblclick', e => {
+    const pts = state.curve[curveCh], near = nearPoint(e, pts);
+    if (near > 0 && near < pts.length - 1) { setCurve(Tone.removePoint(pts, near)); commit('Кривые'); }
+  });
+  function segPick(sel, v) {
+    [...document.querySelectorAll(sel + ' button')].forEach((b, i) => {
+      const on = b.dataset.v === v;
+      b.classList.toggle('on', on);
+      if (on) $(sel + ' .pill').style.transform = `translateX(${i * 100}%)`;
+    });
+  }
+  $('#curveCh').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b || b.dataset.v === curveCh) return;
+    curveCh = b.dataset.v; segPick('#curveCh', curveCh); sfx('select'); drawCurve(false);
+  });
+  function setColorMode(m) {
+    colorMode = m; segPick('#colorMode', m);
+    $$('.cpane').forEach(p => p.classList.toggle('on', p.dataset.cp === m));
+  }
+  $('#colorMode').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (b && b.dataset.v !== colorMode) { sfx('select'); setColorMode(b.dataset.v); }
+  });
+  $('#bands').innerHTML = Tone.BANDS.map((b, i) => `<button class="band" data-i="${i}" style="--c:${b.c}" data-tip="${b.n}" aria-label="${b.n}"><i></i></button>`).join('');
+  $$('#bands .band').forEach(bindTip);
+  function selBand(i) { band = i; syncColor(); }
+  $('#bands').addEventListener('click', e => {
+    const b = e.target.closest('.band');
+    if (b && +b.dataset.i !== band) { sfx('select'); selBand(+b.dataset.i); }
+  });
+  const setRangeP = (r, v) => r.style.setProperty('--p', ((v - r.min) / (r.max - r.min) * 100) + '%');
+  function syncColor() {
+    segPick('#curveCh', curveCh);
+    $$('#bands .band').forEach((b, i) => { b.classList.toggle('on', i === band); b.classList.toggle('has', state.hsl[i].some(v => v)); });
+    colorPanel.style.setProperty('--band', Tone.BANDS[band].c);
+    $$('[data-hsl]').forEach(r => {
+      const v = state.hsl[band][+r.dataset.hsl];
+      r.value = v; setRangeP(r, v);
+      r.closest('label').querySelector('b').textContent = fmt(v);
+    });
+    $$('[data-g]').forEach(r => {
+      const k = r.dataset.g, v = Math.round(state[k]);
+      r.value = v; setRangeP(r, v);
+      r.closest('label').querySelector('b').textContent = GRADE[k][1] === 360 ? v + '°' : k === 'gBal' ? fmt(v) : v + '%';
+    });
+    colorPanel.style.setProperty('--shc', `hsl(${state.shHue} 90% 55%)`);
+    colorPanel.style.setProperty('--hic', `hsl(${state.hiHue} 90% 55%)`);
+    if (tab === TAB.color) drawCurve(false);
+  }
+  colorPanel.addEventListener('input', e => {
+    const r = e.target;
+    if (r.dataset.hsl != null) { const h = state.hsl.map(b => b.slice()); h[band][+r.dataset.hsl] = +r.value; state.hsl = h; }
+    else if (r.dataset.g) state[r.dataset.g] = +r.value;
+    else return;
+    rangeTick(r); syncColor(); draw();
+  });
+  colorPanel.addEventListener('change', e => {
+    if (e.target.dataset.hsl != null) commit(`HSL: ${Tone.BANDS[band].n.toLowerCase()}`);
+    else if (e.target.dataset.g) commit();
+  });
+  $('#curvePre').addEventListener('click', e => {
+    const b = e.target.closest('[data-cv]');
+    if (!b || !src) return;
+    sfx('select');
+    const lin = b.dataset.cv === 'linear';
+    state.curve = lin ? Tone.freshCurve() : { ...state.curve, m: Tone.CURVE_PRESETS[b.dataset.cv].map(p => p.slice()) };
+    curveCh = 'm'; draw(); syncColor();
+    commit(lin ? 'Кривые сброшены' : `Кривая: ${b.textContent.toLowerCase()}`);
+  });
+  $('#colorReset').onclick = () => {
+    state.curve = Tone.freshCurve(); state.hsl = Tone.freshHsl();
+    Object.keys(GRADE).forEach(k => (state[k] = 0));
+    draw(); syncColor(); commit('Цвет сброшен'); sfx('undo');
+  };
+  setColorMode('hsl');
+
+  // ---------- Fun: effect deck ----------
+  const funChips = $('#funChips');
+  let curFun = 'jpeg';
+  funChips.innerHTML = FUNS.map(f => `<button class="chip fun" data-f="${f.k}"><div class="ring"><span class="ic emo">${f.e}</span><span class="num"></span>` +
+    `<svg class="arc" viewBox="0 0 56 56"><circle cx="28" cy="28" r="26"/></svg></div><span class="nm">${f.n}</span></button>`).join('');
+  const dialFun = Dial($('#dialFun'), {
+    min: 0, max: 100, value: 0,
+    onInput: v => { state[curFun] = v; $('#funVal').textContent = Math.round(v); updFunChips(); draw(); },
+    onChange: () => commit(),
+  });
+  function selectFun(k, anim) {
+    curFun = k;
+    $$('.chip[data-f]').forEach(c => c.classList.toggle('on', c.dataset.f === k));
+    $('#funLbl').textContent = NAME[k];
+    $('#funVal').textContent = Math.round(state[k]);
+    dialFun.set(state[k], anim);
+    if (anim) { restart($('#funHead'), 'swap'); centerIn($(`.chip[data-f="${k}"]`)); }
+  }
+  function updFunChips() {
+    FUNS.forEach(f => {
+      const c = funChips.querySelector(`[data-f="${f.k}"]`), v = state[f.k];
+      c.querySelector('.arc circle').style.strokeDashoffset = 163.4 * (1 - v / 100);
+      c.classList.toggle('has', Math.round(v) !== 0);
+      c.querySelector('.num').textContent = Math.round(v);
+    });
+    $('#funReset').classList.toggle('show', Math.round(state[curFun]) !== 0);
+  }
+  function syncFun() { selectFun(curFun, false); updFunChips(); }
+  funChips.addEventListener('click', e => {
+    const c = e.target.closest('.chip[data-f]');
+    if (!c || !src) return;
+    const k = c.dataset.f;
+    if (k !== curFun) { sfx('select'); selectFun(k, true); }
+    // Tapping an effect that is off switches it on at a telling strength — nobody wants to hunt for it on the dial.
+    if (!Math.round(state[k])) dialFun.animateTo(k === 'jpeg' ? 60 : 85);
+  });
+  funChips.addEventListener('dblclick', e => { const c = e.target.closest('.chip[data-f]'); if (c && c.dataset.f === curFun) dialFun.animateTo(0); });
+  $('#funReset').onclick = () => dialFun.animateTo(0);
+
+  // ---------- Fun: deep fry ----------
+  let fryN = 0, fryT = 0;
+  function fry() {
+    if (!src) return;
+    clearTimeout(fryT); fryT = setTimeout(() => (fryN = 0), 6000);
+    fryN++;
+    const t = {
+      jpeg: clamp(state.jpeg + 18, 0, 100), saturation: clamp(state.saturation + 22, -100, 100), contrast: clamp(state.contrast + 16, -100, 100),
+      sharpness: clamp(state.sharpness + 25, 0, 100), warmth: clamp(state.warmth + 8, -100, 100),
+    };
+    const add = Array.from({ length: Math.random() < 0.5 ? 2 : 1 }, () => Brush.makeSticker(Fun.FRY[Math.floor(Math.random() * Fun.FRY.length)],
+      0.12 + Math.random() * 0.76, 0.12 + Math.random() * 0.76, 0.08 + Math.random() * 0.1, (Math.random() - 0.5) * 0.9));
+    state.ink = [...state.ink, ...add];
+    sfx('sizzle'); restart(photo, 'shake'); restart($('#fryBtn'), 'sizzling');
+    tweenTo(t, 420, () => { commit(`Зажарка ×${fryN}`); if (fryN >= 5) award('fry'); });
+    if (fryN === 1) toast('🔥 Жарим. Жмите ещё — будет хрустящее');
+    else if (fryN === 5) toast('🔥🔥🔥 Well done. Пиксели обуглились');
+  }
+  $('#fryBtn').onclick = fry;
+
+  // ---------- Fun: stickers ----------
+  let sticker = null, stickSize = 14;
+  const stickPop = $('#stickPop');
+  $('#stickGrid').innerHTML = Fun.STICKERS.map(e => `<button class="stk" data-e="${e}">${e}</button>`).join('');
+  function stickerMode(e) {
+    sticker = e || null;
+    photo.classList.toggle('sticking', !!sticker);
+    $('#stickerBtn').classList.toggle('on', !!sticker);
+    $$('.stk').forEach(b => b.classList.toggle('on', b.dataset.e === sticker));
+    if (!sticker) stickPop.classList.remove('open');
+    else photo.style.setProperty('--stk', `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><text x='20' y='29' font-size='28' text-anchor='middle'>${sticker}</text></svg>`)}") 20 20, crosshair`);
+  }
+  $('#stickerBtn').onclick = e => {
+    e.stopPropagation();
+    if (!stickPop.classList.contains('open')) {
+      const r = $('#stickerBtn').getBoundingClientRect();
+      stickPop.style.left = clamp(r.left + r.width / 2 - 160, 12, Math.max(12, innerWidth - 332)) + 'px';
+      stickPop.style.top = (r.top - 12) + 'px';
+      stickPop.classList.add('open');
+      if (!sticker) stickerMode(Fun.STICKERS[0]);
+      sfx('open');
+    } else { stickerMode(null); sfx('close'); }
+  };
+  stickPop.addEventListener('click', e => {
+    e.stopPropagation();
+    const b = e.target.closest('.stk');
+    if (b) { sfx('select'); stickerMode(b.dataset.e); }
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('#stickPop')) stickPop.classList.remove('open'); });
+  const stickSz = $('#stickSz');
+  const syncStickSz = () => { stickSz.value = stickSize; setRangeP(stickSz, stickSize); $('#stickSzVal').textContent = stickSize + '%'; };
+  stickSz.addEventListener('input', () => { stickSize = +stickSz.value; syncStickSz(); rangeTick(stickSz); });
+  syncStickSz();
+  photo.addEventListener('pointerdown', e => {
+    if (!sticker || e.button !== 0 || !src) return;
+    const [x, y] = inkPos(e);
+    state.ink = [...state.ink, Brush.makeSticker(sticker, x, y, stickSize / 100, (Math.random() - 0.5) * 0.5)];
+    paintInk(); commit();
+    sfx('pop', { rate: 0.85 + Math.random() * 0.35 });
+  });
+
+  // ---------- Fun: meme captions ----------
+  const MEMES = [['Когда открыл фоторедактор', 'и сразу нажал «Шакалы»'], ['Никто:', 'Абсолютно никто:'], ['Я фотограф', 'Я так вижу'],
+    ['Ожидание', 'Реальность'], ['Это не баг', 'Это фича'], ['Когда в пятницу вечером', 'просят выйти в субботу'], ['Мама, смотри', 'я дизайнер'],
+    ['Это фиаско', 'братан'], ['Сделал фото', 'Сделал хуже'], ['Кот одобрил', 'Значит шедевр']];
+  function openMeme() {
+    if (!src) return;
+    $('#memeTop').value = state.meme.top; $('#memeBot').value = state.meme.bottom;
+    openModal('#memeModal');
+    setTimeout(() => $('#memeTop').focus(), 120);
+  }
+  function liveMeme() { state.meme = { top: $('#memeTop').value, bottom: $('#memeBot').value }; paintInk(); }
+  ['#memeTop', '#memeBot'].forEach(s => {
+    $(s).addEventListener('input', liveMeme);
+    $(s).addEventListener('keydown', e => { if (e.key === 'Enter') $('#memeOk').click(); });
+  });
+  $('#memeRand').onclick = () => {
+    const m = MEMES[Math.floor(Math.random() * MEMES.length)];
+    $('#memeTop').value = m[0]; $('#memeBot').value = m[1];
+    liveMeme(); sfx('die');
+  };
+  $('#memeOk').onclick = () => closeModal();
+  $('#memeClear').onclick = () => { $('#memeTop').value = $('#memeBot').value = ''; liveMeme(); closeModal(); };
+  $('#memeBtn').onclick = openMeme;
+
+  // ---------- Fun: neural critic ----------
+  const CR_STEPS = ['Считаю пиксели…', 'Сверяюсь с Моной Лизой…', 'Советуюсь с котом…', 'Спорю с гистограммой…', 'Ищу горизонт…', 'Нагреваю нейроны…', 'Вспоминаю правило третей…'];
+  let crT = 0;
+  function openCritic() {
+    if (!src) return;
+    award('critic');
+    openModal('#criticModal');
+    runCritic();
+  }
+  function runCritic() {
+    clearTimeout(crT);
+    const body = $('#crBody'), bot = $('#crBot');
+    bot.textContent = '🧐'; bot.classList.add('think');
+    const steps = [...CR_STEPS].sort(() => Math.random() - 0.5).slice(0, 3);
+    body.innerHTML = `<div class="cr-load">${steps.map((s, i) => `<div class="cr-step" style="animation-delay:${i * 420}ms"><i></i>${s}</div>`).join('')}</div>`;
+    crT = setTimeout(() => {
+      const { d } = snapshot(300);
+      const st = Analysis.summarize(d.data, 2), eff = effective(state);
+      const r = Fun.critic(st, eff, {
+        changed: TOOLS.filter(t => Math.round(eff[t.k]) !== 0).length,
+        stickers: state.ink.filter(s => s.t === 'sticker').length,
+        meme: !!(state.meme.top || state.meme.bottom),
+      });
+      const num = typeof r.score === 'number';
+      bot.classList.remove('think');
+      bot.textContent = !num ? '🦊' : r.score >= 8.5 ? '🤩' : r.score >= 6 ? '🙂' : r.score >= 4 ? '😐' : '😬';
+      const stars = [1, 2, 3, 4, 5].map(i => `<i class="${i <= r.rating ? 'on' : ''}" style="animation-delay:${200 + i * 90}ms">★</i>`).join('');
+      body.innerHTML = `<div class="cr-score"><b>${num ? String(r.score).replace('.', ',') : r.score}</b><span>/10</span></div>` +
+        `<div class="cr-stars">${stars}</div><div class="cr-verdict">${esc(r.verdict)}</div>` +
+        `<ul class="cr-lines">${r.lines.map((l, i) => `<li style="animation-delay:${650 + i * 260}ms">${esc(l)}</li>`).join('')}</ul>`;
+      sfx(num && r.score < 4 ? 'error' : 'success');
+      if (r.score === 10) { award('masterpiece'); setTimeout(() => confetti(innerWidth / 2, innerHeight / 2, 140), 300); }
+    }, 1500);
+  }
+  $('#crAgain').onclick = runCritic;
+  $('#crOk').onclick = closeModal;
+  $('#crClose').onclick = closeModal;
+  $('#criticBtn').onclick = openCritic;
+
+  // ---------- Command palette ----------
+  let palItems = [], palSel = 0;
+  const lower = s => s.toLowerCase().replace(/ё/g, 'е');
+  function commands() {
+    const A = (n, g, run, k, ic) => ({ n, g, run, k: k || '', ic });
+    return [
+      A('Экспорт', 'Действие', openExport, 'Ctrl S', '⬇️'),
+      A('Открыть фото', 'Действие', () => $('#file').click(), 'Ctrl O', '🖼️'),
+      A('Отменить', 'Действие', () => go(-1), 'Ctrl Z', '↩️'),
+      A('Повторить', 'Действие', () => go(1), 'Ctrl ⇧ Z', '↪️'),
+      A('Сбросить все правки', 'Действие', () => $('#resetAll').click(), '', '🧽'),
+      A('Автоулучшение', 'Действие', () => src && autoEnhance(), '', '✨'),
+      A('Бросить кубик', 'Действие', () => $('#dice').click(), 'R', '🎲'),
+      A('Умная обрезка', 'Кадр', () => $('#smartCrop').click(), 'C', '✂️'),
+      A('Повернуть на 90°', 'Кадр', () => $('[data-act="rotL"]').click(), '', '🔄'),
+      A('Отразить по горизонтали', 'Кадр', () => $('[data-act="flipH"]').click(), '', '↔️'),
+      A('Сравнение шторкой', 'Вид', () => toggleSplit(), 'Y', '🪟'),
+      A('Сетка композиции', 'Вид', cycleGrid, 'O', '#️⃣'),
+      A('Пересветы и провалы', 'Вид', toggleClip, 'J', '⚠️'),
+      A('Гистограмма', 'Вид', () => toggleHist(), 'H', '📶'),
+      A('Графики и диаграммы', 'Вид', openCharts, 'G', '📊'),
+      A('Об изображении', 'Вид', openInfo, 'I', 'ℹ️'),
+      A('История правок', 'Вид', () => toggleHistPop(true), 'L', '🕘'),
+      A('Приблизить', 'Вид', () => setZoom(zoom * 1.5), '+', '🔍'),
+      A('Сменить тему', 'Приложение', () => $('#themeBtn').click(), 'T', '🌓'),
+      A('Настройки приложения', 'Приложение', openSettings, ',', '⚙️'),
+      A('Включить или выключить звук', 'Приложение', toggleSound, 'M', '🔊'),
+      A('Горячие клавиши', 'Приложение', openKeys, '?', '⌨️'),
+      A('Достижения', 'Приложение', openAch, '', '🏆'),
+      A('Скопировать настройки', 'Приложение', copySettings, 'Ctrl ⇧ C', '📋'),
+      A('Вставить настройки', 'Приложение', pasteSettings, 'Ctrl ⇧ V', '📥'),
+      A('Показать обучение', 'Приложение', startTour, '', '🎓'),
+      A('Зажарить', 'Приколы', fry, 'F', '🔥'),
+      A('Мем-текст', 'Приколы', openMeme, '', '💬'),
+      A('Нейрокритик', 'Приколы', openCritic, '', '🧐'),
+      A('Стикеры', 'Приколы', () => { setTab(TAB.fun); stickerMode(sticker || Fun.STICKERS[0]); }, '', '😎'),
+      A('Кривые', 'Цвет', () => setTab(TAB.color), '', '📈'),
+      A('Тонирование теней и светов', 'Цвет', () => { setTab(TAB.color); setColorMode('grade'); }, '', '🌗'),
+      ...Tone.BANDS.map((b, i) => A(`HSL: ${b.n.toLowerCase()}`, 'Цвет', () => { setTab(TAB.color); setColorMode('hsl'); selBand(i); }, '', '🎨')),
+      ...TOOLS.map(t => A(t.n, 'Настройка', () => { setTab(TAB.adj); selectTool(t.k, true); }, '', '🎛️')),
+      ...FUNS.map(f => A(f.n, 'Эффект', () => { setTab(TAB.fun); selectFun(f.k, true); }, '', f.e)),
+      ...allPresets().map(p => A(p.n, 'Фильтр', () => applyPreset(p.id), '', '🎞️')),
+      ...Object.keys(SCENES).map(k => A(SCENES[k], 'Пример', () => loadScene(k), '', '🏞️')),
+    ];
+  }
+  function renderPalette() {
+    const toks = lower($('#palQ').value.trim()).split(/\s+/).filter(Boolean), all = commands();
+    palItems = !toks.length ? all.slice(0, 40) : all.map(c => {
+      const hay = lower(c.n + ' ' + c.g), n = lower(c.n);
+      if (!toks.every(t => hay.includes(t))) return null;
+      return { c, s: n.startsWith(toks[0]) ? 0 : n.split(/[\s:]+/).some(w => w.startsWith(toks[0])) ? 1 : 2 };
+    }).filter(Boolean).sort((a, b) => a.s - b.s).map(x => x.c).slice(0, 40);
+    palSel = clamp(palSel, 0, Math.max(0, palItems.length - 1));
+    $('#palList').innerHTML = palItems.map((c, i) =>
+      `<button class="pal-row${i === palSel ? ' on' : ''}" data-i="${i}" role="option"><em>${c.ic}</em><span>${esc(c.n)}</span><small>${esc(c.g)}</small>${c.k ? `<kbd>${esc(c.k)}</kbd>` : ''}</button>`).join('') ||
+      '<div class="pal-empty">Ничего не нашлось. Попробуйте «кривые» или «шакал»</div>';
+  }
+  function markPal() {
+    $$('.pal-row').forEach((r, i) => r.classList.toggle('on', i === palSel));
+    const on = $('.pal-row.on');
+    if (on) on.scrollIntoView({ block: 'nearest' });
+  }
+  function openPalette() {
+    $('#palQ').value = ''; palSel = 0; renderPalette();
+    openModal('#paletteModal');
+    setTimeout(() => $('#palQ').focus(), 50);
+    award('hacker');
+  }
+  function runPal(i) {
+    const c = palItems[i];
+    if (!c) return;
+    closeModal(true);
+    setTimeout(c.run, 30);
+  }
+  $('#palQ').addEventListener('input', () => { palSel = 0; renderPalette(); });
+  $('#palQ').addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      palSel = clamp(palSel + (e.key === 'ArrowDown' ? 1 : -1), 0, Math.max(0, palItems.length - 1));
+      markPal(); sfx('tick', { gain: 0.7 });
+    } else if (e.key === 'Enter') { e.preventDefault(); runPal(palSel); }
+  });
+  $('#palList').addEventListener('click', e => { const r = e.target.closest('.pal-row'); if (r) runPal(+r.dataset.i); });
+  $('#palList').addEventListener('pointermove', e => {
+    const r = e.target.closest('.pal-row');
+    if (r && +r.dataset.i !== palSel) { palSel = +r.dataset.i; markPal(); }
+  });
+  $('#paletteBtn').onclick = openPalette;
+
+  // ---------- Shortcuts sheet ----------
+  const KEYS = [
+    ['Правка', [['Ctrl Z', 'Отменить'], ['Ctrl ⇧ Z', 'Повторить'], ['Ctrl ⇧ C', 'Скопировать настройки'], ['Ctrl ⇧ V', 'Вставить настройки'], ['R', 'Бросить кубик'], ['C', 'Умная обрезка'], ['F', 'Зажарить']]],
+    ['Вид', [['Пробел', 'Оригинал, пока удерживаете'], ['Y', 'Сравнение шторкой'], ['O', 'Сетка композиции'], ['J', 'Пересветы и провалы'], ['H', 'Гистограмма'], ['G', 'Графики'], ['I', 'Об изображении'], ['L', 'История правок'], ['+ − 0', 'Зум']]],
+    ['Приложение', [['Ctrl K', 'Палитра команд'], ['Ctrl O', 'Открыть фото'], ['Ctrl S', 'Экспорт'], ['1…6', 'Вкладки'], ['T', 'Тема'], ['M', 'Звук'], [',', 'Настройки'], ['?', 'Эта шпаргалка'], ['Esc', 'Закрыть окно']]],
+  ];
+  function openKeys() {
+    $('#keysList').innerHTML = KEYS.map(([g, list]) => `<div class="kgroup"><h3>${g}</h3><div class="rows">${list.map(([k, d]) =>
+      `<div class="krow"><span>${esc(d)}</span><span class="kk">${k.split(' ').map(x => `<kbd>${esc(x)}</kbd>`).join('')}</span></div>`).join('')}</div></div>`).join('');
+    openModal('#keysModal');
+  }
+  $('#keysClose').onclick = closeModal;
+
+  // ---------- Easter eggs ----------
+  const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+  let kI = 0, partyT = 0;
+  function konami(e) {
+    kI = e.code === KONAMI[kI] ? kI + 1 : e.code === KONAMI[0] ? 1 : 0;
+    if (kI === KONAMI.length) { kI = 0; party(); }
+  }
+  function party() {
+    award('konami');
+    document.body.classList.add('party');
+    sfx('achieve');
+    for (let i = 0; i < 5; i++) setTimeout(() => confetti(innerWidth * (0.15 + Math.random() * 0.7), innerHeight * 0.4, 70), i * 260);
+    toast('🎮 Режим вечеринки: +30 к вайбу');
+    clearTimeout(partyT); partyT = setTimeout(() => document.body.classList.remove('party'), 9000);
+  }
+  if (document.fonts) Promise.all(['40px Anton', '40px VT323'].map(f => document.fonts.load(f))).then(() => paintInk()).catch(() => {});
+  updAchCount();
+
   // ---------- Boot ----------
   applySettings();
   applyZoom();
@@ -3889,6 +5899,8 @@ window.Scenes = (() => {
   loadScene('day');
   if (!Engine.webgl) setTimeout(() => toast('WebGL недоступен — цветокоррекция отключена', null, null, true), 800);
   const seenTour = store.get('lumen.tour', 0);
+  const hr = new Date().getHours();
+  if (hr < 5) setTimeout(() => award('owl'), 4000);
   if (!seenTour) setTimeout(startTour, 950);
   else if (settings.promo && !store.get('lumen.promoHidden', false)) setTimeout(() => showPromo(true), 2600);
 })();

@@ -11,10 +11,9 @@ test('index.html is in sync with sources (run `npm run build`)', () => {
 });
 
 test('build keeps `$` sequences from sources literally', () => {
-  const out = build('<style>x</style><script>a</script><script>b</script><script>c</script><script>d</script><script>e</script>');
-  assert.ok(out.includes(read('js/app.js').trimEnd()));
-  assert.ok(out.includes(read('js/analysis.js').trimEnd()));
-  assert.throws(() => build('<style></style><script></script>'), /expected 5/);
+  const out = build('<style>x</style>' + '<script>s</script>'.repeat(8));
+  for (const f of ['js/app.js', 'js/analysis.js', 'js/tone.js', 'js/sound.js', 'js/fun.js']) assert.ok(out.includes(read(f).trimEnd()), f);
+  assert.throws(() => build('<style></style><script></script>'), /expected 8/);
 });
 
 test('every demo scene has a sample button, a title and a painter', () => {
@@ -113,4 +112,29 @@ test('backdrop is not re-rendered on edits', () => {
   // Anything more means an edit path is repainting it and making the whole background flash.
   assert.equal([...app.matchAll(/(?<!function )\bambient\(\)/g)].length, 2);
   assert.match(app, /setImage[\s\S]*?buildThumbs\(\); ambient\(\);/);
+});
+
+test('v4: colour tab, fun tab and every new window are wired', () => {
+  for (let t = 0; t < 6; t++) {
+    assert.match(html, new RegExp(`data-tab="${t}"`));
+    assert.match(html, new RegExp(`data-panel="${t}"`));
+  }
+  for (const id of ['curveCv', 'curveCh', 'colorMode', 'bands', 'curvePre', 'colorReset', 'dialFun', 'funChips', 'fryBtn', 'stickerBtn', 'memeBtn', 'criticBtn',
+    'paletteModal', 'palQ', 'memeModal', 'criticModal', 'keysModal', 'achModal', 'histPop', 'stickPop', 'split', 'gridOv', 'status',
+    'splitBtn', 'gridBtn', 'clipBtn', 'histList', 'soundBtn', 'paletteBtn', 'setPack', 'setVol', 'confetti', 'achPop'])
+    assert.match(html, new RegExp(`id="${id}"`), id);
+  for (const k of ['0', '1', '2']) assert.match(html, new RegExp(`data-hsl="${k}"`));
+  for (const k of ['shHue', 'shSat', 'hiHue', 'hiSat', 'gBal']) assert.match(html, new RegExp(`data-g="${k}"`), k);
+  assert.match(html, /data-set="sound"/);
+});
+
+test('v4: new state travels through history, effective() and the engine', () => {
+  const app = read('js/app.js'), eng = read('js/engine.js');
+  assert.match(app, /curve: Tone\.freshCurve\(\), hsl: Tone\.freshHsl\(\), meme: \{ top: '', bottom: '' \}/);
+  assert.match(app, /o\.lut = lutFor\(o\.lutKey, c\)/);
+  assert.match(app, /\{ \.\.\.effective\(state\), clip: clipOn \}/); // clipping shows in the preview…
+  assert.doesNotMatch(app, /renderFull[^\n]*clip/);                 // …never in the export
+  for (const k of ['jpeg', 'thermal', 'gameboy', 'vhs', 'acid', 'pixel', 'nightvision']) assert.match(eng, new RegExp(`${k}: '`), k);
+  assert.match(eng, /s\.lutKey !== lutKey/); // the table is uploaded only when the curve changed
+  assert.match(app, /if \(!Sound\.PACKS\.some\(x => x\.id === settings\.pack\)\)/);
 });
